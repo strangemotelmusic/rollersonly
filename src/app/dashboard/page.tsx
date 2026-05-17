@@ -190,7 +190,7 @@ export default function DashboardPage() {
             <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: 24, borderRadius: 2 }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 16 }}>◆ Elite Loft</div>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Your Plan</div>
-              <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>Unlimited listings, verified pedigree, featured placement, AI matchmaking, QSDC Magazine access.</p>
+              <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>Unlimited listings, verified pedigree, featured placement, AI matchmaking, and priority auction placement.</p>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>Renews</div>
               <div style={{ fontSize: 14, color: "var(--white)", marginBottom: 16 }}>June 1, 2025</div>
               <a href="mailto:strangemotelmusic@gmail.com" style={{ display: "block", textAlign: "center", padding: 10, border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, textDecoration: "none", borderRadius: 1, letterSpacing: "0.08em", textTransform: "uppercase" }}>Manage Subscription</a>
@@ -202,7 +202,6 @@ export default function DashboardPage() {
                 { label: "Register a Bird", href: "/signup" },
                 { label: "Add to Pedigree Vault", href: "/pedigree" },
                 { label: "View Leaderboards", href: "/leaderboards" },
-                { label: "Read QSDC Magazine", href: "/magazine" },
                 { label: "Contact Support", href: "mailto:strangemotelmusic@gmail.com" },
               ].map(({ label, href }) => (
                 <Link key={label} href={href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "0.5px solid var(--border)", fontSize: 13, color: "var(--muted)", textDecoration: "none" }}>

@@ -333,7 +333,6 @@ export default function Home() {
               <li><Link href="/browse">Browse Birds</Link></li>
               <li><Link href="/pedigree">Pedigree Vault</Link></li>
               <li><Link href="/leaderboards">Leaderboards</Link></li>
-              <li><Link href="/magazine">QSDC Magazine</Link></li>
             </ul>
           </div>
           <div>
