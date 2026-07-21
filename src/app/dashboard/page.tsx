@@ -150,7 +150,7 @@ export default async function DashboardPage() {
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <Link href="/pedigree" className="btn-ghost" style={{ fontSize: 11 }}>Pedigree Vault</Link>
-              <Link href="/signup" className="btn-gold" style={{ fontSize: 11 }}>List a Bird</Link>
+              <Link href="/list-bird" className="btn-gold" style={{ fontSize: 11 }}>List a Bird</Link>
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
             <section style={{ marginBottom: 48 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div style={{ fontFamily: "var(--ff-display)", fontSize: 24, fontWeight: 300, color: "var(--white)" }}>My Listings</div>
-                <Link href="/signup" className="btn-gold" style={{ fontSize: 11, padding: "8px 18px" }}>+ List New Bird</Link>
+                <Link href="/list-bird" className="btn-gold" style={{ fontSize: 11, padding: "8px 18px" }}>+ List New Bird</Link>
               </div>
               {myListings.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--muted)" }}>You haven&apos;t listed any birds yet.</p>
@@ -294,7 +294,7 @@ export default async function DashboardPage() {
             <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Quick Actions</div>
               {[
-                { label: "Register a Bird", href: "/signup" },
+                { label: "Register a Bird", href: "/list-bird" },
                 { label: "Add to Pedigree Vault", href: "/pedigree" },
                 { label: "View Leaderboards", href: "/leaderboards" },
                 { label: "Contact Support", href: "mailto:strangemotelmusic@gmail.com" },
