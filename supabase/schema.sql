@@ -1,128 +1,209 @@
-  git config --global user.name "strangemotelmusic"
-  git config --global user.email "strangemotelmusic@gmail.com"
+-- RollersOnly — live schema as deployed in Supabase, captured 2026-07-21
+-- via information_schema/pg_catalog introspection. This is documentation of
+-- the ACTUAL live schema, not a migration to (re-)run. Regenerate by asking
+-- Claude to re-run the schema-introspection query from the SQL Editor.
+--
+-- RLS is enabled on every table below. Every table has a public SELECT
+-- policy (qual: true) — the marketplace is readable by anyone, signed in or
+-- not. INSERT/UPDATE policies check auth.uid() against an owner column.
+-- No DELETE policies exist on any table — nothing can be deleted via the
+-- client (anon/authenticated roles), only via the service role key.
+-- No Storage buckets exist yet (bird-photos, avatars, etc. need creating).
 
-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  GITHUB PERSONAL TOKEN 
+create table profiles (
+  id uuid primary key references auth.users(id),
+  username text not null,
+  full_name text,
+  avatar_url text,
+  location text,
+  bio text,
+  tier text not null default 'fancier', -- 'fancier' | 'breeder' | 'elite' — currently self-reported at signup, NOT payment-verified
+  is_verified boolean default false,
+  stripe_customer_id text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+-- policies: insert/update/select-own via auth.uid() = id; select-all (public) also allowed
 
- ---
-  The Stack You Already Have
-  
-  - Supabase — auth, database (12 tables already deployed), realtime, file storage
-  - Next.js — frontend (done)
-  - Stripe — payments/escrow (not yet wired)
-  - OpenAI — AI matchmaker (future)
+create table lofts (
+  id uuid primary key default uuid_generate_v4(),
+  owner_id uuid not null references profiles(id),
+  name text not null,
+  slug text not null,
+  location text,
+  country text,
+  description text,
+  logo_url text,
+  banner_url text,
+  is_elite boolean default false,
+  elite_verified_at timestamptz,
+  total_birds_sold integer default 0,
+  total_championships integer default 0,
+  rating numeric default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+-- policies: owner insert/update via auth.uid() = owner_id; select public
 
-  The database schema is already live. Auth code is already written in signin/signup. Realtime bid subscription is already in
-  AuctionRoom. The foundation is real — it just needs to be connected.
+create table birds (
+  id uuid primary key default uuid_generate_v4(),
+  platform_id text not null, -- public-facing ring/lot identifier shown to buyers
+  loft_id uuid references lofts(id),
+  owner_id uuid not null references profiles(id),
+  name text,
+  ring_number text,
+  sex text,
+  color text,
+  mutation text,
+  birth_year integer,
+  birth_month integer,
+  sire_id uuid references birds(id),
+  dam_id uuid references birds(id),
+  fly_score numeric,
+  kit_score numeric,
+  roll_quality text,
+  health_certified boolean default false,
+  health_cert_date date,
+  health_cert_url text,
+  dna_certified boolean default false,
+  dna_cert_date date,
+  dna_cert_url text,
+  primary_photo_url text,
+  is_active boolean default true,
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+-- policies: owner insert/update via auth.uid() = owner_id; select public
 
-  ---
-  Phase 1 — Auth & Sessions (1–2 days)
-  
-  What's needed:
-  - Email confirmation flow (Supabase sends a verify email on signup — needs to be enabled in Supabase dashboard)
-  - Protected routes — if you're not signed in and hit /dashboard, redirect to /signin
-  - Session persistence — stay logged in across page refreshes
-  - Nav shows your name/avatar when signed in instead of "Sign In"
-  
-  What already works: supabase.auth.signUp() and signInWithPassword() are already wired. Users can technically sign up right now —
-  emails just aren't verified yet.
+create table bird_photos (
+  id uuid primary key default uuid_generate_v4(),
+  bird_id uuid not null references birds(id),
+  url text not null,
+  is_primary boolean default false,
+  sort_order integer default 0,
+  created_at timestamptz default now()
+);
+-- policies: insert only if bird_id's owner_id = auth.uid(); select public
 
-  ---
-  Phase 2 — Image Uploads & Storage (2–3 days)
+create table bird_results (
+  id uuid primary key default uuid_generate_v4(),
+  bird_id uuid not null references birds(id),
+  competition_name text not null,
+  competition_date date,
+  placement integer,
+  score numeric,
+  category text,
+  organization text,
+  verified boolean default false,
+  notes text,
+  created_at timestamptz default now()
+);
+-- no policies captured for this table specifically (check RLS before use)
 
-  What's needed:
-  - Create Supabase Storage buckets: bird-photos, fly-videos, profile-avatars
-  - Set bucket policies (public read, authenticated write)
-  - Build an upload form component that:
-    - Lets breeders drag/drop or select photos
-    - Uploads to Supabase Storage, gets back a public URL
-    - Saves URL to the bird_photos table
-  - Show real uploaded photos on bird listing pages
-  
-  This unlocks: breeders can actually submit birds with their own photos
+create table competitions (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  organization text not null,
+  season text,
+  location text,
+  competition_date date,
+  category text,
+  is_verified boolean default false,
+  created_at timestamptz default now()
+);
+-- policies: select public
 
-  ---
-  Phase 3 — Bird Listings CRUD (3–4 days)
-  
-  What's needed:
-  - "List a Bird" form on the dashboard (ring number, color, sex, breed, description, opening bid, auction date)
-  - Save to birds table + auctions table in Supabase
-  - Browse page reads from the database instead of the hardcoded array
-  - Bird listing page (/birds/[id]) fetches real bird data by ID 
-  - Breeder can edit/delete their own listings
-  
-  This unlocks: real birds listed by real breeders show up for real buyers
+create table leaderboard_entries (
+  id uuid primary key default uuid_generate_v4(),
+  competition_id uuid not null references competitions(id),
+  loft_id uuid not null references lofts(id),
+  bird_id uuid references birds(id),
+  placement integer not null,
+  score numeric,
+  kit_size integer,
+  notes text,
+  created_at timestamptz default now()
+);
+-- policies: select public (no insert policy captured — likely service-role only)
 
-  ---
-  Phase 4 — Live Bidding (2–3 days)
-  
-  What's needed:
-  - "Place Bid" button writes a row to the bids table
-  - AuctionRoom realtime subscription (already written) picks it up and updates the UI instantly for all watchers
-  - Bid validation: new bid must be higher than current highest
-  - Auction closes when countdown hits zero — winner recorded
-  
-  What already works: the realtime subscription code in AuctionRoom.tsx is already there. It just needs real auction IDs and real bids
-  in the database.
+create table auctions (
+  id uuid primary key default uuid_generate_v4(),
+  bird_id uuid not null references birds(id),
+  seller_id uuid not null references profiles(id),
+  loft_id uuid references lofts(id),
+  title text not null,
+  description text,
+  reserve_price numeric not null default 0,
+  starting_bid numeric not null,
+  current_bid numeric,
+  buy_now_price numeric,
+  bid_increment numeric not null default 25,
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  status text not null default 'scheduled', -- observed default only; full enum of values not confirmed
+  video_url text,
+  video_submitted_at timestamptz,
+  winner_id uuid references profiles(id),
+  final_price numeric,
+  escrow_held boolean default false,
+  escrow_released boolean default false,
+  escrow_released_at timestamptz,
+  shipping_confirmed_at timestamptz,
+  buyer_confirmed_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+-- policies: seller insert/update via auth.uid() = seller_id; select public
 
-  ---
-  Phase 5 — Dashboard with Real Data (2–3 days)
+create table bids (
+  id uuid primary key default uuid_generate_v4(),
+  auction_id uuid not null references auctions(id),
+  bidder_id uuid not null references profiles(id),
+  amount numeric not null,
+  is_winning boolean default false,
+  created_at timestamptz default now()
+);
+-- policies: insert via auth.uid() = bidder_id; select public; no update policy (is_winning must be maintained server-side/service-role)
 
-  What's needed:
-  - Dashboard fetches real user profile from profiles table
-  - "My Listings" shows birds from birds table where owner_id = current user
-  - "Active Bids" shows bids from bids table where bidder_id = current user
-  - "Recent Sales" shows completed auctions
-  - Notifications pull from real bid events
+create table fly_videos (
+  id uuid primary key default uuid_generate_v4(),
+  loft_id uuid not null references lofts(id),
+  uploader_id uuid not null references profiles(id),
+  title text not null,
+  video_url text not null,
+  thumbnail_url text,
+  competition_id uuid references competitions(id),
+  description text,
+  view_count integer default 0,
+  created_at timestamptz default now()
+);
+-- policies: insert via auth.uid() = uploader_id; select public
 
-  ---
-  Phase 6 — Pedigree Registry (2–3 days)
+create table loft_reviews (
+  id uuid primary key default uuid_generate_v4(),
+  loft_id uuid not null references lofts(id),
+  reviewer_id uuid not null references profiles(id),
+  auction_id uuid references auctions(id),
+  rating integer not null,
+  body text,
+  created_at timestamptz default now()
+);
+-- policies: insert via auth.uid() = reviewer_id; select public
 
-  What's needed:
-  - "Register a Bird" form that saves to birds with sire_id and dam_id fields
-  - Pedigree tree on /pedigree renders from real database relationships
-  - Search by ring number queries the database
+create table matchmaking_requests (
+  id uuid primary key default uuid_generate_v4(),
+  requester_id uuid not null references profiles(id),
+  bird_a_id uuid not null references birds(id),
+  bird_b_id uuid not null references birds(id),
+  ai_analysis text,
+  inbreeding_coefficient numeric,
+  recommendation text,
+  common_ancestors jsonb,
+  created_at timestamptz default now()
+);
+-- policies: insert via auth.uid() = requester_id; select own only (not public)
 
-  ---
-  Phase 7 — Payments / Escrow (1 week)
-
-  What's needed:
-  - Stripe account (free to create)
-  - Stripe Connect — lets breeders connect their own bank account to receive payouts
-  - When auction closes: charge buyer's card → funds held in Stripe
-  - When buyer confirms delivery: release funds to seller's connected account
-  - Dispute flow: hold funds if buyer opens a claim
-  
-  This is the most complex piece but also the most important for trust.
-
-  ---
-  Phase 8 — AI Matchmaker (2–3 days once pedigree data exists)
-
-  What's needed:
-  - OpenAI API key
-  - Server-side API route that takes a bird's pedigree and queries OpenAI
-  - Returns suggested breeding pairs from the platform's registered birds
-  - Show results in a clean UI on the dashboard
-
-  ---
-  Recommended Order
-
-  Phase 1 → Auth & sessions         ← do this first, everything depends on it
-  Phase 2 → Image uploads           ← breeders need this to list real birds
-  Phase 3 → Bird listings CRUD      ← core marketplace function
-  Phase 4 → Live bidding            ← the main event
-  Phase 5 → Real dashboard          ← flows naturally after 1–4
-  Phase 6 → Pedigree registry       ← differentiator feature
-  Phase 7 → Stripe payments         ← required before real money moves
-  Phase 8 → AI matchmaker           ← premium feature, last
-
-  ---
-  What You Need to Do Outside of Code
-  
-  1. Supabase dashboard — enable email confirmation, create Storage buckets
-  2. Stripe — create account, set up Connect for marketplace payouts
-  3. Domain — point your custom domain to Vercel (if not done)
-  4. OpenAI — API key when you're ready for Phase 8
-
-  ---
-  Where do you want to start? Phase 1 (auth + protected routes) is the natural first move — once sessions work, everything else builds
-  on top of it.
+-- Not yet built: no table exists for magazine content ("Decade of the Spinner").
+-- Needs its own table (e.g. magazine_issues) plus a paid-tier gate — profiles.tier
+-- is the natural gate column, but only once Stripe actually writes to it.

@@ -2,16 +2,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 const tiers = [
+  { id: "browse", name: "Browse Only", price: 0, desc: "Explore listings, lofts, and pedigrees — no bidding or selling" },
   { id: "fancier", name: "Fancier", price: 19, desc: "Browse, bid, and buy with full buyer protection" },
-  { id: "breeder", name: "Breeder", price: 49, desc: "List birds, build your loft profile, QSDC included", popular: true },
+  { id: "breeder", name: "Breeder", price: 49, desc: "List birds, build your loft profile, Decade of the Spinner included", popular: true },
   { id: "elite", name: "Elite Loft", price: 149, desc: "Featured placement, Elite badge, championship priority" },
 ];
 
 export default function SignupPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [step, setStep] = useState(1);
   const [tier, setTier] = useState("breeder");
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", username: "", password: "", country: "United States" });
@@ -24,17 +26,45 @@ export default function SignupPage() {
   async function handleSignup() {
     setLoading(true);
     setError("");
-    const { error: err } = await supabase.auth.signUp({
+    const fullName = `${form.firstName} ${form.lastName}`;
+    const { data, error: err } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { username: form.username, full_name: `${form.firstName} ${form.lastName}`, tier } },
+      options: { data: { username: form.username, full_name: fullName, tier } },
     });
+    if (err) { setLoading(false); setError(err.message); return; }
+
+    // Only insert the profile row if signUp returned an active session — if
+    // email confirmation is required, data.user exists but there's no
+    // session yet, so this request is unauthenticated and RLS (auth.uid() =
+    // id) will reject it. In that case the dashboard's own defensive
+    // upsert-on-first-load creates the profile once the user actually
+    // confirms and signs in.
+    if (data.session && data.user) {
+      const { error: profileErr } = await supabase.from("profiles").upsert({
+        id: data.user.id,
+        username: form.username,
+        full_name: fullName,
+        tier,
+      });
+      if (profileErr) { setLoading(false); setError(profileErr.message); return; }
+    }
+
     setLoading(false);
-    if (err) { setError(err.message); return; }
     setStep(3);
   }
 
   async function handleLoftSetup() {
+    if (loft.name) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const slug = loft.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        await supabase.from("lofts").upsert(
+          { owner_id: user.id, name: loft.name, location: loft.location, description: loft.description, slug },
+          { onConflict: "slug" }
+        );
+      }
+    }
     setStep(4);
   }
 
@@ -55,7 +85,7 @@ export default function SignupPage() {
           {[
             { icon: "◆", title: "Verified pedigree registry", desc: "Every bird gets a locked, tamper-proof bloodline record" },
             { icon: "🔒", title: "Escrow-protected payments", desc: "Funds held until you confirm arrival and condition" },
-            { icon: "★", title: "QSDC Magazine included", desc: "Full digital access with Breeder and Elite Loft plans" },
+            { icon: "★", title: "Decade of the Spinner included", desc: "Full digital access with Breeder and Elite Loft plans" },
             { icon: "✓", title: "500K+ global community", desc: "North America, Europe, Middle East, Asia-Pacific" },
           ].map((t) => (
             <div key={t.title} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -102,7 +132,9 @@ export default function SignupPage() {
                     </div>
                     <div style={{ fontSize: 12, color: "var(--muted)" }}>{t.desc}</div>
                   </div>
-                  <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)" }}>${t.price}<span style={{ fontSize: 13, color: "var(--muted)" }}>/mo</span></div>
+                  <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)" }}>
+                    {t.price === 0 ? "Free" : (<>${t.price}<span style={{ fontSize: 13, color: "var(--muted)" }}>/mo</span></>)}
+                  </div>
                 </div>
               ))}
             </div>
@@ -169,7 +201,7 @@ export default function SignupPage() {
             <div style={{ fontFamily: "var(--ff-display)", fontSize: 42, fontWeight: 300, color: "var(--white)", marginBottom: 16 }}>You&apos;re in.</div>
             <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--gold)", fontStyle: "italic", marginBottom: 24 }}>Welcome to RollersOnly.</div>
             <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 400, margin: "0 auto 40px" }}>Your account is active. Head to your dashboard to complete your loft profile and register your first bird.</p>
-            <button className="btn-gold-lg" onClick={() => router.push("/dashboard")}>Enter Your Dashboard →</button>
+            <button className="btn-gold-lg" onClick={() => { router.push("/dashboard"); router.refresh(); }}>Enter Your Dashboard →</button>
           </div>
         )}
       </div>

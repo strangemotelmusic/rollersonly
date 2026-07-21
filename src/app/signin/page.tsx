@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignInPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,6 +19,7 @@ export default function SignInPage() {
     setLoading(false);
     if (err) { setError(err.message); return; }
     router.push("/dashboard");
+    router.refresh();
   }
 
   const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
@@ -37,7 +39,7 @@ export default function SignInPage() {
           Sign in to access your birds, active bids, auction schedule, and pedigree registry.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: "auto" }}>
-          {[["◆", "Verified pedigrees"],["🔒", "Escrow-protected"],["★", "QSDC Magazine"],["✓", "Global community"]].map(([icon, text]) => (
+          {[["◆", "Verified pedigrees"],["🔒", "Escrow-protected"],["★", "Decade of the Spinner"],["✓", "Global community"]].map(([icon, text]) => (
             <div key={text} style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <span style={{ color: "var(--gold)" }}>{icon}</span>
               <span style={{ fontSize: 13, color: "var(--muted)" }}>{text}</span>
