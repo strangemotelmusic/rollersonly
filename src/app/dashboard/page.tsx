@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
+import BillingBox from "./BillingBox";
 
 const tierLabel: Record<string, string> = {
   browse: "Browse Only",
@@ -24,6 +25,12 @@ export default async function DashboardPage() {
   }
 
   const profile = await ensureProfile(user);
+
+  const { data: billingProfile } = await supabase
+    .from("profiles")
+    .select("stripe_customer_id")
+    .eq("id", user.id)
+    .maybeSingle();
 
   const { data: loft } = await supabase
     .from("lofts")
@@ -269,12 +276,7 @@ export default async function DashboardPage() {
           {/* SIDEBAR */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-            <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: 24, borderRadius: 2 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 16 }}>◆ {tier}</div>
-              <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Your Plan</div>
-              <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>Unlimited listings, verified pedigree, featured placement, AI matchmaking, and priority auction placement.</p>
-              <a href="mailto:strangemotelmusic@gmail.com" style={{ display: "block", textAlign: "center", padding: 10, border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, textDecoration: "none", borderRadius: 1, letterSpacing: "0.08em", textTransform: "uppercase" }}>Manage Subscription</a>
-            </div>
+            <BillingBox tierLabel={tier} currentTier={profile?.tier ?? "browse"} hasStripeCustomer={Boolean(billingProfile?.stripe_customer_id)} />
 
             <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Quick Actions</div>

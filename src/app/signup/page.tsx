@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { createCheckoutSession } from "@/app/actions/stripe";
 
 const tiers = [
   { id: "browse", name: "Browse Only", price: 0, desc: "Explore listings, lofts, and pedigrees — no bidding or selling" },
@@ -40,14 +41,24 @@ export default function SignupPage() {
     // id) will reject it. In that case the dashboard's own defensive
     // upsert-on-first-load creates the profile once the user actually
     // confirms and signs in.
+    //
+    // tier is always 'browse' here regardless of what was selected - only
+    // the Stripe webhook ever upgrades it, once payment actually succeeds.
+    // Picking a paid plan below just kicks off checkout for that plan.
     if (data.session && data.user) {
       const { error: profileErr } = await supabase.from("profiles").upsert({
         id: data.user.id,
         username: form.username,
         full_name: fullName,
-        tier,
+        tier: "browse",
       });
       if (profileErr) { setLoading(false); setError(profileErr.message); return; }
+    }
+
+    if (tier !== "browse" && data.session) {
+      const result = await createCheckoutSession(tier);
+      if (result?.error) { setLoading(false); setError(result.error); return; }
+      return; // createCheckoutSession redirects on success
     }
 
     setLoading(false);

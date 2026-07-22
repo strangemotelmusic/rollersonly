@@ -20,7 +20,10 @@ export async function ensureProfile(user: User) {
 
   const baseUsername = user.user_metadata?.username || user.email!.split("@")[0];
   const fullName = user.user_metadata?.full_name;
-  const tier = user.user_metadata?.tier || "fancier";
+  // Never trust user_metadata.tier here - that's just what they picked at
+  // signup, not proof of payment. Only the Stripe webhook ever sets a paid
+  // tier once a subscription actually goes active.
+  const tier = "browse";
 
   const { data: created, error } = await admin
     .from("profiles")
