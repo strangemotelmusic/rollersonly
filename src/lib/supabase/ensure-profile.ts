@@ -18,16 +18,27 @@ export async function ensureProfile(user: User) {
 
   if (existing) return existing;
 
-  const { data: created } = await admin
+  const baseUsername = user.user_metadata?.username || user.email!.split("@")[0];
+  const fullName = user.user_metadata?.full_name;
+  const tier = user.user_metadata?.tier || "fancier";
+
+  const { data: created, error } = await admin
     .from("profiles")
-    .upsert({
-      id: user.id,
-      username: user.user_metadata?.username || user.email!.split("@")[0],
-      full_name: user.user_metadata?.full_name,
-      tier: user.user_metadata?.tier || "fancier",
-    })
+    .upsert({ id: user.id, username: baseUsername, full_name: fullName, tier })
     .select("id, username, full_name, tier")
     .maybeSingle();
 
-  return created;
+  if (!error) return created;
+
+  // Username collision (or any other transient failure) - retry once with a
+  // guaranteed-unique username derived from the user's id rather than
+  // leaving them with no profile row at all, which breaks every insert that
+  // references profiles(id) as a FK (birds, auctions, bids, lofts).
+  const { data: retried } = await admin
+    .from("profiles")
+    .upsert({ id: user.id, username: `${baseUsername}_${user.id.slice(0, 6)}`, full_name: fullName, tier })
+    .select("id, username, full_name, tier")
+    .maybeSingle();
+
+  return retried;
 }
