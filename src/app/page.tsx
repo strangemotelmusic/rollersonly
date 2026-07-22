@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Countdown from "@/components/Countdown";
+import Nav from "@/components/Nav";
 
 const tickerItems = [
   "Blue Bar Champion Cock — Sold $1,850",
@@ -45,24 +46,10 @@ const features = [
   { num: "05", title: "Escrow-Protected Payments", desc: "Buyer funds held until arrival confirmed. First platform to offer true escrow protection for roller pigeon transactions globally.", href: "/how-it-works" },
 ];
 
-export default function Home() {
+export default async function Home() {
   return (
     <>
-      {/* NAV */}
-      <nav>
-        <Link href="/" className="nav-logo">Rollers<span>Only</span></Link>
-        <ul className="nav-links">
-          <li><Link href="/auctions">Live Auctions</Link></li>
-          <li><Link href="/browse">Browse Birds</Link></li>
-          <li><Link href="/breeders">Top Breeders</Link></li>
-          <li><Link href="/pedigree">Pedigrees</Link></li>
-          <li><Link href="/leaderboards">Leaderboards</Link></li>
-        </ul>
-        <div className="nav-cta">
-          <Link href="/signin" className="btn-ghost">Sign in</Link>
-          <Link href="/signup" className="btn-gold">Join Now</Link>
-        </div>
-      </nav>
+      <Nav active="/" />
 
       {/* HERO */}
       <div className="hero">
