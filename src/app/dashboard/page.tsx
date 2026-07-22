@@ -234,7 +234,7 @@ export default async function DashboardPage() {
                           </span>
                         </td>
                         <td style={{ padding: "16px 12px" }}>
-                          <Link href={`/birds/${b.id}`} style={{ fontSize: 11, color: "var(--gold)", textDecoration: "none" }}>Manage →</Link>
+                          <Link href={`/list-bird/${b.id}`} style={{ fontSize: 11, color: "var(--gold)", textDecoration: "none" }}>Manage →</Link>
                         </td>
                       </tr>
                     ))}
@@ -278,6 +278,7 @@ export default async function DashboardPage() {
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Quick Actions</div>
               {[
                 { label: "Register a Bird", href: "/list-bird" },
+                { label: "Account Settings", href: "/settings" },
                 { label: "Add to Pedigree Vault", href: "/pedigree" },
                 { label: "View Leaderboards", href: "/leaderboards" },
                 { label: "Contact Support", href: "mailto:strangemotelmusic@gmail.com" },

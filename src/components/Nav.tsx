@@ -1,5 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { signOut } from "@/app/actions/auth";
 
 export default async function Nav({ active }: { active?: string }) {
@@ -7,6 +9,11 @@ export default async function Nav({ active }: { active?: string }) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const profile = user ? await ensureProfile(user) : null;
+  const { data: avatarRow } = user
+    ? await supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle()
+    : { data: null };
 
   const links = [
     { label: "Live Auctions", href: "/auctions" },
@@ -17,8 +24,9 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Decade of the Spinner", href: "/magazine" },
   ];
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "";
+  const displayName = profile?.full_name || profile?.username || user?.email || "";
   const initial = displayName.charAt(0).toUpperCase();
+  const avatarUrl = avatarRow?.avatar_url;
 
   return (
     <nav>
@@ -54,9 +62,11 @@ export default async function Nav({ active }: { active?: string }) {
                   fontFamily: "var(--ff-display)",
                   fontSize: 13,
                   color: "var(--gold)",
+                  overflow: "hidden",
+                  position: "relative",
                 }}
               >
-                {initial}
+                {avatarUrl ? <Image src={avatarUrl} alt={displayName} fill style={{ objectFit: "cover" }} /> : initial}
               </span>
               {displayName}
             </Link>
