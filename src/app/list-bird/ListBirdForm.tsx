@@ -28,6 +28,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
   const [durationHours, setDurationHours] = useState(72);
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [previewFailed, setPreviewFailed] = useState<Record<number, boolean>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +36,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
   useEffect(() => {
     const urls = photos.map((f) => URL.createObjectURL(f));
     setPreviewUrls(urls);
+    setPreviewFailed({});
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
   }, [photos]);
 
@@ -161,7 +163,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp"
+          accept="image/*"
           multiple
           onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }}
           style={{ display: "none" }}
@@ -170,8 +172,19 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {previewUrls.map((url, i) => (
             <div key={i} style={{ position: "relative", width: 88, height: 88, borderRadius: 2, overflow: "hidden", border: `1px solid ${i === 0 ? "var(--gold)" : "var(--border)"}` }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt={`Photo ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {previewFailed[i] ? (
+                <div style={{ display: "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 4, fontSize: 9, color: "var(--muted)", background: "var(--deep)" }}>
+                  {photos[i]?.name || `Photo ${i + 1}`}
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={url}
+                  alt={`Photo ${i + 1}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={() => setPreviewFailed((prev) => ({ ...prev, [i]: true }))}
+                />
+              )}
               {i === 0 && (
                 <span style={{ position: "absolute", top: 2, left: 2, background: "var(--gold)", color: "var(--black)", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 1 }}>COVER</span>
               )}
