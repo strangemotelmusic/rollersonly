@@ -178,10 +178,10 @@ nav {
 .nav-mobile-panel a:last-child, .nav-mobile-panel button:last-child { border-bottom: none; }
 
 @media (max-width: 860px) {
-  nav { padding: 0 20px; }
-  .nav-links { display: none; }
-  .nav-cta { display: none; }
-  .nav-hamburger { display: block; }
+  nav { padding: 0 20px !important; }
+  .nav-links { display: none !important; }
+  .nav-cta { display: none !important; }
+  .nav-hamburger { display: block !important; }
 }
 
 /* ── HERO ── */
