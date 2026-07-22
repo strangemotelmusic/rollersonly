@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 
 const tierLabel: Record<string, string> = {
   browse: "Browse Only",
@@ -22,25 +23,7 @@ export default async function DashboardPage() {
     redirect("/signin");
   }
 
-  let { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile) {
-    const { data: created } = await supabase
-      .from("profiles")
-      .upsert({
-        id: user.id,
-        username: user.user_metadata?.username || user.email!.split("@")[0],
-        full_name: user.user_metadata?.full_name,
-        tier: user.user_metadata?.tier || "fancier",
-      })
-      .select("*")
-      .maybeSingle();
-    profile = created;
-  }
+  const profile = await ensureProfile(user);
 
   const { data: loft } = await supabase
     .from("lofts")

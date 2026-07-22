@@ -1,5 +1,6 @@
 import AuctionRoom from "./AuctionRoom";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 
 export default async function AuctionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -9,9 +10,7 @@ export default async function AuctionPage({ params }: { params: Promise<{ id: st
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("tier").eq("id", user.id).maybeSingle()
-    : { data: null };
+  const profile = user ? await ensureProfile(user) : null;
 
   const { data: auction } = await supabase
     .from("auctions")

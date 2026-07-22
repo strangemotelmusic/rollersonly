@@ -3,6 +3,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import BirdBidBox from "./BirdBidBox";
 
 export default async function BirdPage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,9 +14,7 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("tier").eq("id", user.id).maybeSingle()
-    : { data: null };
+  const profile = user ? await ensureProfile(user) : null;
 
   const { data: bird } = await supabase
     .from("birds")

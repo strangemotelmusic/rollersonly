@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 
 export async function placeBid(auctionId: string, amount: number) {
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export async function placeBid(auctionId: string, amount: number) {
 
   const admin = createAdminClient();
 
-  const { data: profile } = await admin.from("profiles").select("tier").eq("id", user.id).maybeSingle();
+  const profile = await ensureProfile(user);
 
   if (profile?.tier === "browse") {
     return { error: "Browse Only members can't place bids — upgrade your plan to bid." };

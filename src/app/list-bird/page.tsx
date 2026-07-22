@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import ListBirdForm from "./ListBirdForm";
 
 export default async function ListBirdPage() {
@@ -14,7 +15,7 @@ export default async function ListBirdPage() {
     redirect("/signin");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("tier").eq("id", user.id).maybeSingle();
+  const profile = await ensureProfile(user);
   const { data: loft } = await supabase.from("lofts").select("id").eq("owner_id", user.id).maybeSingle();
 
   const isBrowseOnly = profile?.tier === "browse";

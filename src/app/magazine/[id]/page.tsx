@@ -3,6 +3,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/supabase/ensure-profile";
 
 export default async function MagazineIssuePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -11,9 +12,7 @@ export default async function MagazineIssuePage({ params }: { params: Promise<{ 
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("tier").eq("id", user.id).maybeSingle()
-    : { data: null };
+  const profile = user ? await ensureProfile(user) : null;
 
   const isPaid = profile?.tier === "fancier" || profile?.tier === "breeder" || profile?.tier === "elite";
 
