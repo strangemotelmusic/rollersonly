@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import BirdBidBox from "./BirdBidBox";
+import BirdGallery from "./BirdGallery";
 
 export default async function BirdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,8 +24,9 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
        health_certified, dna_certified, notes, primary_photo_url, loft_id, owner_id,
        lofts(name, location, slug, rating, total_birds_sold),
        profiles!birds_owner_id_fkey(username, full_name, tier),
-       sire:birds!birds_sire_id_fkey(id, name, ring_number),
-       dam:birds!birds_dam_id_fkey(id, name, ring_number),
+       sire:sire_id(id, name, ring_number),
+       dam:dam_id(id, name, ring_number),
+       bird_photos(url, is_primary, sort_order),
        auctions(id, current_bid, starting_bid, bid_increment, status, ends_at, seller_id,
          bids(id, amount, created_at, profiles(username)))`
     )
@@ -39,10 +41,23 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const sire = bird.sire?.[0] ?? null;
-  const dam = bird.dam?.[0] ?? null;
+  // supabase-js's static analyzer flags self-referencing embeds (birds->birds
+  // via sire_id/dam_id) as ambiguous and wants a `birds!<column>` hint, but
+  // that hint form silently returns wrong (empty) results at runtime for
+  // this project - verified directly against the live API. The bare
+  // column-name embed below is what actually works; cast past the resulting
+  // (incorrect) SelectQueryError type.
+  type PedigreeParent = { id: string; name: string | null; ring_number: string | null } | null;
+  const sire = (bird.sire as unknown as PedigreeParent) ?? null;
+  const dam = (bird.dam as unknown as PedigreeParent) ?? null;
   const auction = [...(bird.auctions ?? [])].sort((a, b) => (a.status === "live" ? -1 : 1))[0] ?? null;
   const bids = auction ? [...auction.bids].sort((a, b) => Number(b.amount) - Number(a.amount)) : [];
+
+  const photos = bird.bird_photos && bird.bird_photos.length > 0
+    ? [...bird.bird_photos].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((p) => p.url)
+    : bird.primary_photo_url
+      ? [bird.primary_photo_url]
+      : [];
 
   let relatedBirds: { id: string; name: string | null; primary_photo_url: string | null }[] = [];
   if (bird.loft_id) {
@@ -78,16 +93,13 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
         <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 0, maxWidth: 1400, margin: "0 auto", padding: "48px 48px 80px" }}>
 
           <div style={{ paddingRight: 48 }}>
-            <div style={{ position: "relative", height: 520, background: "var(--void)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden", marginBottom: 32 }}>
-              {auction?.status === "live" && (
-                <div style={{ position: "absolute", top: 16, left: 16, zIndex: 2, background: "rgba(255,50,50,0.9)", color: "#fff", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 10px", borderRadius: 2 }}>● Live Auction</div>
-              )}
-              <div style={{ display: "flex", gap: 8, position: "absolute", top: 16, right: 16, zIndex: 2 }}>
-                {bird.dna_certified && <span className="tag" style={{ fontSize: 9 }}>DNA Cert</span>}
-                {bird.health_certified && <span className="tag" style={{ fontSize: 9 }}>Health Cert</span>}
-              </div>
-              {bird.primary_photo_url && <Image src={bird.primary_photo_url} alt={bird.name || "Bird"} fill style={{ objectFit: "contain", objectPosition: "center" }} />}
-            </div>
+            <BirdGallery
+              photos={photos}
+              alt={bird.name || "Bird"}
+              isLive={auction?.status === "live"}
+              dnaCertified={Boolean(bird.dna_certified)}
+              healthCertified={Boolean(bird.health_certified)}
+            />
 
             <div style={{ marginBottom: 40 }}>
               <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>

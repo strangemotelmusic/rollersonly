@@ -32,12 +32,20 @@ export default async function AuctionPage({ params }: { params: Promise<{ id: st
 
   const secondsLeft = Math.max(0, Math.floor((new Date(auction.ends_at).getTime() - Date.now()) / 1000));
 
+  const { data: messages } = await supabase
+    .from("auction_messages")
+    .select("id, message, created_at, user_id, profiles(username)")
+    .eq("auction_id", id)
+    .order("created_at", { ascending: true })
+    .limit(100);
+
   return (
     <AuctionRoom
       auction={auction}
       secondsLeft={secondsLeft}
       currentUserId={user?.id ?? null}
       isBrowseOnly={profile?.tier === "browse"}
+      initialMessages={messages ?? []}
     />
   );
 }

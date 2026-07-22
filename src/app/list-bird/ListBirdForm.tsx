@@ -26,7 +26,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
   const [reservePrice, setReservePrice] = useState(0);
   const [bidIncrement, setBidIncrement] = useState(25);
   const [durationHours, setDurationHours] = useState(72);
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,13 +37,14 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
 
     setLoading(true);
 
-    let primaryPhotoUrl: string | null = null;
-    if (photo) {
-      const path = `${userId}/${crypto.randomUUID()}-${photo.name}`;
-      const { error: uploadErr } = await supabase.storage.from("bird-photos").upload(path, photo);
+    const uploadedUrls: string[] = [];
+    for (const file of photos) {
+      const path = `${userId}/${crypto.randomUUID()}-${file.name}`;
+      const { error: uploadErr } = await supabase.storage.from("bird-photos").upload(path, file);
       if (uploadErr) { setLoading(false); setError(`Photo upload failed: ${uploadErr.message}`); return; }
-      primaryPhotoUrl = supabase.storage.from("bird-photos").getPublicUrl(path).data.publicUrl;
+      uploadedUrls.push(supabase.storage.from("bird-photos").getPublicUrl(path).data.publicUrl);
     }
+    const primaryPhotoUrl = uploadedUrls[0] ?? null;
 
     const platformId = `RO-${Date.now().toString(36).toUpperCase()}`;
 
@@ -66,6 +67,17 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
       .single();
 
     if (birdErr || !bird) { setLoading(false); setError(birdErr?.message || "Could not create bird."); return; }
+
+    if (uploadedUrls.length > 0) {
+      await supabase.from("bird_photos").insert(
+        uploadedUrls.map((url, i) => ({
+          bird_id: bird.id,
+          url,
+          is_primary: i === 0,
+          sort_order: i,
+        }))
+      );
+    }
 
     const startsAt = new Date();
     const endsAt = new Date(startsAt.getTime() + durationHours * 3_600_000);
@@ -127,8 +139,24 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
       </div>
 
       <div>
-        <label style={labelStyle}>Photo</label>
-        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} style={{ color: "var(--muted)", fontSize: 13 }} />
+        <label style={labelStyle}>Photos</label>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          multiple
+          onChange={(e) => setPhotos(Array.from(e.target.files ?? []))}
+          style={{ color: "var(--muted)", fontSize: 13 }}
+        />
+        {photos.length > 0 && (
+          <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+            {photos.map((f, i) => (
+              <span key={i} style={{ fontSize: 11, color: "var(--muted)", border: "0.5px solid var(--border)", padding: "4px 10px", borderRadius: 1 }}>
+                {i === 0 ? "★ " : ""}{f.name}
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>First photo selected becomes the cover image.</div>
       </div>
 
       <div>

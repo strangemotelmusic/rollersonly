@@ -6,12 +6,15 @@ import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import { createClient } from "@/lib/supabase/client";
 import { placeBid } from "@/app/actions/bids";
+import AuctionChat from "./AuctionChat";
 
-const chatMessages = [
-  { user: "MartinezLoft_CA", msg: "Beautiful bird! What's the bloodline?", time: "2m" },
-  { user: "RollerFan_UK", msg: "Is this the same line as last month's champion?", time: "3m" },
-  { user: "Khan_TX", msg: "Reserve met already 🔥", time: "4m" },
-];
+type ChatMessage = {
+  id: string;
+  message: string;
+  created_at: string;
+  user_id: string;
+  profiles: { username: string } | null;
+};
 
 type Bird = {
   id: string;
@@ -61,11 +64,13 @@ export default function AuctionRoom({
   secondsLeft,
   currentUserId,
   isBrowseOnly,
+  initialMessages,
 }: {
   auction: Auction;
   secondsLeft: number;
   currentUserId: string | null;
   isBrowseOnly: boolean;
+  initialMessages: ChatMessage[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -74,7 +79,6 @@ export default function AuctionRoom({
   const [currentBid, setCurrentBid] = useState(initialBid);
   const [bidInput, setBidInput] = useState(initialBid + Number(auction.bid_increment));
   const [showConfirm, setShowConfirm] = useState(false);
-  const [chatInput, setChatInput] = useState("");
   const [bidError, setBidError] = useState("");
   const [placingBid, setPlacingBid] = useState(false);
   const [bids, setBids] = useState(
@@ -259,25 +263,13 @@ export default function AuctionRoom({
           </div>
         </div>
 
-        {/* RIGHT — chat (placeholder, no chat table yet) */}
+        {/* RIGHT — chat */}
         <div style={{ width: 280, background: "var(--deep)", display: "flex", flexDirection: "column" }}>
           <div style={{ padding: "16px 20px", borderBottom: "0.5px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2ECC71", display: "inline-block" }} />
             <span style={{ fontSize: 12, fontWeight: 500, color: "var(--white)" }}>Live Chat</span>
           </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-            {chatMessages.map((m, i) => (
-              <div key={i}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--gold)" }}>{m.user}</span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 8 }}>{m.time}</span>
-                <div style={{ fontSize: 13, color: "var(--white)", marginTop: 2 }}>{m.msg}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: 12, borderTop: "0.5px solid var(--border)", display: "flex", gap: 8 }}>
-            <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Chat is not wired up yet…" disabled style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none" }} />
-            <button onClick={() => setChatInput("")} disabled style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 2, opacity: 0.5 }}>Send</button>
-          </div>
+          <AuctionChat auctionId={auction.id} currentUserId={currentUserId} initialMessages={initialMessages} />
         </div>
       </div>
 

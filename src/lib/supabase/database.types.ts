@@ -582,6 +582,39 @@ export interface Database {
           },
         ];
       };
+      auction_messages: {
+        Row: {
+          id: string;
+          auction_id: string;
+          user_id: string;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          auction_id: string;
+          user_id: string;
+          message: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["auction_messages"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "auction_messages_auction_id_fkey";
+            columns: ["auction_id"];
+            isOneToOne: false;
+            referencedRelation: "auctions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "auction_messages_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       magazine_issues: {
         Row: {
           id: string;
