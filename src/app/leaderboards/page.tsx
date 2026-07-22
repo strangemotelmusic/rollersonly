@@ -50,7 +50,7 @@ export default function LeaderboardsPage() {
         </div>
 
         {/* STATS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)" }}>
+        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)" }}>
           {[["148", "World Cup Entries 2024"], ["42", "Countries Represented"], ["98.1", "Top Score 2024"], ["7", "Anderson Wins (All-Time)"]].map(([val, label]) => (
             <div key={label} style={{ padding: "36px 48px", borderRight: "0.5px solid var(--border)" }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 44, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 8 }}>{val}</div>
@@ -59,7 +59,7 @@ export default function LeaderboardsPage() {
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", padding: "64px", gap: 48, alignItems: "start" }}>
+        <div className="rs-2col-b rs-pad-lg" style={{ display: "grid", gridTemplateColumns: "1fr 320px", padding: "64px", gap: 48, alignItems: "start" }}>
           <div>
 
             {/* COMPETITION TABS */}

@@ -40,7 +40,7 @@ export default function PedigreePage() {
         </div>
 
         {/* STATS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)", background: "var(--surface)" }}>
+        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)", background: "var(--surface)" }}>
           {[["2,847", "Birds registered"], ["412", "Verified lofts"], ["8,200+", "Pedigree connections"], ["100%", "Tamper-proof records"]].map(([val, label]) => (
             <div key={label} style={{ padding: "40px 48px", borderRight: "0.5px solid var(--border)" }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 48, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 8 }}>{val}</div>
@@ -50,7 +50,7 @@ export default function PedigreePage() {
         </div>
 
         {/* BODY */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 0, padding: "64px", alignItems: "start" }}>
+        <div className="rs-2col-b rs-pad-lg" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 0, padding: "64px", alignItems: "start" }}>
           <div style={{ paddingRight: 64 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)" }}>Recently Registered Birds</div>

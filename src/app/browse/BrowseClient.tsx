@@ -34,7 +34,7 @@ export default function BrowseClient({ birds }: { birds: Bird[] }) {
     <>
       <div style={{ paddingTop: 72, display: "flex", minHeight: "100vh", background: "var(--black)" }}>
         {/* FILTER SIDEBAR */}
-        <div style={{ width: 280, background: "var(--void)", borderRight: "0.5px solid var(--border)", padding: "32px 24px", flexShrink: 0, position: "sticky", top: 72, height: "calc(100vh - 72px)", overflowY: "auto" }}>
+        <div className="rs-hide-mobile" style={{ width: 280, background: "var(--void)", borderRight: "0.5px solid var(--border)", padding: "32px 24px", flexShrink: 0, position: "sticky", top: 72, height: "calc(100vh - 72px)", overflowY: "auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
             <span style={{ fontSize: 13, fontWeight: 500, color: "var(--white)" }}>Filters</span>
             <span onClick={() => setStatusFilters([])} style={{ fontSize: 11, color: "var(--gold)", cursor: "pointer", letterSpacing: "0.05em" }}>Clear all</span>
@@ -103,7 +103,7 @@ export default function BrowseClient({ birds }: { birds: Bird[] }) {
           {filtered.length === 0 ? (
             <div style={{ margin: 40, padding: 40, textAlign: "center", color: "var(--muted)", fontSize: 14 }}>No birds match these filters yet.</div>
           ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)", padding: "1px", margin: "40px" }}>
+          <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)", padding: "1px", margin: "40px" }}>
             {filtered.map((bird) => {
               const badge = statusBadge[bird.status];
               return (

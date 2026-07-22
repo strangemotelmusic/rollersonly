@@ -55,7 +55,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* TRUST PILLARS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)" }}>
+        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)" }}>
           {[
             ["◆", "Verified Pedigrees", "Every bloodline entry is locked and tamper-proof"],
             ["🔒", "Escrow-Protected", "Your money is safe until the bird arrives"],
@@ -71,7 +71,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* BUYER / SELLER STEPS */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--border)", padding: "80px 64px", columnGap: 80 }}>
+        <div className="rs-grid-2 rs-pad-xl" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--border)", padding: "80px 64px", columnGap: 80 }}>
 
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>For Buyers</p>

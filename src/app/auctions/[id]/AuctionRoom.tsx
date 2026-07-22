@@ -131,12 +131,12 @@ export default function AuctionRoom({
   return (
     <div style={{ background: "var(--black)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* TOPBAR */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 60, background: "rgba(0,0,0,0.97)", borderBottom: "0.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", zIndex: 100 }}>
+      <div className="rs-pad-x-sm" style={{ position: "fixed", top: 0, left: 0, right: 0, height: 60, background: "rgba(0,0,0,0.97)", borderBottom: "0.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <Link href="/" style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 600, letterSpacing: "0.1em", color: "var(--white)", textDecoration: "none" }}>
             Rollers<span style={{ color: "var(--gold)" }}>Only</span>
           </Link>
-          <div style={{ fontSize: 12, color: "var(--muted)" }}>
+          <div className="rs-hide-mobile" style={{ fontSize: 12, color: "var(--muted)" }}>
             <Link href="/browse" style={{ color: "var(--muted)", textDecoration: "none" }}>Auctions</Link>
             <span style={{ margin: "0 8px" }}>›</span>
             <span style={{ color: "var(--white)" }}>{bird?.name || auction.title}</span>
@@ -152,7 +152,7 @@ export default function AuctionRoom({
       </div>
 
       {/* MAIN */}
-      <div style={{ display: "flex", flex: 1, paddingTop: 60, height: "calc(100vh - 60px)" }}>
+      <div className="rs-3col-fixed" style={{ display: "flex", flex: 1, paddingTop: 60, height: "calc(100vh - 60px)" }}>
 
         {/* LEFT — bird display */}
         <div style={{ flex: 1, borderRight: "0.5px solid var(--border)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -275,7 +275,7 @@ export default function AuctionRoom({
 
       {/* CONFIRM MODAL */}
       {showConfirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "0 16px" }}>
           <div style={{ background: "var(--deep)", border: "0.5px solid var(--border-gold)", padding: 40, borderRadius: 2, maxWidth: 420, width: "100%" }}>
             <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)", marginBottom: 12 }}>Confirm Bid</div>
             <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.7, marginBottom: 20 }}>

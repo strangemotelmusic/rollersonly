@@ -90,7 +90,7 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
           <span style={{ color: "var(--white)" }}>{bird.name || "Unnamed bird"}</span>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 0, maxWidth: 1400, margin: "0 auto", padding: "48px 48px 80px" }}>
+        <div className="rs-2col-a rs-pad-lg" style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 0, maxWidth: 1400, margin: "0 auto", padding: "48px 48px 80px" }}>
 
           <div style={{ paddingRight: 48 }}>
             <BirdGallery
@@ -123,7 +123,7 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
             {stats.length > 0 && (
               <div style={{ marginBottom: 48 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 20 }}>Performance Profile</div>
-                <div style={{ display: "grid", gridTemplateColumns: `repeat(${stats.length}, 1fr)`, gap: 1, background: "var(--border)", border: "0.5px solid var(--border)" }}>
+                <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: `repeat(${stats.length}, 1fr)`, gap: 1, background: "var(--border)", border: "0.5px solid var(--border)" }}>
                   {stats.map(({ label, val }) => (
                     <div key={label} style={{ background: "var(--surface)", padding: "20px 24px" }}>
                       <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 6 }}>{label}</div>
@@ -154,7 +154,7 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
             {relatedBirds.length > 0 && (
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 20 }}>More From This Loft</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
+                <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
                   {relatedBirds.map((b) => (
                     <Link key={b.id} href={`/birds/${b.id}`} style={{ background: "var(--surface)", display: "block", textDecoration: "none" }}>
                       <div style={{ position: "relative", height: 160, background: "#000" }}>

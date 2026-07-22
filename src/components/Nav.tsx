@@ -3,6 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { signOut } from "@/app/actions/auth";
+import NavMobileToggle from "@/components/NavMobileToggle";
 
 export default async function Nav({ active }: { active?: string }) {
   const supabase = await createClient();
@@ -83,6 +84,7 @@ export default async function Nav({ active }: { active?: string }) {
           </>
         )}
       </div>
+      <NavMobileToggle links={links} isSignedIn={Boolean(user)} signOutAction={signOut} />
     </nav>
   );
 }

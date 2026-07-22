@@ -133,7 +133,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Blue Bar Champion Cock" style={inputStyle} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div>
           <label style={labelStyle}>Ring number</label>
           <input value={ringNumber} onChange={(e) => setRingNumber(e.target.value)} placeholder="AU26-TX-00001" style={inputStyle} />
@@ -147,7 +147,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div>
           <label style={labelStyle}>Color</label>
           <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="Blue Bar" style={inputStyle} />
@@ -233,7 +233,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Bloodline, roll quality, kit performance…" style={{ ...inputStyle, minHeight: 100, resize: "vertical" }} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
         <div>
           <label style={labelStyle}>Starting bid ($)</label>
           <input type="number" value={startingBid} onChange={(e) => setStartingBid(Number(e.target.value))} style={inputStyle} />

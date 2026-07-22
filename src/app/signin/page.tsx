@@ -28,7 +28,7 @@ export default function SignInPage() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--black)" }}>
       {/* LEFT */}
-      <div style={{ width: 480, background: "var(--void)", borderRight: "0.5px solid var(--border)", padding: "64px 48px", display: "flex", flexDirection: "column" }}>
+      <div className="rs-hide-mobile" style={{ width: 480, background: "var(--void)", borderRight: "0.5px solid var(--border)", padding: "64px 48px", display: "flex", flexDirection: "column" }}>
         <Link href="/" style={{ fontFamily: "var(--ff-display)", fontSize: 22, fontWeight: 600, letterSpacing: "0.12em", color: "var(--white)", textDecoration: "none", marginBottom: 64 }}>
           Rollers<span style={{ color: "var(--gold)" }}>Only</span>
         </Link>
@@ -49,7 +49,7 @@ export default function SignInPage() {
       </div>
 
       {/* RIGHT */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 64 }}>
+      <div className="rs-pad-xl" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 64 }}>
         <div style={{ width: "100%", maxWidth: 420 }}>
           <div style={{ fontSize: 28, fontFamily: "var(--ff-display)", fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Sign in to your loft</div>
           <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 40 }}>

@@ -26,8 +26,8 @@ export default function AuctionsClient() {
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
 
         {/* HERO */}
-        <div style={{ background: "var(--void)", padding: "64px 64px 48px", borderBottom: "0.5px solid var(--border)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div className="rs-pad-xl" style={{ background: "var(--void)", padding: "64px 64px 48px", borderBottom: "0.5px solid var(--border)" }}>
+          <div className="rs-flex-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <div>
               <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 14 }}>Live Auction House</p>
               <h1 style={{ fontFamily: "var(--ff-display)", fontSize: "clamp(36px,5vw,60px)", fontWeight: 300, lineHeight: 1.05, color: "var(--white)", marginBottom: 16 }}>
@@ -44,7 +44,7 @@ export default function AuctionsClient() {
         </div>
 
         {/* STATS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
+        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
           {[["4", "Live Now"], ["3", "Starting Today"], [`$${(1240+780+650+920).toLocaleString()}`, "Total Bid Value"], ["41", "Active Bidders"]].map(([val, label]) => (
             <div key={label} style={{ padding: "28px 40px", borderRight: "0.5px solid var(--border)" }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 6 }}>{val}</div>
@@ -53,7 +53,7 @@ export default function AuctionsClient() {
           ))}
         </div>
 
-        <div style={{ padding: "48px 64px 80px" }}>
+        <div className="rs-pad-lg" style={{ padding: "48px 64px 80px" }}>
 
           {/* TABS */}
           <div style={{ display: "flex", gap: 0, borderBottom: "0.5px solid var(--border)", marginBottom: 40 }}>
@@ -65,9 +65,9 @@ export default function AuctionsClient() {
           </div>
 
           {tab === "live" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--border)" }}>
+            <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--border)" }}>
               {liveAuctions.map((a) => (
-                <div key={a.id} className="auction-card" style={{ display: "grid", gridTemplateColumns: "220px 1fr" }}>
+                <div key={a.id} className="auction-card rs-card-row" style={{ display: "grid", gridTemplateColumns: "220px 1fr" }}>
                   <div style={{ position: "relative", background: "#000" }}>
                     <div className="auction-badge badge-live">● Live</div>
                     <Image src={a.img} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
@@ -100,7 +100,7 @@ export default function AuctionsClient() {
           )}
 
           {tab === "upcoming" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
+            <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
               {upcomingAuctions.map((a) => (
                 <div key={a.id} className="auction-card">
                   <div className="auction-img-wrap">
@@ -126,7 +126,7 @@ export default function AuctionsClient() {
           )}
 
           {/* SELL CTA */}
-          <div style={{ marginTop: 64, background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: "40px 48px", borderRadius: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="rs-flex-row" style={{ marginTop: 64, background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: "40px 48px", borderRadius: 2, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
             <div>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Ready to list your bird?</div>
               <p style={{ fontSize: 14, color: "var(--muted)" }}>Breeder and Elite Loft subscribers can run live auctions to buyers worldwide.</p>

@@ -40,7 +40,7 @@ export default function BreedersPage() {
         </div>
 
         {/* STATS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
+        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
           {[["412", "Verified Lofts"], ["38", "Countries"], ["4.8★", "Avg Rating"], ["100%", "Verified Pedigrees"]].map(([val, label]) => (
             <div key={label} style={{ padding: "28px 40px", borderRight: "0.5px solid var(--border)" }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 6 }}>{val}</div>
@@ -67,7 +67,7 @@ export default function BreedersPage() {
           </div>
 
           {/* BREEDERS GRID */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--border)" }}>
+          <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--border)" }}>
             {breeders.map((b) => {
               const tc = tierColors[b.tier];
               return (
@@ -88,7 +88,7 @@ export default function BreedersPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden", marginBottom: 16 }}>
+                  <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden", marginBottom: 16 }}>
                     {[
                       [b.sales, "Sales"],
                       [`${b.rating}★`, "Rating"],

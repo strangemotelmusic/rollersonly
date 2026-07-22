@@ -121,8 +121,8 @@ export default async function DashboardPage() {
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
 
         {/* HEADER */}
-        <div style={{ background: "var(--void)", borderBottom: "0.5px solid var(--border)", padding: "40px 64px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="rs-pad-lg" style={{ background: "var(--void)", borderBottom: "0.5px solid var(--border)", padding: "40px 64px" }}>
+          <div className="rs-flex-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>Your Loft</p>
               <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 40, fontWeight: 300, color: "var(--white)", marginBottom: 6 }}>Welcome back, {displayName}</h1>
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* QUICK STATS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
+        <div className="rs-grid-5" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
           {[
             [`$${activeBidValue.toLocaleString()}`, "Active Bid Value"],
             [String(birdsWinning), "Birds Winning"],
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 0, padding: "48px 64px", alignItems: "start" }}>
+        <div className="rs-dashboard-grid rs-pad-lg" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 0, padding: "48px 64px", alignItems: "start" }}>
           <div style={{ paddingRight: 48 }}>
 
             {/* ACTIVE BIDS */}
@@ -206,7 +206,8 @@ export default async function DashboardPage() {
               {myListings.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--muted)" }}>You haven&apos;t listed any birds yet.</p>
               ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
                   <thead>
                     <tr style={{ borderBottom: "0.5px solid var(--border)" }}>
                       {["Bird", "Ring", "Bids", "Current Bid", "Status", ""].map((h) => (
@@ -240,6 +241,7 @@ export default async function DashboardPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </section>
 

@@ -67,7 +67,7 @@ export default async function LoftPage({ params }: { params: Promise<{ slug: str
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
 
         {/* HEADER BANNER */}
-        <div style={{ background: "var(--void)", borderBottom: "0.5px solid var(--border)", padding: "64px 64px 48px" }}>
+        <div className="rs-pad-xl" style={{ background: "var(--void)", borderBottom: "0.5px solid var(--border)", padding: "64px 64px 48px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 32 }}>
             <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--surface)", border: "1px solid var(--border-gold)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--ff-display)", fontSize: 32, fontWeight: 300, color: "var(--gold)", flexShrink: 0, overflow: "hidden", position: "relative" }}>
               {loft.logo_url ? <Image src={loft.logo_url} alt={loft.name} fill style={{ objectFit: "cover" }} /> : loft.name.charAt(0).toUpperCase()}
@@ -84,7 +84,7 @@ export default async function LoftPage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* STATS ROW */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
+        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
           {[
             [loft.total_birds_sold ?? 0, "Total Sales"],
             [`${avgRating}★`, "Avg Rating"],
@@ -99,7 +99,7 @@ export default async function LoftPage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* BODY */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 0, padding: "64px", alignItems: "start" }}>
+        <div className="rs-2col-b rs-pad-lg" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 0, padding: "64px", alignItems: "start" }}>
           <div style={{ paddingRight: 64 }}>
 
             {loft.description && (
@@ -118,7 +118,7 @@ export default async function LoftPage({ params }: { params: Promise<{ slug: str
               {activeBirds.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--muted)" }}>No active listings right now.</p>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
+                <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
                   {activeBirds.map((b) => (
                     <div key={b.id} className="auction-card">
                       <div className="auction-img-wrap">

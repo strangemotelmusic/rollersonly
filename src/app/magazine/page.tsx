@@ -44,7 +44,7 @@ export default async function MagazinePage() {
           ) : !issues || issues.length === 0 ? (
             <p style={{ fontSize: 14, color: "var(--muted)" }}>No issues published yet — check back soon.</p>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+            <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
               {issues.map((issue) => (
                 <Link key={issue.id} href={`/magazine/${issue.id}`} style={{ textDecoration: "none", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden", display: "block" }}>
                   <div style={{ position: "relative", height: 280, background: "var(--void)" }}>

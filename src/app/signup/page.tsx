@@ -71,7 +71,7 @@ export default function SignupPage() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--black)" }}>
       {/* LEFT */}
-      <div style={{ width: 480, background: "var(--void)", borderRight: "0.5px solid var(--border)", padding: "64px 48px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" }}>
+      <div className="rs-hide-mobile" style={{ width: 480, background: "var(--void)", borderRight: "0.5px solid var(--border)", padding: "64px 48px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" }}>
         <Link href="/" style={{ fontFamily: "var(--ff-display)", fontSize: 22, fontWeight: 600, letterSpacing: "0.12em", color: "var(--white)", textDecoration: "none", marginBottom: 64 }}>
           Rollers<span style={{ color: "var(--gold)" }}>Only</span>
         </Link>
@@ -100,7 +100,7 @@ export default function SignupPage() {
       </div>
 
       {/* RIGHT */}
-      <div style={{ flex: 1, padding: "64px 80px", overflowY: "auto" }}>
+      <div className="rs-pad-xl" style={{ flex: 1, padding: "64px 80px", overflowY: "auto" }}>
         {/* Step bar */}
         <div style={{ display: "flex", gap: 0, marginBottom: 48, alignItems: "center" }}>
           {["Choose plan", "Your details", "Loft setup", "Done"].map((label, i) => (
@@ -149,7 +149,7 @@ export default function SignupPage() {
           <div>
             <div style={{ fontSize: 28, fontFamily: "var(--ff-display)", fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Your details</div>
             <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 32 }}>Create your RollersOnly account</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+            <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
               <Field label="First name" value={form.firstName} onChange={(v) => set({ firstName: v })} placeholder="James" />
               <Field label="Last name" value={form.lastName} onChange={(v) => set({ lastName: v })} placeholder="Anderson" />
             </div>

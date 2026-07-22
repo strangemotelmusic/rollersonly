@@ -116,7 +116,7 @@ export default function EditBirdForm({
         <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div>
           <label style={labelStyle}>Ring number</label>
           <input value={ringNumber} onChange={(e) => setRingNumber(e.target.value)} style={inputStyle} />
@@ -130,7 +130,7 @@ export default function EditBirdForm({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div>
           <label style={labelStyle}>Color</label>
           <input value={color} onChange={(e) => setColor(e.target.value)} style={inputStyle} />
