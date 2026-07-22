@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,13 +27,31 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
   const [bidIncrement, setBidIncrement] = useState(25);
   const [durationHours, setDurationHours] = useState(72);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const urls = photos.map((f) => URL.createObjectURL(f));
+    setPreviewUrls(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [photos]);
+
+  function addPhotos(files: FileList | null) {
+    if (!files) return;
+    setPhotos((prev) => [...prev, ...Array.from(files)]);
+  }
+
+  function removePhoto(index: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSubmit() {
     setError("");
     if (!name.trim()) { setError("Bird name is required."); return; }
     if (!startingBid || startingBid <= 0) { setError("Starting bid must be greater than $0."); return; }
+    if (photos.length === 0) { setError("Add at least one photo — buyers won't bid on a bird they can't see."); return; }
 
     setLoading(true);
 
@@ -141,22 +159,60 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
       <div>
         <label style={labelStyle}>Photos</label>
         <input
+          ref={fileInputRef}
           type="file"
           accept="image/png,image/jpeg,image/webp"
           multiple
-          onChange={(e) => setPhotos(Array.from(e.target.files ?? []))}
-          style={{ color: "var(--muted)", fontSize: 13 }}
+          onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }}
+          style={{ display: "none" }}
         />
-        {photos.length > 0 && (
-          <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-            {photos.map((f, i) => (
-              <span key={i} style={{ fontSize: 11, color: "var(--muted)", border: "0.5px solid var(--border)", padding: "4px 10px", borderRadius: 1 }}>
-                {i === 0 ? "★ " : ""}{f.name}
-              </span>
-            ))}
-          </div>
-        )}
-        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>First photo selected becomes the cover image.</div>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {previewUrls.map((url, i) => (
+            <div key={i} style={{ position: "relative", width: 88, height: 88, borderRadius: 2, overflow: "hidden", border: `1px solid ${i === 0 ? "var(--gold)" : "var(--border)"}` }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={`Photo ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {i === 0 && (
+                <span style={{ position: "absolute", top: 2, left: 2, background: "var(--gold)", color: "var(--black)", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 1 }}>COVER</span>
+              )}
+              <button
+                type="button"
+                onClick={() => removePhoto(i)}
+                aria-label="Remove photo"
+                style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", background: "rgba(0,0,0,0.75)", color: "var(--white)", border: "none", fontSize: 12, lineHeight: 1, cursor: "pointer" }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              width: 88,
+              height: 88,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+              background: "var(--deep)",
+              border: "1px dashed var(--border-gold)",
+              borderRadius: 2,
+              color: "var(--gold)",
+              cursor: "pointer",
+              fontSize: 11,
+            }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1 }}>+</span>
+            Add Photos
+          </button>
+        </div>
+
+        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 10 }}>
+          {photos.length === 0 ? "At least one photo is required. First photo becomes the cover image." : `${photos.length} photo${photos.length === 1 ? "" : "s"} selected · first one is the cover image.`}
+        </div>
       </div>
 
       <div>
