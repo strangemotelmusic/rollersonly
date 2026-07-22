@@ -1,13 +1,29 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// Lazily constructed - a module-level `new Stripe(...)` executes as soon as
+// this file is imported, including during Next's build-time module tracing,
+// which can run before the env var is guaranteed to be populated (e.g. not
+// yet set in Vercel's project settings). Deferring construction to first
+// actual use avoids crashing the build over that.
+let _stripe: Stripe | null = null;
 
-export const TIER_PRICE_IDS: Record<string, string> = {
-  fancier: process.env.STRIPE_PRICE_FANCIER!,
-  breeder: process.env.STRIPE_PRICE_BREEDER!,
-  elite: process.env.STRIPE_PRICE_ELITE!,
-};
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  }
+  return _stripe;
+}
 
-export const PRICE_ID_TO_TIER: Record<string, string> = Object.fromEntries(
-  Object.entries(TIER_PRICE_IDS).map(([tier, priceId]) => [priceId, tier])
-);
+export function getTierPriceIds(): Record<string, string> {
+  return {
+    fancier: process.env.STRIPE_PRICE_FANCIER!,
+    breeder: process.env.STRIPE_PRICE_BREEDER!,
+    elite: process.env.STRIPE_PRICE_ELITE!,
+  };
+}
+
+export function getPriceIdToTier(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(getTierPriceIds()).map(([tier, priceId]) => [priceId, tier])
+  );
+}

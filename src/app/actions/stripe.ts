@@ -3,12 +3,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { stripe, TIER_PRICE_IDS } from "@/lib/stripe";
+import { getStripe, getTierPriceIds } from "@/lib/stripe";
 
 const SITE_URL = "https://rollersonly.vercel.app";
 
 export async function createCheckoutSession(tier: string) {
-  const priceId = TIER_PRICE_IDS[tier];
+  const stripe = getStripe();
+  const priceId = getTierPriceIds()[tier];
   if (!priceId) {
     return { error: "Unknown plan." };
   }
@@ -57,6 +58,7 @@ export async function createCheckoutSession(tier: string) {
 }
 
 export async function createPortalSession() {
+  const stripe = getStripe();
   const supabase = await createClient();
   const {
     data: { user },

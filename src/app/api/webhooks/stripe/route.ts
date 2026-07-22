@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
-import { stripe, PRICE_ID_TO_TIER } from "@/lib/stripe";
+import { getStripe, getPriceIdToTier } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function downgradeCustomer(customerId: string) {
@@ -14,7 +14,7 @@ async function syncSubscriptionTier(subscription: Stripe.Subscription) {
 
   if (subscription.status === "active" || subscription.status === "trialing") {
     const priceId = subscription.items.data[0]?.price.id;
-    const tier = priceId ? PRICE_ID_TO_TIER[priceId] : null;
+    const tier = priceId ? getPriceIdToTier()[priceId] : null;
     if (tier) {
       await admin.from("profiles").update({ tier }).eq("stripe_customer_id", customerId);
     }
@@ -24,6 +24,7 @@ async function syncSubscriptionTier(subscription: Stripe.Subscription) {
 }
 
 export async function POST(request: NextRequest) {
+  const stripe = getStripe();
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
 
