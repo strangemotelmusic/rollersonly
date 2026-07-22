@@ -14,6 +14,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Top Breeders", href: "/breeders" },
     { label: "Pedigrees", href: "/pedigree" },
     { label: "Leaderboards", href: "/leaderboards" },
+    { label: "Decade of the Spinner", href: "/magazine" },
   ];
 
   const displayName = user?.user_metadata?.full_name || user?.email || "";

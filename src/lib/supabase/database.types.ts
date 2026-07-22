@@ -582,6 +582,30 @@ export interface Database {
           },
         ];
       };
+      magazine_issues: {
+        Row: {
+          id: string;
+          issue_number: number;
+          title: string;
+          description: string | null;
+          cover_image_url: string | null;
+          content: string | null;
+          published_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          issue_number: number;
+          title: string;
+          description?: string | null;
+          cover_image_url?: string | null;
+          content?: string | null;
+          published_at?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["magazine_issues"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
