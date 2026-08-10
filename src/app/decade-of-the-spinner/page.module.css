@@ -1,0 +1,389 @@
+.landing {
+  --black: #0b0908;
+  --black-2: #141110;
+  --charcoal: #221d1a;
+  --gold: #c9a24b;
+  --gold-light: #eccf83;
+  --gold-dim: #8a6d2f;
+  --maroon: #5e1b26;
+  --cream: #f3ead6;
+  --cream-dim: #d9cdae;
+  --rule: rgba(201, 162, 75, 0.35);
+  --display: Georgia, "Times New Roman", Times, serif;
+  --sub: Arial, Helvetica, sans-serif;
+
+  background: var(--black);
+  color: var(--cream);
+  font-family: var(--display);
+  font-size: 18px;
+  line-height: 1.6;
+}
+.landing * {
+  box-sizing: border-box;
+}
+.landing img,
+.landing svg {
+  display: block;
+  max-width: 100%;
+}
+.landing a {
+  color: inherit;
+}
+
+.eyebrow {
+  font-family: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--gold-light);
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ---------- NAV ---------- */
+/* The site-wide globals.css has a bare `nav{...}` tag selector for the
+   shared Nav component that otherwise leaks onto this page's own <nav> —
+   every property it sets must be explicitly reset here since CSS Modules
+   only scope class names, not element selectors. */
+.nav {
+  position: sticky;
+  top: 0;
+  left: auto;
+  right: auto;
+  z-index: 50;
+  display: block;
+  height: auto;
+  padding: 0;
+  background: rgba(11, 9, 8, 0.88);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--rule);
+}
+.nav .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+}
+.navMark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.navMark .eagle {
+  width: 26px;
+  height: 26px;
+  fill: var(--gold);
+}
+.navMark span {
+  font-family: var(--display);
+  letter-spacing: 0.12em;
+  font-size: 1rem;
+  color: var(--gold-light);
+}
+.navLinks {
+  display: flex;
+  gap: 28px;
+  font-family: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+}
+.navLinks a {
+  text-decoration: none;
+  color: var(--cream-dim);
+  border-bottom: 1px solid transparent;
+  padding-bottom: 4px;
+  transition: 0.2s;
+}
+.navLinks a:hover {
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+.navCta {
+  font-family: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  padding: 9px 18px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.navCta:hover {
+  background: var(--gold);
+  color: var(--black);
+}
+@media (max-width: 820px) {
+  .navLinks {
+    display: none;
+  }
+}
+
+/* ---------- COVER HERO ---------- */
+.coverPlain {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8);
+}
+.coverPlainImg {
+  width: 100%;
+  height: auto;
+}
+.coverCtaHint {
+  text-align: center;
+  padding: 26px 0 6px;
+  font-family: var(--sub);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--gold-dim);
+}
+.coverCtaHint a {
+  text-decoration: none;
+}
+
+/* ---------- SECTION GENERIC ---------- */
+.landing section {
+  padding: 96px 0;
+}
+.rule {
+  width: 64px;
+  height: 2px;
+  background: var(--gold);
+  margin: 0 auto 22px;
+}
+.sectionHead {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 56px;
+}
+.sectionHead h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--gold-light);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  letter-spacing: 0.02em;
+  margin: 0 0 14px;
+}
+.sectionHead p {
+  color: var(--cream-dim);
+  font-size: 1.08rem;
+}
+
+/* ---------- FEATURE GRID ---------- */
+.features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.feature {
+  background: var(--black-2);
+  padding: 36px 26px;
+}
+.feature .num {
+  font-family: var(--sub);
+  color: var(--gold-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+}
+.feature h3 {
+  font-family: var(--display);
+  color: var(--gold-light);
+  font-size: 1.25rem;
+  margin: 14px 0 12px;
+}
+.feature p {
+  color: var(--cream-dim);
+  font-size: 0.98rem;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- COVER STORY ---------- */
+.coverStory {
+  background: var(--charcoal);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.storyCopy {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+.storyCopy .eyebrow {
+  display: block;
+  margin-bottom: 14px;
+}
+.storyCopy h2 {
+  font-family: var(--display);
+  color: var(--gold-light);
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  margin: 0 0 22px;
+  line-height: 1.2;
+}
+.storyCopy p {
+  color: var(--cream-dim);
+  margin: 0 0 16px;
+  text-align: left;
+}
+.storyCopy .sub {
+  font-family: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  font-size: 0.9rem;
+  margin-top: 26px;
+}
+
+/* ---------- TICKER ---------- */
+.ticker {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 18px 0;
+  overflow: hidden;
+  background: var(--black-2);
+}
+.tickerTrack {
+  display: flex;
+  gap: 48px;
+  white-space: nowrap;
+  animation: landingTicker 26s linear infinite;
+  width: max-content;
+}
+.tickerTrack span {
+  font-family: var(--sub);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: var(--gold-dim);
+}
+@keyframes landingTicker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tickerTrack {
+    animation: none;
+    overflow-x: auto;
+  }
+}
+
+/* ---------- SUBSCRIBE ---------- */
+.subscribe {
+  text-align: center;
+  background: radial-gradient(ellipse 700px 400px at 50% 0%, rgba(94, 27, 38, 0.28), transparent 65%), var(--black);
+}
+.trophyShot {
+  width: 180px;
+  margin: 0 auto 20px;
+  border-radius: 6px;
+  -webkit-mask-image: radial-gradient(circle at 50% 42%, #000 55%, transparent 90%);
+  mask-image: radial-gradient(circle at 50% 42%, #000 55%, transparent 90%);
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.6));
+}
+.subscribe h2 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--gold-light);
+  margin: 0 0 16px;
+}
+.subscribe p {
+  color: var(--cream-dim);
+  max-width: 520px;
+  margin: 0 auto 34px;
+}
+.fine {
+  margin-top: 16px;
+  font-family: var(--sub);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+}
+
+/* ---------- FOOTER ---------- */
+/* Same leak as .nav above: globals.css has a bare `footer{...}` selector
+   that otherwise bleeds its own background/padding onto this element. */
+.landing footer {
+  background: transparent;
+  padding: 56px 0 40px;
+  border-top: 1px solid var(--rule);
+}
+.footerGrid {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 30px;
+  align-items: center;
+}
+.footerMark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.footerMark .eagle {
+  width: 34px;
+  height: 34px;
+  fill: var(--gold);
+}
+.footerMark div {
+  font-family: var(--display);
+  color: var(--gold-light);
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+}
+.footerMark small {
+  display: block;
+  font-family: var(--sub);
+  color: var(--cream-dim);
+  letter-spacing: 0.14em;
+  font-size: 0.65rem;
+  margin-top: 2px;
+}
+.footerLinks {
+  display: flex;
+  gap: 26px;
+  font-family: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  color: var(--cream-dim);
+}
+.footerLinks a {
+  text-decoration: none;
+  color: inherit;
+}
+.footerLinks a:hover {
+  color: var(--gold-light);
+}
+.copyright {
+  width: 100%;
+  text-align: center;
+  margin-top: 36px;
+  font-family: var(--sub);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--gold-dim);
+}

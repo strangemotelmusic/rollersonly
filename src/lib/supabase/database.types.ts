@@ -639,6 +639,20 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["magazine_issues"]["Insert"]>;
         Relationships: [];
       };
+      magazine_reservations: {
+        Row: {
+          id: string;
+          email: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["magazine_reservations"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

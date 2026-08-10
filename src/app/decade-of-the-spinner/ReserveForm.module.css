@@ -1,0 +1,58 @@
+.formRow {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  border: 1px solid #8a6d2f;
+}
+.formRow input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 16px 18px;
+  color: #f3ead6;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 1rem;
+  outline: none;
+}
+.formRow input::placeholder {
+  color: #d9cdae;
+}
+.formRow input:disabled {
+  opacity: 0.6;
+}
+.formRow button {
+  background: #c9a24b;
+  color: #0b0908;
+  border: none;
+  padding: 16px 26px;
+  font-family: Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.formRow button:hover:not(:disabled) {
+  background: #eccf83;
+}
+.formRow button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.confirm {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: #eccf83;
+  font-size: 1.1rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.error {
+  margin-top: 14px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+  color: #e8a3a3;
+}
