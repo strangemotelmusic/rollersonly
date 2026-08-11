@@ -20,6 +20,7 @@ export default function DecadeOfTheSpinnerPage() {
             <span>DECADE OF THE SPINNER</span>
           </div>
           <div className={styles.navLinks}>
+            <Link href="/">← Rollers Only</Link>
             <a href="#inside">Inside the Loft</a>
             <a href="#cover-story">Cover Story</a>
             <a href="#pillars">Our Values</a>

@@ -55,7 +55,7 @@ export default async function Home() {
       <div className="hero">
         <div className="hero-bg-text">ROLLERS</div>
         <div className="hero-line" />
-        <Image src="/hero-bird.png" alt="Elite roller pigeon" width={900} height={900} className="hero-bird-main" priority />
+        <Image src="/hero-rollers-only.png" alt="Rollers Only — Auction & Community" width={1024} height={1536} className="hero-bird-main" priority />
         <div className="hero-content">
           <p className="hero-eyebrow">The world&apos;s premier roller pigeon marketplace</p>
           <h1 className="hero-title">
