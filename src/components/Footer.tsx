@@ -25,7 +25,7 @@ export default function Footer() {
             <li><Link href="/breeders">Top Breeders</Link></li>
             <li><Link href="/breeders?tier=elite">Elite Lofts</Link></li>
             <li><Link href="/leaderboards">Championship Events</Link></li>
-            <li><Link href="/matchmaking">AI Matchmaking</Link></li>
+            <li><Link href="/matchmaking">Breeding Matchmaking</Link></li>
             <li><Link href="/how-it-works#nbrc">About NBRC</Link></li>
           </ul>
         </div>

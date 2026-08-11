@@ -41,7 +41,7 @@ const breeders = [
 const features = [
   { num: "01", title: "Live Auction Rooms", desc: "Real-time bidding with photo of the bird. Countdown clock, live chat, and escrow auto-triggered on hammer. Breeder submits video same day.", href: "/auctions" },
   { num: "02", title: "Verified Pedigree Vault", desc: "Every bird registered with a unique platform ID. Bloodlines locked and verified — tamper-proof lineage chains going back generations.", href: "/pedigree" },
-  { num: "03", title: "AI Breeding Matchmaker", desc: "Enter your birds' pedigree data and our AI analyzes bloodlines, flags common ancestors, and recommends optimal breeding pairs from across the platform.", href: "/signup" },
+  { num: "03", title: "Custom Breeding Matchmaking", desc: "Browse verified breeder lofts, hand-pick the sire and dam you want paired, and reserve the pairing with a $500 deposit — no guesswork, no waitlist raffles.", href: "/matchmaking" },
   { num: "04", title: "Health & DNA Certification", desc: "Partner veterinary network. DNA parentage confirmation. Certified birds carry visible trust badges on every listing.", href: "/how-it-works" },
   { num: "05", title: "Escrow-Protected Payments", desc: "Buyer funds held until arrival confirmed. First platform to offer true escrow protection for roller pigeon transactions globally.", href: "/how-it-works" },
 ];
@@ -55,7 +55,8 @@ export default async function Home() {
       <div className="hero">
         <div className="hero-bg-text">ROLLERS</div>
         <div className="hero-line" />
-        <Image src="/hero-rollers-only.png" alt="Rollers Only — Auction & Community" width={1024} height={1536} className="hero-bird-main" priority />
+        <Image src="/hero-bird.png" alt="Elite roller pigeon" width={1024} height={1536} className="hero-bird-main" priority />
+        <Image src="/rollers-only-logo.png" alt="Rollers Only" width={1024} height={1536} className="hero-logo-mid" />
         <div className="hero-content">
           <p className="hero-eyebrow">The world&apos;s premier roller pigeon marketplace</p>
           <h1 className="hero-title">
@@ -328,7 +329,7 @@ export default async function Home() {
               <li><Link href="/breeders">Top Breeders</Link></li>
               <li><Link href="/breeders">Elite Lofts</Link></li>
               <li><Link href="/leaderboards">Championship Events</Link></li>
-              <li><Link href="/signup">AI Matchmaking</Link></li>
+              <li><Link href="/matchmaking">Breeding Matchmaking</Link></li>
               <li><Link href="/how-it-works">About the Sport</Link></li>
             </ul>
           </div>

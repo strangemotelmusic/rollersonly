@@ -225,6 +225,24 @@ nav {
   mix-blend-mode: screen;
   filter: drop-shadow(0 0 80px rgba(212,175,55,0.08));
 }
+.hero-logo-mid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(140px, 16vw, 220px);
+  height: auto;
+  object-fit: contain;
+  opacity: 0;
+  transform: translate(-50%, calc(-50% + 20px));
+  animation: riseInCentered 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  z-index: 2;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 40px rgba(212,175,55,0.15));
+  pointer-events: none;
+}
+@keyframes riseInCentered {
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
 .hero-bird-ghost {
   position: absolute;
   right: 18%;
