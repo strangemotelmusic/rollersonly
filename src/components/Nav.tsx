@@ -22,7 +22,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Top Breeders", href: "/breeders" },
     { label: "Pedigrees", href: "/pedigree" },
     { label: "Leaderboards", href: "/leaderboards" },
-    { label: "Decade of the Spinner", href: "/magazine" },
+    { label: "Decade of the Spinner", href: "/decade-of-the-spinner" },
   ];
 
   const displayName = profile?.full_name || profile?.username || user?.email || "";
