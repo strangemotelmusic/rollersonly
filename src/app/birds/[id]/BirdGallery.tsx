@@ -8,12 +8,14 @@ export default function BirdGallery({
   isLive,
   dnaCertified,
   healthCertified,
+  rollersOnlyCertified,
 }: {
   photos: string[];
   alt: string;
   isLive: boolean;
   dnaCertified: boolean;
   healthCertified: boolean;
+  rollersOnlyCertified: boolean;
 }) {
   const [active, setActive] = useState(0);
 
@@ -24,6 +26,11 @@ export default function BirdGallery({
           <div style={{ position: "absolute", top: 16, left: 16, zIndex: 2, background: "rgba(255,50,50,0.9)", color: "#fff", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 10px", borderRadius: 2 }}>● Live Auction</div>
         )}
         <div style={{ display: "flex", gap: 8, position: "absolute", top: 16, right: 16, zIndex: 2 }}>
+          {rollersOnlyCertified && (
+            <span className="tag" style={{ fontSize: 9, background: "var(--gold)", color: "var(--black)", borderColor: "var(--gold)" }}>
+              ★ Rollers Only Certified
+            </span>
+          )}
           {dnaCertified && <span className="tag" style={{ fontSize: 9 }}>DNA Cert</span>}
           {healthCertified && <span className="tag" style={{ fontSize: 9 }}>Health Cert</span>}
         </div>

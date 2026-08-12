@@ -13,7 +13,7 @@ export default async function Nav({ active }: { active?: string }) {
 
   const profile = user ? await ensureProfile(user) : null;
   const { data: avatarRow } = user
-    ? await supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle()
+    ? await supabase.from("profiles").select("avatar_url, is_admin").eq("id", user.id).maybeSingle()
     : { data: null };
 
   const links = [
@@ -71,6 +71,11 @@ export default async function Nav({ active }: { active?: string }) {
               </span>
               {displayName}
             </Link>
+            {avatarRow?.is_admin && (
+              <Link href="/admin/certifications" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                Review Queue
+              </Link>
+            )}
             <form action={signOut}>
               <button type="submit" className="btn-ghost" style={{ background: "none", cursor: "pointer" }}>
                 Sign out

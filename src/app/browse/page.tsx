@@ -8,7 +8,7 @@ export default async function BrowsePage() {
   const { data: birdsRaw } = await supabase
     .from("birds")
     .select(
-      "id, name, primary_photo_url, health_certified, dna_certified, lofts(name, location), auctions(id, current_bid, starting_bid, status, created_at)"
+      "id, name, primary_photo_url, health_certified, dna_certified, certification_status, lofts(name, location), auctions(id, current_bid, starting_bid, status, created_at)"
     )
     .eq("is_active", true)
     .order("created_at", { ascending: false });
@@ -20,6 +20,7 @@ export default async function BrowsePage() {
     const status = latestAuction?.status === "live" ? "live" : latestAuction?.status === "scheduled" ? "upcoming" : "available";
     const bidAmount = latestAuction?.current_bid ?? latestAuction?.starting_bid ?? null;
     const tags = [
+      b.certification_status === "certified" && "★ Rollers Only Certified",
       b.dna_certified && "DNA Cert",
       b.health_certified && "Health Cert",
     ].filter(Boolean) as string[];

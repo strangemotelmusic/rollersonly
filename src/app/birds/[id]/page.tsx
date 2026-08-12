@@ -21,7 +21,7 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
     .from("birds")
     .select(
       `id, name, ring_number, sex, color, birth_year, roll_quality, fly_score, kit_score,
-       health_certified, dna_certified, notes, primary_photo_url, loft_id, owner_id,
+       health_certified, dna_certified, certification_status, notes, primary_photo_url, loft_id, owner_id,
        lofts(name, location, slug, rating, total_birds_sold),
        profiles!birds_owner_id_fkey(username, full_name, tier),
        sire:sire_id(id, name, ring_number),
@@ -99,6 +99,7 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
               isLive={auction?.status === "live"}
               dnaCertified={Boolean(bird.dna_certified)}
               healthCertified={Boolean(bird.health_certified)}
+              rollersOnlyCertified={bird.certification_status === "certified"}
             />
 
             <div style={{ marginBottom: 40 }}>

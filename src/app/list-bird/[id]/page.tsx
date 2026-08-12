@@ -2,7 +2,9 @@ import { redirect, notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { getCertificationEligibility } from "@/lib/certification";
 import EditBirdForm from "./EditBirdForm";
+import CertificationPanel from "./CertificationPanel";
 
 export default async function EditBirdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,7 +20,7 @@ export default async function EditBirdPage({ params }: { params: Promise<{ id: s
   const { data: bird } = await supabase
     .from("birds")
     .select(
-      `id, name, ring_number, sex, color, birth_year, notes, owner_id, primary_photo_url,
+      `id, name, ring_number, sex, color, birth_year, notes, owner_id, primary_photo_url, certification_status,
        bird_photos(id, url, sort_order),
        auctions(id, status)`
     )
@@ -43,6 +45,7 @@ export default async function EditBirdPage({ params }: { params: Promise<{ id: s
 
   const auction = bird.auctions?.[0] ?? null;
   const photos = [...(bird.bird_photos ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const eligibility = await getCertificationEligibility(bird.id);
 
   return (
     <>
@@ -66,6 +69,8 @@ export default async function EditBirdPage({ params }: { params: Promise<{ id: s
             }}
             existingPhotos={photos}
           />
+
+          <CertificationPanel birdId={bird.id} status={bird.certification_status} initialEligibility={eligibility} />
         </div>
       </div>
       <Footer />

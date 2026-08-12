@@ -19,6 +19,7 @@ export interface Database {
           bio: string | null;
           tier: string;
           is_verified: boolean | null;
+          is_admin: boolean;
           stripe_customer_id: string | null;
           created_at: string | null;
           updated_at: string | null;
@@ -32,6 +33,7 @@ export interface Database {
           bio?: string | null;
           tier?: string;
           is_verified?: boolean | null;
+          is_admin?: boolean;
           stripe_customer_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
@@ -114,6 +116,9 @@ export interface Database {
           primary_photo_url: string | null;
           is_active: boolean | null;
           notes: string | null;
+          certification_status: string;
+          certification_requested_at: string | null;
+          certified_at: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -143,6 +148,9 @@ export interface Database {
           primary_photo_url?: string | null;
           is_active?: boolean | null;
           notes?: string | null;
+          certification_status?: string;
+          certification_requested_at?: string | null;
+          certified_at?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
