@@ -67,9 +67,17 @@ export default async function Home() {
       <div className="hero">
         <div className="hero-bg-text">ROLLERS</div>
         <div className="hero-line" />
-        <Image src={siteImages.hero} alt="Elite roller pigeon" width={1024} height={1536} className="hero-bird-main" priority />
         <Image src="/rollers-only-logo.png" alt="Rollers Only" width={1024} height={1536} className="hero-logo-mid" />
         <div className="hero-content">
+          <Link href="/magazine" className="hero-magazine-cover-link">
+            <Image
+              src="/decade-of-the-spinner-cover.jpg"
+              alt="Decade of the Spinner — Spring 2027 Collector's Edition"
+              width={1023}
+              height={1537}
+              className="hero-magazine-cover"
+            />
+          </Link>
           <p className="hero-eyebrow">The world&apos;s premier roller pigeon marketplace</p>
           <h1 className="hero-title">
             Where <em>Elite</em><br />Birds Find<br />Their Worth

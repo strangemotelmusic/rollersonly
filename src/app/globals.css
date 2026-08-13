@@ -229,7 +229,7 @@ nav {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(220px, 26vw, 360px);
+  width: clamp(320px, 38vw, 520px);
   height: auto;
   object-fit: contain;
   opacity: 0;
@@ -266,6 +266,23 @@ nav {
   z-index: 3;
   padding: 0 64px 80px;
   max-width: 620px;
+}
+.hero-magazine-cover-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: riseIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+.hero-magazine-cover {
+  width: 120px;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
+  transition: transform 0.25s ease;
+}
+.hero-magazine-cover-link:hover .hero-magazine-cover {
+  transform: translateY(-4px);
 }
 .hero-eyebrow {
   font-size: 11px;
