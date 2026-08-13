@@ -54,6 +54,19 @@
   margin: 0 auto 20px;
 }
 
+/* ---------- COMING SOON BANNER ---------- */
+.comingSoonBanner {
+  text-align: center;
+  padding: 10px 16px;
+  background: var(--gold);
+  color: var(--black);
+  font-family: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 /* ---------- NAV ---------- */
 /* globals.css has a bare nav{} selector for the shared Nav component that
    otherwise leaks onto this page's own <nav> — every property it sets must
@@ -87,12 +100,18 @@
   height: 24px;
   fill: var(--gold);
 }
+.sealLogo {
+  width: 30px;
+  height: auto;
+  flex-shrink: 0;
+}
 .navMark span {
   font-family: var(--display);
   letter-spacing: 0.1em;
   font-size: 1rem;
   color: var(--gold-light);
   font-weight: 700;
+  white-space: nowrap;
 }
 .navMark small {
   display: block;
@@ -100,14 +119,15 @@
   letter-spacing: 0.18em;
   font-size: 0.6rem;
   color: var(--cream-dim);
+  white-space: nowrap;
 }
 .navLinks {
   display: flex;
-  gap: 26px;
+  gap: 18px;
   font-family: var(--sub);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-size: 0.68rem;
 }
 .navLinks a {
   text-decoration: none;
@@ -115,6 +135,7 @@
   border-bottom: 1px solid transparent;
   padding-bottom: 4px;
   transition: 0.2s;
+  white-space: nowrap;
 }
 .navLinks a:hover {
   color: var(--gold-light);
@@ -678,6 +699,10 @@
   width: 30px;
   height: 30px;
   fill: var(--gold);
+}
+.footerSealLogo {
+  width: 34px;
+  height: auto;
 }
 .footerMark div {
   font-family: var(--display);

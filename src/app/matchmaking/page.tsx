@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import MatchBuilder from "./MatchBuilder";
 import styles from "./page.module.css";
@@ -26,21 +27,12 @@ const TERMS = [
 export default function MatchmakingPage() {
   return (
     <div className={styles.landing}>
-      <svg width="0" height="0" style={{ position: "absolute" }}>
-        <defs>
-          <g id="eagle-mark">
-            <path d="M50 8 L54 22 L66 14 L60 28 L82 24 L64 36 L88 40 L62 44 L80 56 L58 50 L64 68 L50 54 L36 68 L42 50 L20 56 L38 44 L12 40 L36 36 L18 24 L40 28 L34 14 L46 22 Z" />
-            <circle cx="50" cy="34" r="4" />
-          </g>
-        </defs>
-      </svg>
+      <div className={styles.comingSoonBanner}>Coming Soon — Reserve your pairing today, checkout opens shortly</div>
 
       <nav className={styles.nav}>
         <div className={styles.wrap}>
           <div className={styles.navMark}>
-            <svg className={styles.eagle} viewBox="0 0 100 100">
-              <use href="#eagle-mark" />
-            </svg>
+            <Image src="/rollers-only-logo.png" alt="Rollers Only seal" width={100} height={150} className={styles.sealLogo} />
             <div>
               <span>ROLLERS ONLY</span>
               <small>Verified Breeder Matchmaking</small>
@@ -48,6 +40,7 @@ export default function MatchmakingPage() {
           </div>
           <div className={styles.navLinks}>
             <Link href="/">← Rollers Only</Link>
+            <Link href="/decade-of-the-spinner">Decade of the Spinner</Link>
             <a href="#lofts">Verified Lofts</a>
             <a href="#how">How It Works</a>
             <a href="#pricing">Pricing</a>
@@ -165,9 +158,7 @@ export default function MatchmakingPage() {
         <div className={styles.wrap}>
           <div className={styles.footerGrid}>
             <div className={styles.footerMark}>
-              <svg className={styles.eagle} viewBox="0 0 100 100">
-                <use href="#eagle-mark" />
-              </svg>
+              <Image src="/rollers-only-logo.png" alt="Rollers Only seal" width={100} height={150} className={styles.footerSealLogo} />
               <div>
                 Rollers Only
                 <small>Verified Breeder Matchmaking</small>
