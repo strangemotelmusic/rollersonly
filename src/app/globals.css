@@ -229,7 +229,7 @@ nav {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(320px, 38vw, 520px);
+  width: clamp(440px, 50vw, 700px);
   height: auto;
   object-fit: contain;
   opacity: 0;
