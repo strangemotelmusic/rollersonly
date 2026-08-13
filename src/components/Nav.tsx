@@ -94,7 +94,7 @@ export default async function Nav({ active }: { active?: string }) {
           </>
         )}
       </div>
-      <NavMobileToggle links={links} isSignedIn={Boolean(user)} signOutAction={signOut} />
+      <NavMobileToggle links={links} isSignedIn={Boolean(user)} isAdmin={Boolean(avatarRow?.is_admin)} signOutAction={signOut} />
     </nav>
   );
 }

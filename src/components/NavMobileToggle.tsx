@@ -5,10 +5,12 @@ import Link from "next/link";
 export default function NavMobileToggle({
   links,
   isSignedIn,
+  isAdmin,
   signOutAction,
 }: {
   links: { label: string; href: string }[];
   isSignedIn: boolean;
+  isAdmin: boolean;
   signOutAction: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -29,6 +31,12 @@ export default function NavMobileToggle({
             <>
               <Link href="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
               <Link href="/settings" onClick={() => setOpen(false)}>Account Settings</Link>
+              {isAdmin && (
+                <>
+                  <Link href="/admin/certifications" onClick={() => setOpen(false)}>Review Queue</Link>
+                  <Link href="/admin/site-images" onClick={() => setOpen(false)}>Site Images</Link>
+                </>
+              )}
               <form action={signOutAction}>
                 <button type="submit">Sign out</button>
               </form>
