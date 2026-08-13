@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import Nav from "@/components/Nav";
+import { getSiteImages } from "@/lib/site-images";
 
 const tickerItems = [
   "Blue Bar Champion Cock — Sold $1,850",
@@ -17,19 +18,19 @@ const tickerItems = [
 ];
 
 const auctionCards = [
-  { id: 1, badge: "● Live", badgeClass: "badge-live", img: "/bird-white-red.jpg", name: "Blue Bar Champion Cock", breeder: "Anderson Loft · DeSoto, Texas, USA", bidLabel: "Current bid", bid: "$1,240", timeLabel: "Ends in", seconds: 1122, tags: ["Verified Pedigree", "DNA Cert"] },
-  { id: 2, badge: "● Live", badgeClass: "badge-live", img: "/bird-red.jpg", name: "Red Self Breeding Hen", breeder: "Martinez Champion Loft · California, USA", bidLabel: "Current bid", bid: "$780", timeLabel: "Ends in", seconds: 2655, tags: ["World Cup Line", "Health Cert"] },
-  { id: 3, badge: "Starts in 18 min", badgeClass: "badge-upcoming", img: "/bird-lavender.jpg", name: "White Badge Breeding Pair", breeder: "Royal Birmingham Loft · Birmingham, UK", bidLabel: "Opening bid", bid: "$600", timeLabel: "Starts in", seconds: 1075, tags: ["Breeding Pair", "NBRC Champion"] },
-];
+  { id: 1, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_white_red", name: "Blue Bar Champion Cock", breeder: "Anderson Loft · DeSoto, Texas, USA", bidLabel: "Current bid", bid: "$1,240", timeLabel: "Ends in", seconds: 1122, tags: ["Verified Pedigree", "DNA Cert"] },
+  { id: 2, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_red", name: "Red Self Breeding Hen", breeder: "Martinez Champion Loft · California, USA", bidLabel: "Current bid", bid: "$780", timeLabel: "Ends in", seconds: 2655, tags: ["World Cup Line", "Health Cert"] },
+  { id: 3, badge: "Starts in 18 min", badgeClass: "badge-upcoming", imgKey: "bird_lavender", name: "White Badge Breeding Pair", breeder: "Royal Birmingham Loft · Birmingham, UK", bidLabel: "Opening bid", bid: "$600", timeLabel: "Starts in", seconds: 1075, tags: ["Breeding Pair", "NBRC Champion"] },
+] as const;
 
 const featuredBirds = [
-  { id: 1, img: "/bird-white-red.jpg", name: "Blue Bar Champion", meta: "Anderson Loft · Texas · Male · 2024", price: "Opening bid $400" },
-  { id: 3, img: "/bird-lavender.jpg", name: "Lavender Hen — World Cup", meta: "Sterling Loft · Netherlands · Female · 2023", price: "Opening bid $650" },
-  { id: 2, img: "/bird-red.jpg", name: "Red Self Breeding Cock", meta: "Martinez Loft · California · Male · 2024", price: "Opening bid $350" },
-  { id: 5, img: "/bird-white-red2.jpg", name: "White Badge Roller Hen", meta: "Royal Birmingham Loft · UK · Female · 2024", price: "Opening bid $500" },
-  { id: 4, img: "/bird-black-centertail.jpg", name: "Black Centertail Young Cock", meta: "Khan Loft · Texas · Male · 2025", price: "Opening bid $280" },
-  { id: 6, img: "/bird-red2.jpg", name: "Recessive Red Breeding Hen", meta: "Desert Loft · Arizona · Female · 2024", price: "Opening bid $420" },
-];
+  { id: 1, imgKey: "bird_white_red", name: "Blue Bar Champion", meta: "Anderson Loft · Texas · Male · 2024", price: "Opening bid $400" },
+  { id: 3, imgKey: "bird_lavender", name: "Lavender Hen — World Cup", meta: "Sterling Loft · Netherlands · Female · 2023", price: "Opening bid $650" },
+  { id: 2, imgKey: "bird_red", name: "Red Self Breeding Cock", meta: "Martinez Loft · California · Male · 2024", price: "Opening bid $350" },
+  { id: 5, imgKey: "bird_white_red2", name: "White Badge Roller Hen", meta: "Royal Birmingham Loft · UK · Female · 2024", price: "Opening bid $500" },
+  { id: 4, imgKey: "bird_black_centertail", name: "Black Centertail Young Cock", meta: "Khan Loft · Texas · Male · 2025", price: "Opening bid $280" },
+  { id: 6, imgKey: "bird_red2", name: "Recessive Red Breeding Hen", meta: "Desert Loft · Arizona · Female · 2024", price: "Opening bid $420" },
+] as const;
 
 const breeders = [
   { slug: "anderson", initial: "A", name: "Anderson Loft", location: "DeSoto, Texas, USA", sold: 142, championships: 18 },
@@ -47,6 +48,8 @@ const features = [
 ];
 
 export default async function Home() {
+  const siteImages = await getSiteImages();
+
   return (
     <>
       <Nav active="/" />
@@ -55,7 +58,7 @@ export default async function Home() {
       <div className="hero">
         <div className="hero-bg-text">ROLLERS</div>
         <div className="hero-line" />
-        <Image src="/hero-bird.png" alt="Elite roller pigeon" width={1024} height={1536} className="hero-bird-main" priority />
+        <Image src={siteImages.hero} alt="Elite roller pigeon" width={1024} height={1536} className="hero-bird-main" priority />
         <Image src="/rollers-only-logo.png" alt="Rollers Only" width={1024} height={1536} className="hero-logo-mid" />
         <div className="hero-content">
           <p className="hero-eyebrow">The world&apos;s premier roller pigeon marketplace</p>
@@ -106,7 +109,7 @@ export default async function Home() {
               <div className="auction-card">
                 <div className="auction-img-wrap">
                   <div className={`auction-badge ${card.badgeClass}`}>{card.badge}</div>
-                  <Image src={card.img} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                  <Image src={siteImages[card.imgKey]} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
                 </div>
                 <div className="auction-body">
                   <div className="auction-name">{card.name}</div>
@@ -161,7 +164,7 @@ export default async function Home() {
           {featuredBirds.map((bird) => (
             <Link key={bird.id} href={`/birds/${bird.id}`} style={{ textDecoration: "none" }}>
               <div className="bird-card">
-                <Image src={bird.img} alt={bird.name} width={280} height={400} className="bird-card-img" />
+                <Image src={siteImages[bird.imgKey]} alt={bird.name} width={280} height={400} className="bird-card-img" />
                 <div className="bird-card-info">
                   <div className="bird-card-name">{bird.name}</div>
                   <div className="bird-card-meta">{bird.meta}</div>
@@ -231,7 +234,7 @@ export default async function Home() {
         </div>
         <div className="features-right">
           <div className="feature-ring" />
-          <Image src="/bird-black-centertail.jpg" alt="Elite roller pigeon" width={500} height={600} className="feature-bird" />
+          <Image src={siteImages.bird_black_centertail} alt="Elite roller pigeon" width={500} height={600} className="feature-bird" />
         </div>
       </div>
 
@@ -291,8 +294,8 @@ export default async function Home() {
 
       {/* CTA */}
       <div className="cta-section">
-        <Image src="/bird-red2.jpg" alt="" width={400} height={500} className="cta-bird-left" aria-hidden />
-        <Image src="/bird-lavender.jpg" alt="" width={400} height={500} className="cta-bird-right" aria-hidden />
+        <Image src={siteImages.bird_red2} alt="" width={400} height={500} className="cta-bird-left" aria-hidden />
+        <Image src={siteImages.bird_lavender} alt="" width={400} height={500} className="cta-bird-right" aria-hidden />
         <h2 className="cta-title">
           Your Birds Deserve<br />a <em>World-Class</em> Stage
         </h2>

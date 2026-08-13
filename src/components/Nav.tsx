@@ -72,9 +72,14 @@ export default async function Nav({ active }: { active?: string }) {
               {displayName}
             </Link>
             {avatarRow?.is_admin && (
-              <Link href="/admin/certifications" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                Review Queue
-              </Link>
+              <>
+                <Link href="/admin/certifications" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Review Queue
+                </Link>
+                <Link href="/admin/site-images" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Site Images
+                </Link>
+              </>
             )}
             <form action={signOut}>
               <button type="submit" className="btn-ghost" style={{ background: "none", cursor: "pointer" }}>
