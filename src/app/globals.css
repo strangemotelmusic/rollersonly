@@ -275,7 +275,7 @@ nav {
   animation: riseIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
 .hero-magazine-cover {
-  width: 120px;
+  width: clamp(180px, 22vw, 280px);
   height: auto;
   border-radius: 2px;
   box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
