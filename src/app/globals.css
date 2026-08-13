@@ -228,8 +228,8 @@ nav {
 .hero-welcome-letter {
   position: absolute;
   right: 4%;
-  bottom: 0;
-  height: 58vh;
+  bottom: 80px;
+  height: 76vh;
   width: auto;
   object-fit: contain;
   object-position: bottom;
