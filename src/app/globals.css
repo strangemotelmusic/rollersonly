@@ -225,6 +225,21 @@ nav {
   mix-blend-mode: screen;
   filter: drop-shadow(0 0 80px rgba(212,175,55,0.08));
 }
+.hero-welcome-letter {
+  position: absolute;
+  right: 4%;
+  bottom: 0;
+  height: 58vh;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: riseIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+  z-index: 2;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 60px rgba(212,175,55,0.1));
+}
 .hero-logo-mid {
   position: absolute;
   top: 50%;

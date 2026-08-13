@@ -68,6 +68,13 @@ export default async function Home() {
         <div className="hero-bg-text">ROLLERS</div>
         <div className="hero-line" />
         <Image src="/rollers-only-logo.png" alt="Rollers Only" width={1024} height={1536} className="hero-logo-mid" />
+        <Image
+          src="/hero-welcome-letter.jpg"
+          alt="Welcome to the Brotherhood — a letter from Rollers Only"
+          width={1103}
+          height={1426}
+          className="hero-welcome-letter"
+        />
         <div className="hero-content">
           <Link href="/magazine" className="hero-magazine-cover-link">
             <Image
