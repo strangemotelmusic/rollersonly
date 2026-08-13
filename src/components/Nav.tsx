@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { signOut } from "@/app/actions/auth";
 import NavMobileToggle from "@/components/NavMobileToggle";
+import CartIcon from "@/components/CartIcon";
 
 export default async function Nav({ active }: { active?: string }) {
   const supabase = await createClient();
@@ -19,6 +20,7 @@ export default async function Nav({ active }: { active?: string }) {
   const links = [
     { label: "Live Auctions", href: "/auctions" },
     { label: "Browse Birds", href: "/browse" },
+    { label: "Buy D.O.T.S Birds", href: "/dots-birds" },
     { label: "Top Breeders", href: "/breeders" },
     { label: "Pedigrees", href: "/pedigree" },
     { label: "Leaderboards", href: "/leaderboards" },
@@ -44,6 +46,7 @@ export default async function Nav({ active }: { active?: string }) {
         ))}
       </ul>
       <div className="nav-cta" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <CartIcon />
         {user ? (
           <>
             <Link
@@ -78,6 +81,9 @@ export default async function Nav({ active }: { active?: string }) {
                 </Link>
                 <Link href="/admin/site-images" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Site Images
+                </Link>
+                <Link href="/admin/dots-birds" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Manage D.O.T.S Birds
                 </Link>
               </>
             )}

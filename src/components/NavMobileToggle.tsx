@@ -27,6 +27,7 @@ export default function NavMobileToggle({
               {l.label}
             </Link>
           ))}
+          <Link href="/cart" onClick={() => setOpen(false)}>Cart</Link>
           {isSignedIn ? (
             <>
               <Link href="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
@@ -35,6 +36,7 @@ export default function NavMobileToggle({
                 <>
                   <Link href="/admin/certifications" onClick={() => setOpen(false)}>Review Queue</Link>
                   <Link href="/admin/site-images" onClick={() => setOpen(false)}>Site Images</Link>
+                  <Link href="/admin/dots-birds" onClick={() => setOpen(false)}>Manage D.O.T.S Birds</Link>
                 </>
               )}
               <form action={signOutAction}>

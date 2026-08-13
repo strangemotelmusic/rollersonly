@@ -677,6 +677,58 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["site_images"]["Insert"]>;
         Relationships: [];
       };
+      dots_birds: {
+        Row: {
+          id: string;
+          name: string;
+          band_number: string | null;
+          age: string | null;
+          price_cents: number;
+          description: string | null;
+          photo_url: string | null;
+          is_available: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          band_number?: string | null;
+          age?: string | null;
+          price_cents: number;
+          description?: string | null;
+          photo_url?: string | null;
+          is_available?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["dots_birds"]["Insert"]>;
+        Relationships: [];
+      };
+      dots_bird_orders: {
+        Row: {
+          id: string;
+          stripe_session_id: string;
+          bird_ids: string[];
+          customer_email: string | null;
+          amount_total_cents: number | null;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          stripe_session_id: string;
+          bird_ids: string[];
+          customer_email?: string | null;
+          amount_total_cents?: number | null;
+          status?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["dots_bird_orders"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
