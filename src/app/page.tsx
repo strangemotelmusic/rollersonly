@@ -3,6 +3,7 @@ import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import Nav from "@/components/Nav";
 import { getSiteImages } from "@/lib/site-images";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const tickerItems = [
   "Blue Bar Champion Cock — Sold $1,850",
@@ -49,6 +50,14 @@ const features = [
 
 export default async function Home() {
   const siteImages = await getSiteImages();
+
+  const admin = createAdminClient();
+  const { data: latestIssue } = await admin
+    .from("magazine_issues")
+    .select("id, issue_number, title, cover_image_url")
+    .order("issue_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <>
@@ -236,6 +245,38 @@ export default async function Home() {
           <div className="feature-ring" />
           <Image src={siteImages.bird_black_centertail} alt="Elite roller pigeon" width={500} height={600} className="feature-bird" />
         </div>
+      </div>
+
+      {/* MAGAZINE */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: latestIssue?.cover_image_url ? "1fr 320px" : "1fr",
+          gap: 48,
+          alignItems: "center",
+          maxWidth: 1160,
+          margin: "0 auto",
+          padding: "96px 48px",
+        }}
+      >
+        <div>
+          <p className="section-eyebrow">Member Publication</p>
+          <h2 className="section-title" style={{ marginBottom: 20 }}>
+            Decade of the <em style={{ fontFamily: "var(--ff-display)", color: "var(--gold)" }}>Spinner</em>
+          </h2>
+          <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.8, maxWidth: 480, marginBottom: 32 }}>
+            Ten years of roller pigeon breeding, competition, and bloodline history. Sample any issue for free —
+            Breeder and Elite Loft members read every issue in full.
+          </p>
+          <Link href="/magazine" className="btn-gold-lg">
+            Read the Latest Issue
+          </Link>
+        </div>
+        {latestIssue?.cover_image_url && (
+          <div style={{ position: "relative", height: 420, borderRadius: 2, overflow: "hidden", border: "0.5px solid var(--border)" }}>
+            <Image src={latestIssue.cover_image_url} alt={latestIssue.title} fill style={{ objectFit: "cover" }} />
+          </div>
+        )}
       </div>
 
       {/* PRICING */}

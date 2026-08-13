@@ -37,6 +37,7 @@ export default function NavMobileToggle({
                   <Link href="/admin/certifications" onClick={() => setOpen(false)}>Review Queue</Link>
                   <Link href="/admin/site-images" onClick={() => setOpen(false)}>Site Images</Link>
                   <Link href="/admin/dots-birds" onClick={() => setOpen(false)}>Manage D.O.T.S Birds</Link>
+                  <Link href="/admin/magazine" onClick={() => setOpen(false)}>Manage Magazine</Link>
                 </>
               )}
               <form action={signOutAction}>

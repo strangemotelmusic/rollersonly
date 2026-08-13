@@ -85,6 +85,9 @@ export default async function Nav({ active }: { active?: string }) {
                 <Link href="/admin/dots-birds" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Manage D.O.T.S Birds
                 </Link>
+                <Link href="/admin/magazine" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Manage Magazine
+                </Link>
               </>
             )}
             <form action={signOut}>

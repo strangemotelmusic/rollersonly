@@ -3,7 +3,9 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
+import { hasMagazineAccess } from "@/lib/magazine";
 
 export default async function MagazineIssuePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,14 +16,15 @@ export default async function MagazineIssuePage({ params }: { params: Promise<{ 
 
   const profile = user ? await ensureProfile(user) : null;
 
-  const isPaid = profile?.tier === "fancier" || profile?.tier === "breeder" || profile?.tier === "elite";
-
-  if (!isPaid) {
+  if (!hasMagazineAccess(profile?.tier)) {
     return (
       <>
         <Nav active="/magazine" />
         <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 20 }}>
           <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)" }}>Members-only content</div>
+          <p style={{ fontSize: 13, color: "var(--muted)", maxWidth: 400, textAlign: "center" }}>
+            Reading full issues requires a Breeder or Elite Loft membership.
+          </p>
           <Link href="/magazine" className="btn-gold" style={{ padding: "12px 28px" }}>Back to Decade of the Spinner</Link>
         </div>
         <Footer />
@@ -29,7 +32,10 @@ export default async function MagazineIssuePage({ params }: { params: Promise<{ 
     );
   }
 
-  const { data: issue } = await supabase
+  // magazine_issues has no public RLS policy on purpose - always read
+  // through the admin client, same as the index page.
+  const admin = createAdminClient();
+  const { data: issue } = await admin
     .from("magazine_issues")
     .select("id, issue_number, title, description, cover_image_url, content, published_at")
     .eq("id", id)
