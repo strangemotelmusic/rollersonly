@@ -27,7 +27,9 @@ export function needsTranscode(file: File) {
 
 let ffmpegPromise: Promise<import("@ffmpeg/ffmpeg").FFmpeg> | null = null;
 
-async function getFFmpeg() {
+// Exported so other callers (the archive remaster pipeline) share the same
+// loaded-once ffmpeg instance instead of fetching the ~25MB core twice.
+export async function getFFmpeg() {
   if (!ffmpegPromise) {
     ffmpegPromise = (async () => {
       const { FFmpeg } = await import("@ffmpeg/ffmpeg");

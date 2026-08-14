@@ -31,6 +31,7 @@ export default function NavMobileToggle({
           {isSignedIn ? (
             <>
               <Link href="/chat" onClick={() => setOpen(false)}>Chat</Link>
+              <Link href="/spin-vault" onClick={() => setOpen(false)}>The Spin Vault</Link>
               <Link href="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
               <Link href="/settings" onClick={() => setOpen(false)}>Account Settings</Link>
               {isAdmin && (
@@ -39,6 +40,7 @@ export default function NavMobileToggle({
                   <Link href="/admin/site-images" onClick={() => setOpen(false)}>Site Images</Link>
                   <Link href="/admin/dots-birds" onClick={() => setOpen(false)}>Manage D.O.T.S Birds</Link>
                   <Link href="/admin/magazine" onClick={() => setOpen(false)}>Manage Magazine</Link>
+                  <Link href="/admin/archive" onClick={() => setOpen(false)}>Manage The Spin Vault</Link>
                 </>
               )}
               <form action={signOutAction}>

@@ -51,6 +51,9 @@ export default async function Nav({ active }: { active?: string }) {
         {user ? (
           <>
             <ChatIcon />
+            <Link href="/spin-vault" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
+              The Spin Vault
+            </Link>
             <Link
               href="/dashboard"
               style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--white)", fontSize: 13 }}
@@ -89,6 +92,9 @@ export default async function Nav({ active }: { active?: string }) {
                 </Link>
                 <Link href="/admin/magazine" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Manage Magazine
+                </Link>
+                <Link href="/admin/archive" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Manage The Spin Vault
                 </Link>
               </>
             )}

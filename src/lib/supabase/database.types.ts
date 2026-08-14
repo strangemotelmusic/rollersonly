@@ -827,6 +827,92 @@ export interface Database {
           },
         ];
       };
+      archive_media: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          media_url: string;
+          media_type: string;
+          thumbnail_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          media_url: string;
+          media_type: string;
+          thumbnail_url?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["archive_media"]["Insert"]>;
+        Relationships: [];
+      };
+      archive_likes: {
+        Row: {
+          id: string;
+          archive_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          archive_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["archive_likes"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "archive_likes_archive_id_fkey";
+            columns: ["archive_id"];
+            isOneToOne: false;
+            referencedRelation: "archive_media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "archive_likes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      archive_comments: {
+        Row: {
+          id: string;
+          archive_id: string;
+          user_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          archive_id: string;
+          user_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["archive_comments"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "archive_comments_archive_id_fkey";
+            columns: ["archive_id"];
+            isOneToOne: false;
+            referencedRelation: "archive_media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "archive_comments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
