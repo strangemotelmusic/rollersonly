@@ -677,6 +677,102 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["site_images"]["Insert"]>;
         Relationships: [];
       };
+      our_breeders: {
+        Row: {
+          id: string;
+          name: string;
+          sex: string | null;
+          color: string | null;
+          bloodline: string | null;
+          ring_number: string | null;
+          flying_record: string | null;
+          loft_record: string | null;
+          bio: string | null;
+          photo_urls: string[];
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          sex?: string | null;
+          color?: string | null;
+          bloodline?: string | null;
+          ring_number?: string | null;
+          flying_record?: string | null;
+          loft_record?: string | null;
+          bio?: string | null;
+          photo_urls?: string[];
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["our_breeders"]["Insert"]>;
+        Relationships: [];
+      };
+      listing_notification_reads: {
+        Row: {
+          user_id: string;
+          last_read_at: string;
+        };
+        Insert: {
+          user_id: string;
+          last_read_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["listing_notification_reads"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "listing_notification_reads_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      live_auction_cards: {
+        Row: {
+          id: string;
+          name: string;
+          color: string | null;
+          bloodline: string | null;
+          loft_name: string;
+          location: string | null;
+          price_cents: number;
+          bid_count: number;
+          status: string;
+          ends_at: string | null;
+          schedule_label: string | null;
+          tags: string[];
+          image_url: string | null;
+          featured_home: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          color?: string | null;
+          bloodline?: string | null;
+          loft_name: string;
+          location?: string | null;
+          price_cents?: number;
+          bid_count?: number;
+          status?: string;
+          ends_at?: string | null;
+          schedule_label?: string | null;
+          tags?: string[];
+          image_url?: string | null;
+          featured_home?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["live_auction_cards"]["Insert"]>;
+        Relationships: [];
+      };
       dots_birds: {
         Row: {
           id: string;

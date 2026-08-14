@@ -3,10 +3,9 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SITE_IMAGE_SLOTS, getSiteImageMeta } from "@/lib/site-images";
-import SiteImageSlot from "./SiteImageSlot";
+import OurBreedersAdminClient from "./OurBreedersAdminClient";
 
-export default async function AdminSiteImagesPage() {
+export default async function AdminOurBreedersPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,7 +17,10 @@ export default async function AdminSiteImagesPage() {
   const { data: profile } = await admin.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
   if (!profile?.is_admin) redirect("/dashboard");
 
-  const images = await getSiteImageMeta();
+  const { data: breeders } = await admin
+    .from("our_breeders")
+    .select("id, name, sex, color, bloodline, ring_number, flying_record, loft_record, bio, photo_urls, sort_order")
+    .order("sort_order", { ascending: true });
 
   return (
     <>
@@ -26,18 +28,14 @@ export default async function AdminSiteImagesPage() {
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "64px 32px" }}>
           <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>
-            Site Images
+            Manage Our Breeders
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
-            Replace the placeholder bird photos used in the homepage featured grid and hero, and rename each slot. Each slot updates every place that photo appears. To edit Live Auctions cards (price, color, bloodline, photo), use{" "}
-            <a href="/admin/live-auctions" style={{ color: "var(--gold)" }}>Manage Live Auctions</a>.
+            Add and edit the foundation breeder birds shown on the public &quot;Our Breeders&quot; page — name, bloodline,
+            flying and loft performance history, and photos.
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {SITE_IMAGE_SLOTS.map((slot) => (
-              <SiteImageSlot key={slot.key} slotKey={slot.key} label={images[slot.key].label} url={images[slot.key].url} />
-            ))}
-          </div>
+          <OurBreedersAdminClient initialBreeders={breeders ?? []} />
         </div>
       </div>
       <Footer />

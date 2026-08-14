@@ -3,10 +3,9 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SITE_IMAGE_SLOTS, getSiteImageMeta } from "@/lib/site-images";
-import SiteImageSlot from "./SiteImageSlot";
+import LiveAuctionsAdminClient from "./LiveAuctionsAdminClient";
 
-export default async function AdminSiteImagesPage() {
+export default async function AdminLiveAuctionsPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,7 +17,10 @@ export default async function AdminSiteImagesPage() {
   const { data: profile } = await admin.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
   if (!profile?.is_admin) redirect("/dashboard");
 
-  const images = await getSiteImageMeta();
+  const { data: cards } = await admin
+    .from("live_auction_cards")
+    .select("id, name, color, bloodline, loft_name, location, price_cents, bid_count, status, ends_at, schedule_label, tags, image_url, featured_home, sort_order")
+    .order("sort_order", { ascending: true });
 
   return (
     <>
@@ -26,18 +28,13 @@ export default async function AdminSiteImagesPage() {
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "64px 32px" }}>
           <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>
-            Site Images
+            Manage Live Auctions
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
-            Replace the placeholder bird photos used in the homepage featured grid and hero, and rename each slot. Each slot updates every place that photo appears. To edit Live Auctions cards (price, color, bloodline, photo), use{" "}
-            <a href="/admin/live-auctions" style={{ color: "var(--gold)" }}>Manage Live Auctions</a>.
+            Edit the price, color, bloodline, loft, and photo for every card shown on the homepage and the Live Auctions page.
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {SITE_IMAGE_SLOTS.map((slot) => (
-              <SiteImageSlot key={slot.key} slotKey={slot.key} label={images[slot.key].label} url={images[slot.key].url} />
-            ))}
-          </div>
+          <LiveAuctionsAdminClient initialCards={cards ?? []} />
         </div>
       </div>
       <Footer />

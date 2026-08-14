@@ -28,12 +28,6 @@ const tickerItems = [
   "◆",
 ];
 
-const auctionCards = [
-  { id: 1, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_white_red", name: "Blue Bar Champion Cock", breeder: "Schoening Loft · Montana, USA", bidLabel: "Current bid", bid: "$1,240", timeLabel: "Ends in", seconds: 1122, tags: ["Verified Pedigree", "DNA Cert"] },
-  { id: 2, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_red", name: "Red Self Breeding Hen", breeder: "Glenn Loft · Ohio, USA", bidLabel: "Current bid", bid: "$780", timeLabel: "Ends in", seconds: 2655, tags: ["World Cup Line", "Health Cert"] },
-  { id: 3, badge: "Starts in 18 min", badgeClass: "badge-upcoming", imgKey: "bird_lavender", name: "White Badge Breeding Pair", breeder: "Deacon Loft · Midlands, UK", bidLabel: "Opening bid", bid: "$600", timeLabel: "Starts in", seconds: 1075, tags: ["Breeding Pair", "NBRC Champion"] },
-] as const;
-
 const featuredBirds = [
   { id: 1, imgKey: "bird_white_red", name: "Blue Bar Champion", meta: "Schoening Loft · Montana · Male · 2024", price: "Opening bid $400" },
   { id: 3, imgKey: "bird_lavender", name: "Lavender Hen — World Cup", meta: "Whelan Loft · Ireland · Female · 2023", price: "Opening bid $650" },
@@ -62,7 +56,7 @@ export default async function Home() {
   const siteImages = await getSiteImages();
 
   const admin = createAdminClient();
-  const [{ data: latestIssue }, { data: archivePhotos }] = await Promise.all([
+  const [{ data: latestIssue }, { data: archivePhotos }, { data: liveAuctionCards }, { count: liveCount }] = await Promise.all([
     admin
       .from("magazine_issues")
       .select("id, issue_number, title, cover_image_url")
@@ -70,7 +64,34 @@ export default async function Home() {
       .limit(1)
       .maybeSingle(),
     admin.from("archive_media").select("media_url").eq("media_type", "image").order("created_at", { ascending: false }).limit(20),
+    admin
+      .from("live_auction_cards")
+      .select("id, name, color, loft_name, location, price_cents, status, ends_at, schedule_label, tags, image_url")
+      .eq("featured_home", true)
+      .order("sort_order", { ascending: true })
+      .limit(3),
+    admin.from("live_auction_cards").select("id", { count: "exact", head: true }).eq("status", "live"),
   ]);
+
+  const auctionCards = (liveAuctionCards ?? []).map((card) => {
+    const isLive = card.status === "live";
+    const secondsLeft = isLive && card.ends_at ? Math.max(0, Math.round((new Date(card.ends_at).getTime() - Date.now()) / 1000)) : 0;
+    return {
+      id: card.id,
+      badge: isLive ? "● Live" : "Upcoming",
+      badgeClass: isLive ? "badge-live" : "badge-upcoming",
+      imgUrl: card.image_url || "/bird-white-red.jpg",
+      name: card.name,
+      breeder: [card.loft_name, card.location].filter(Boolean).join(" · "),
+      bidLabel: isLive ? "Current bid" : "Opening bid",
+      bid: `$${(card.price_cents / 100).toLocaleString()}`,
+      timeLabel: isLive ? "Ends in" : "Starts",
+      seconds: secondsLeft,
+      scheduleLabel: card.schedule_label,
+      isLive,
+      tags: card.tags,
+    };
+  });
 
   const fallbackHeroPhotos = [
     siteImages.bird_white_red,
@@ -125,7 +146,7 @@ export default async function Home() {
         </div>
         <div className="hero-badge">
           <Link href="/auctions" style={{ textDecoration: "none" }}>
-            <div className="live-dot">3 Live Auctions Now</div>
+            <div className="live-dot">{liveCount ?? 0} Live Auctions Now</div>
           </Link>
         </div>
         <div className="scroll-hint">
@@ -154,11 +175,11 @@ export default async function Home() {
         </div>
         <div className="auctions-grid">
           {auctionCards.map((card) => (
-            <Link key={card.id} href={`/birds/${card.id}`} style={{ textDecoration: "none" }}>
+            <Link key={card.id} href={`/auctions`} style={{ textDecoration: "none" }}>
               <div className="auction-card">
                 <div className="auction-img-wrap">
                   <div className={`auction-badge ${card.badgeClass}`}>{card.badge}</div>
-                  <Image src={siteImages[card.imgKey]} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                  <Image src={card.imgUrl} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
                 </div>
                 <div className="auction-body">
                   <div className="auction-name">{card.name}</div>
@@ -170,7 +191,7 @@ export default async function Home() {
                     </div>
                     <div className="auction-timer">
                       <div className="timer-label">{card.timeLabel}</div>
-                      <Countdown seconds={card.seconds} />
+                      {card.isLive ? <Countdown seconds={card.seconds} /> : <div className="timer-val">{card.scheduleLabel}</div>}
                     </div>
                   </div>
                   <div className="auction-tags">

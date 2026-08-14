@@ -6,6 +6,7 @@ import { signOut } from "@/app/actions/auth";
 import NavMobileToggle from "@/components/NavMobileToggle";
 import CartIcon from "@/components/CartIcon";
 import ChatIcon from "@/components/ChatIcon";
+import NotificationBell from "@/components/NotificationBell";
 
 export default async function Nav({ active }: { active?: string }) {
   const supabase = await createClient();
@@ -23,6 +24,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Browse Birds", href: "/browse" },
     { label: "Buy D.O.T.S Birds", href: "/dots-birds" },
     { label: "Top Breeders", href: "/breeders" },
+    { label: "Our Breeders", href: "/our-breeders" },
     { label: "Pedigrees", href: "/pedigree" },
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Decade of the Spinner", href: "/decade-of-the-spinner" },
@@ -50,6 +52,7 @@ export default async function Nav({ active }: { active?: string }) {
         <CartIcon />
         {user ? (
           <>
+            <NotificationBell />
             <ChatIcon />
             <Link href="/members" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
               Members
@@ -89,6 +92,12 @@ export default async function Nav({ active }: { active?: string }) {
                 </Link>
                 <Link href="/admin/site-images" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Site Images
+                </Link>
+                <Link href="/admin/live-auctions" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Live Auctions
+                </Link>
+                <Link href="/admin/our-breeders" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Our Breeders
                 </Link>
                 <Link href="/admin/dots-birds" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Manage D.O.T.S Birds

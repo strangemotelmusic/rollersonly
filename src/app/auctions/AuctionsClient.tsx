@@ -4,22 +4,39 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import Countdown from "@/components/Countdown";
-import type { SiteImageKey } from "@/lib/site-images";
 
-const liveAuctions = [
-  { id: 1, name: "Blue Bar Champion Cock", loft: "Schoening Loft", location: "Montana, USA", bid: "$1,240", bids: 14, seconds: 8280, imgKey: "bird_white_red", tags: ["Verified Pedigree", "DNA Cert"], featured: true },
-  { id: 2, name: "Red Self Breeding Hen", loft: "Glenn Loft", location: "Ohio, USA", bid: "$780", bids: 9, seconds: 19440, imgKey: "bird_red", tags: ["World Cup Line", "Health Cert"], featured: false },
-  { id: 5, name: "White Badge Roller Hen", loft: "Deacon Loft", location: "Midlands, UK", bid: "$650", bids: 7, seconds: 32040, imgKey: "bird_white_red2", tags: ["NBRC Champion", "Health Cert"], featured: false },
-  { id: 7, name: "Silver Dun Champion Cock", loft: "Schoening Loft", location: "Montana, USA", bid: "$920", bids: 11, seconds: 5400, imgKey: "bird_white_red", tags: ["World Cup Line", "DNA Cert"], featured: false },
-] as const;
+type LiveCard = {
+  id: string;
+  name: string;
+  loft: string;
+  location: string | null;
+  bid: string;
+  bids: number;
+  seconds: number;
+  imgUrl: string;
+  tags: string[];
+};
 
-const upcomingAuctions = [
-  { id: 3, name: "Lavender Breeding Pair", loft: "Whelan Loft", location: "Ireland", startBid: "$1,100", date: "Tomorrow · 2:00 PM CT", imgKey: "bird_lavender", tags: ["Breeding Pair", "Verified Pedigree"] },
-  { id: 9, name: "Grizzle Breeding Pair", loft: "Deacon Loft", location: "Midlands, UK", startBid: "$2,400", date: "Fri · 10:00 AM CT", imgKey: "bird_red", tags: ["NBRC Champion", "DNA Cert", "Health Cert"] },
-  { id: 12, name: "Dun Bar Young Cock", loft: "Rossouw Loft", location: "Free State, South Africa", startBid: "$310", date: "Sat · 12:00 PM CT", imgKey: "bird_red2", tags: ["Verified Pedigree", "Health Cert"] },
-] as const;
+type UpcomingCard = {
+  id: string;
+  name: string;
+  loft: string;
+  location: string | null;
+  startBid: string;
+  date: string;
+  imgUrl: string;
+  tags: string[];
+};
 
-export default function AuctionsClient({ images }: { images: Record<SiteImageKey, string> }) {
+export default function AuctionsClient({
+  liveAuctions,
+  upcomingAuctions,
+  totalBidValueCents,
+}: {
+  liveAuctions: LiveCard[];
+  upcomingAuctions: UpcomingCard[];
+  totalBidValueCents: number;
+}) {
   const [tab, setTab] = useState<"live" | "upcoming">("live");
 
   return (
@@ -46,7 +63,7 @@ export default function AuctionsClient({ images }: { images: Record<SiteImageKey
 
         {/* STATS */}
         <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
-          {[["4", "Live Now"], ["3", "Starting Today"], [`$${(1240+780+650+920).toLocaleString()}`, "Total Bid Value"], ["41", "Active Bidders"]].map(([val, label]) => (
+          {[[String(liveAuctions.length), "Live Now"], [String(upcomingAuctions.length), "Starting Today"], [`$${(totalBidValueCents / 100).toLocaleString()}`, "Total Bid Value"], ["41", "Active Bidders"]].map(([val, label]) => (
             <div key={label} style={{ padding: "28px 40px", borderRight: "0.5px solid var(--border)" }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 6 }}>{val}</div>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)" }}>{label}</div>
@@ -66,16 +83,19 @@ export default function AuctionsClient({ images }: { images: Record<SiteImageKey
           </div>
 
           {tab === "live" && (
+            liveAuctions.length === 0 ? (
+              <p style={{ fontSize: 14, color: "var(--muted)" }}>No live auctions right now — check back soon.</p>
+            ) : (
             <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--border)" }}>
               {liveAuctions.map((a) => (
                 <div key={a.id} className="auction-card rs-card-row" style={{ display: "grid", gridTemplateColumns: "220px 1fr" }}>
                   <div style={{ position: "relative", background: "#000" }}>
                     <div className="auction-badge badge-live">● Live</div>
-                    <Image src={images[a.imgKey]} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                    <Image src={a.imgUrl} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
                   </div>
                   <div className="auction-body" style={{ borderTop: "none", borderLeft: "0.5px solid var(--border)" }}>
                     <div className="auction-name">{a.name}</div>
-                    <div className="auction-breeder">{a.loft} · {a.location}</div>
+                    <div className="auction-breeder">{[a.loft, a.location].filter(Boolean).join(" · ")}</div>
                     <div className="auction-meta">
                       <div>
                         <div className="auction-bid-label">Current bid</div>
@@ -91,26 +111,30 @@ export default function AuctionsClient({ images }: { images: Record<SiteImageKey
                       {a.tags.map((t) => <span key={t} className="tag">{t}</span>)}
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                      <Link href={`/birds/${a.id}`} style={{ flex: 1, padding: "10px", background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", textDecoration: "none", borderRadius: 1 }}>Place Bid</Link>
-                      <Link href={`/auctions/${a.id}`} style={{ padding: "10px 14px", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, textDecoration: "none", borderRadius: 1 }}>Live Room →</Link>
+                      <Link href="/signup" style={{ flex: 1, padding: "10px", background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", textDecoration: "none", borderRadius: 1 }}>Place Bid</Link>
+                      <Link href="/how-it-works" style={{ padding: "10px 14px", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, textDecoration: "none", borderRadius: 1 }}>Live Room →</Link>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+            )
           )}
 
           {tab === "upcoming" && (
+            upcomingAuctions.length === 0 ? (
+              <p style={{ fontSize: 14, color: "var(--muted)" }}>Nothing scheduled right now — check back soon.</p>
+            ) : (
             <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
               {upcomingAuctions.map((a) => (
                 <div key={a.id} className="auction-card">
                   <div className="auction-img-wrap">
                     <div className="auction-badge" style={{ background: "rgba(212,175,55,0.9)", color: "#000" }}>Upcoming</div>
-                    <Image src={images[a.imgKey]} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                    <Image src={a.imgUrl} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
                   </div>
                   <div className="auction-body">
                     <div className="auction-name">{a.name}</div>
-                    <div className="auction-breeder">{a.loft} · {a.location}</div>
+                    <div className="auction-breeder">{[a.loft, a.location].filter(Boolean).join(" · ")}</div>
                     <div style={{ marginTop: 12 }}>
                       <div className="auction-bid-label">Starting bid</div>
                       <div className="auction-bid">{a.startBid}</div>
@@ -124,6 +148,7 @@ export default function AuctionsClient({ images }: { images: Record<SiteImageKey
                 </div>
               ))}
             </div>
+            )
           )}
 
           {/* SELL CTA */}
