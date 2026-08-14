@@ -12,7 +12,7 @@ export default function SettingsForm({
   initial,
 }: {
   userId: string;
-  initial: { username: string; fullName: string; bio: string; location: string; avatarUrl: string | null };
+  initial: { username: string; fullName: string; bio: string; location: string; avatarUrl: string | null; phone: string };
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -21,6 +21,7 @@ export default function SettingsForm({
   const [fullName, setFullName] = useState(initial.fullName);
   const [bio, setBio] = useState(initial.bio);
   const [location, setLocation] = useState(initial.location);
+  const [phone, setPhone] = useState(initial.phone);
   const [avatarUrl, setAvatarUrl] = useState(initial.avatarUrl);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -61,8 +62,18 @@ export default function SettingsForm({
       })
       .eq("id", userId);
 
+    if (updateErr) { setSaving(false); setError(updateErr.message); return; }
+
+    // Phone lives in its own table (profile_phones), not profiles — profiles
+    // has a public read policy, this doesn't, so it's only ever visible to
+    // other signed-in members, never the public internet.
+    const trimmedPhone = phone.trim();
+    const { error: phoneErr } = trimmedPhone
+      ? await supabase.from("profile_phones").upsert({ user_id: userId, phone: trimmedPhone, updated_at: new Date().toISOString() })
+      : await supabase.from("profile_phones").delete().eq("user_id", userId);
+
     setSaving(false);
-    if (updateErr) { setError(updateErr.message); return; }
+    if (phoneErr) { setError(phoneErr.message); return; }
 
     setAvatarUrl(newAvatarUrl);
     setPendingFile(null);
@@ -110,6 +121,15 @@ export default function SettingsForm({
       <div>
         <label style={labelStyle}>Location</label>
         <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="DeSoto, Texas, USA" style={inputStyle} />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Phone number (optional)</label>
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" placeholder="(555) 123-4567" style={inputStyle} />
+        <p style={{ fontSize: 11, color: "var(--subtle)", marginTop: 6 }}>
+          Shared with other signed-in members on the Members directory. Leave blank to keep it private. Never shown to
+          signed-out visitors.
+        </p>
       </div>
 
       <div>

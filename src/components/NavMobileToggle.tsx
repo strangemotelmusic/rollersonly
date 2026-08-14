@@ -31,6 +31,7 @@ export default function NavMobileToggle({
           {isSignedIn ? (
             <>
               <Link href="/chat" onClick={() => setOpen(false)}>Chat</Link>
+              <Link href="/members" onClick={() => setOpen(false)}>Members</Link>
               <Link href="/spin-vault" onClick={() => setOpen(false)}>The Spin Vault</Link>
               <Link href="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
               <Link href="/settings" onClick={() => setOpen(false)}>Account Settings</Link>

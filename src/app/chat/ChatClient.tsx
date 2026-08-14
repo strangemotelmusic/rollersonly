@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useChat } from "@/lib/chat-context";
 import { getConversationMembers } from "@/app/actions/chat";
@@ -59,6 +60,7 @@ export default function ChatClient({
   const [converting, setConverting] = useState(false);
   const [conversionProgress, setConversionProgress] = useState(0);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [sidebarFilter, setSidebarFilter] = useState<"all" | "dm" | "group">("all");
 
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -367,6 +369,14 @@ export default function ChatClient({
   const activeConversation = conversations.find((c) => c.id === activeConversationId);
   const isGroup = activeConversation?.type === "group";
 
+  const visibleConversations = conversations.filter((c) => sidebarFilter === "all" || c.type === sidebarFilter);
+  const dmUnreadCount = conversations.filter((c) => c.type === "dm").reduce((sum, c) => sum + c.unreadCount, 0);
+  const sidebarTabs: { key: "all" | "dm" | "group"; label: string; badge: number }[] = [
+    { key: "all", label: "All", badge: 0 },
+    { key: "dm", label: "Inbox", badge: dmUnreadCount },
+    { key: "group", label: "Groups", badge: 0 },
+  ];
+
   return (
     <div style={{ display: "flex", paddingTop: 72, minHeight: "100vh", background: "var(--black)" }}>
       {/* SIDEBAR */}
@@ -380,16 +390,66 @@ export default function ChatClient({
             + New
           </button>
         </div>
+        <div style={{ display: "flex", borderBottom: "0.5px solid var(--border)" }}>
+          {sidebarTabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setSidebarFilter(t.key)}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                background: "none",
+                border: "none",
+                borderBottom: sidebarFilter === t.key ? "2px solid var(--gold)" : "2px solid transparent",
+                color: sidebarFilter === t.key ? "var(--white)" : "var(--muted)",
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "10px 4px",
+                cursor: "pointer",
+              }}
+            >
+              {t.label}
+              {t.badge > 0 && (
+                <span
+                  style={{
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    background: "var(--gold)",
+                    color: "var(--black)",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 4px",
+                  }}
+                >
+                  {t.badge > 99 ? "99+" : t.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {conversations.length === 0 ? (
             <div style={{ padding: 20, fontSize: 13, color: "var(--muted)" }}>Loading…</div>
+          ) : visibleConversations.length === 0 ? (
+            <div style={{ padding: 20, fontSize: 13, color: "var(--muted)" }}>
+              {sidebarFilter === "dm" ? "No private messages yet — message a member from the Members directory." : "Nothing here yet."}
+            </div>
           ) : (
-            conversations.map((c) => (
+            visibleConversations.map((c) => (
               <button
                 key={c.id}
                 onClick={() => openConversation(c.id)}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
                   width: "100%",
                   textAlign: "left",
                   padding: "14px 20px",
@@ -399,33 +459,36 @@ export default function ChatClient({
                   cursor: "pointer",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--white)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {c.title}
-                  </span>
-                  {c.unreadCount > 0 && (
-                    <span
-                      style={{
-                        minWidth: 18,
-                        height: 18,
-                        borderRadius: "50%",
-                        background: "var(--gold)",
-                        color: "var(--black)",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "0 4px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {c.unreadCount > 99 ? "99+" : c.unreadCount}
+                <Avatar url={c.avatarUrl} name={c.title} size={36} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--white)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {c.title}
                     </span>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {c.preview}
+                    {c.unreadCount > 0 && (
+                      <span
+                        style={{
+                          minWidth: 18,
+                          height: 18,
+                          borderRadius: "50%",
+                          background: "var(--gold)",
+                          color: "var(--black)",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "0 4px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {c.unreadCount > 99 ? "99+" : c.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {c.preview}
+                  </div>
                 </div>
               </button>
             ))
@@ -470,15 +533,18 @@ export default function ChatClient({
 
         {members && (
           <div style={{ padding: "10px 24px", borderBottom: "0.5px solid var(--border)", display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {members.map((m) => (
-              <span
-                key={m.user_id}
-                style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--muted)", background: "var(--surface)", padding: "4px 10px", borderRadius: 2 }}
-              >
-                <OnlineDot online={onlineUserIds.has(m.user_id)} />
-                {m.profiles?.full_name || m.profiles?.username || "Member"}
-              </span>
-            ))}
+            {members.map((m) => {
+              const name = m.profiles?.full_name || m.profiles?.username || "Member";
+              return (
+                <span
+                  key={m.user_id}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--muted)", background: "var(--surface)", padding: "4px 10px 4px 4px", borderRadius: 20 }}
+                >
+                  <Avatar url={m.profiles?.avatar_url ?? null} name={name} size={20} online={onlineUserIds.has(m.user_id)} />
+                  {name}
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -486,35 +552,38 @@ export default function ChatClient({
           {messages.length === 0 ? (
             <div style={{ fontSize: 13, color: "var(--muted)" }}>No messages yet — say hello.</div>
           ) : (
-            messages.map((m) => (
-              <div key={m.id}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <OnlineDot online={onlineUserIds.has(m.sender_id)} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: m.sender_id === currentUserId ? "var(--gold-light)" : "var(--gold)" }}>
-                    {m.profiles?.full_name || m.profiles?.username || "Member"}
-                  </span>
-                </span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 8 }}>
-                  {new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                </span>
-                {m.body && <div style={{ fontSize: 13, color: "var(--white)", marginTop: 2 }}>{m.body}</div>}
-                {m.media_url && m.media_type === "image" && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.media_url}
-                    alt="Shared photo"
-                    style={{ marginTop: 6, maxWidth: 280, maxHeight: 280, borderRadius: 4, display: "block", border: "0.5px solid var(--border)" }}
-                  />
-                )}
-                {m.media_url && m.media_type === "video" && (
-                  <video
-                    src={m.media_url}
-                    controls
-                    style={{ marginTop: 6, maxWidth: 320, maxHeight: 320, borderRadius: 4, display: "block", border: "0.5px solid var(--border)" }}
-                  />
-                )}
-              </div>
-            ))
+            messages.map((m) => {
+              const name = m.profiles?.full_name || m.profiles?.username || "Member";
+              return (
+                <div key={m.id} style={{ display: "flex", gap: 10 }}>
+                  <Avatar url={m.profiles?.avatar_url ?? null} name={name} size={30} online={onlineUserIds.has(m.sender_id)} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: m.sender_id === currentUserId ? "var(--gold-light)" : "var(--gold)" }}>
+                      {name}
+                    </span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 8 }}>
+                      {new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                    </span>
+                    {m.body && <div style={{ fontSize: 13, color: "var(--white)", marginTop: 2 }}>{m.body}</div>}
+                    {m.media_url && m.media_type === "image" && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.media_url}
+                        alt="Shared photo"
+                        style={{ marginTop: 6, maxWidth: 280, maxHeight: 280, borderRadius: 4, display: "block", border: "0.5px solid var(--border)" }}
+                      />
+                    )}
+                    {m.media_url && m.media_type === "video" && (
+                      <video
+                        src={m.media_url}
+                        controls
+                        style={{ marginTop: 6, maxWidth: 320, maxHeight: 320, borderRadius: 4, display: "block", border: "0.5px solid var(--border)" }}
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })
           )}
           {typingUsers.size > 0 && (
             <div style={{ fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
@@ -605,12 +674,43 @@ export default function ChatClient({
   );
 }
 
-function OnlineDot({ online }: { online: boolean }) {
-  if (!online) return null;
+function Avatar({ url, name, size, online }: { url: string | null; name: string; size: number; online?: boolean }) {
   return (
-    <span
-      title="Online"
-      style={{ width: 7, height: 7, borderRadius: "50%", background: "#2ECC71", flexShrink: 0, display: "inline-block" }}
-    />
+    <span style={{ position: "relative", display: "inline-block", width: size, height: size, flexShrink: 0 }}>
+      <span
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: "var(--surface2)",
+          border: "1px solid var(--border-gold)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "var(--ff-display)",
+          fontSize: size * 0.42,
+          color: "var(--gold)",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {url ? <Image src={url} alt={name} fill style={{ objectFit: "cover" }} /> : name.charAt(0).toUpperCase()}
+      </span>
+      {online && (
+        <span
+          title="Online"
+          style={{
+            position: "absolute",
+            bottom: -1,
+            right: -1,
+            width: Math.max(8, size * 0.32),
+            height: Math.max(8, size * 0.32),
+            borderRadius: "50%",
+            background: "#2ECC71",
+            border: "2px solid var(--black)",
+          }}
+        />
+      )}
+    </span>
   );
 }

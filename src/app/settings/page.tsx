@@ -16,11 +16,10 @@ export default async function SettingsPage() {
   }
 
   const profile = await ensureProfile(user);
-  const { data: fullProfile } = await supabase
-    .from("profiles")
-    .select("username, full_name, bio, location, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [{ data: fullProfile }, { data: phoneRow }] = await Promise.all([
+    supabase.from("profiles").select("username, full_name, bio, location, avatar_url").eq("id", user.id).maybeSingle(),
+    supabase.from("profile_phones").select("phone").eq("user_id", user.id).maybeSingle(),
+  ]);
 
   return (
     <>
@@ -36,6 +35,7 @@ export default async function SettingsPage() {
               bio: fullProfile?.bio || "",
               location: fullProfile?.location || "",
               avatarUrl: fullProfile?.avatar_url || null,
+              phone: phoneRow?.phone || "",
             }}
           />
         </div>

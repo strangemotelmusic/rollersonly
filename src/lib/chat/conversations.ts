@@ -5,6 +5,7 @@ export type ConversationSummary = {
   id: string;
   type: string;
   title: string;
+  avatarUrl: string | null;
   preview: string;
   lastMessageAt: string;
   unreadCount: number;
@@ -39,7 +40,7 @@ export async function getMyConversations(userId: string): Promise<ConversationSu
     (conversations ?? []).map(async (c) => {
       const lastReadAt = membership.get(c.id) ?? new Date(0).toISOString();
 
-      const [{ count }, { data: lastMessage }, title] = await Promise.all([
+      const [{ count }, { data: lastMessage }, { title, avatarUrl }] = await Promise.all([
         admin
           .from("chat_messages")
           .select("id", { count: "exact", head: true })
@@ -53,13 +54,14 @@ export async function getMyConversations(userId: string): Promise<ConversationSu
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
-        resolveTitle(admin, c, userId),
+        resolveTitleAndAvatar(admin, c, userId),
       ]);
 
       return {
         id: c.id,
         type: c.type,
         title,
+        avatarUrl,
         preview: lastMessage ? previewText(lastMessage) : "No messages yet",
         lastMessageAt: lastMessage?.created_at ?? c.last_message_at,
         unreadCount: count ?? 0,
@@ -77,23 +79,26 @@ function previewText(message: { body: string | null; media_type: string | null }
   return "";
 }
 
-async function resolveTitle(
+async function resolveTitleAndAvatar(
   admin: ReturnType<typeof createAdminClient>,
   conversation: { id: string; type: string; name: string | null },
   userId: string
 ) {
-  if (conversation.type === "global") return "Global Chat";
-  if (conversation.type === "group") return conversation.name || "Group Chat";
+  if (conversation.type === "global") return { title: "Global Chat", avatarUrl: null };
+  if (conversation.type === "group") return { title: conversation.name || "Group Chat", avatarUrl: null };
 
   const { data: other } = await admin
     .from("chat_participants")
-    .select("profiles(username, full_name)")
+    .select("profiles(username, full_name, avatar_url)")
     .eq("conversation_id", conversation.id)
     .neq("user_id", userId)
     .maybeSingle();
 
-  const profile = other?.profiles as { username: string; full_name: string | null } | null;
-  return profile?.full_name || profile?.username || "Direct Message";
+  const profile = other?.profiles as { username: string; full_name: string | null; avatar_url: string | null } | null;
+  return {
+    title: profile?.full_name || profile?.username || "Direct Message",
+    avatarUrl: profile?.avatar_url ?? null,
+  };
 }
 
 export async function getConversationMembers(conversationId: string, requestingUserId: string) {

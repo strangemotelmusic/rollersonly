@@ -913,6 +913,28 @@ export interface Database {
           },
         ];
       };
+      profile_phones: {
+        Row: {
+          user_id: string;
+          phone: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          phone: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["profile_phones"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "profile_phones_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
