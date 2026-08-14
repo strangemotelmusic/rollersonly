@@ -21,6 +21,7 @@ type ChatContextValue = {
   markRead: (conversationId: string) => void;
   refresh: () => Promise<void>;
   hydrate: (initial: ConversationSummary[]) => void;
+  onlineUserIds: Set<string>;
 };
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -30,6 +31,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const activeRef = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
 
@@ -69,12 +71,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // The chat_messages listener is intentionally unfiltered — Supabase
   // Realtime enforces the table's SELECT RLS per subscriber, so each browser
   // only ever receives INSERTs it's actually authorized to read (verified in
-  // local testing before this shipped, see plan notes).
+  // local testing before this shipped, see plan notes). Presence tracking
+  // rides on this same channel (site-wide "online" status, not scoped to
+  // /chat) rather than opening a second connection just for that.
   useEffect(() => {
     if (!userId) return;
 
     const channel = supabase
-      .channel("chat-notify")
+      .channel("chat-notify", { config: { presence: { key: userId } } })
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
@@ -106,7 +110,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           refresh();
         }
       )
-      .subscribe();
+      .on("presence", { event: "sync" }, () => {
+        setOnlineUserIds(new Set(Object.keys(channel.presenceState())));
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ online_at: new Date().toISOString() });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -137,7 +148,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   return (
     <ChatContext.Provider
-      value={{ conversations, unreadTotal, activeConversationId, setActiveConversationId, markRead, refresh, hydrate }}
+      value={{ conversations, unreadTotal, activeConversationId, setActiveConversationId, markRead, refresh, hydrate, onlineUserIds }}
     >
       {children}
     </ChatContext.Provider>

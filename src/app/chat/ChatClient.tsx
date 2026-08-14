@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useChat } from "@/lib/chat-context";
 import { getConversationMembers } from "@/app/actions/chat";
-import { MAX_IMAGE_BYTES, ALLOWED_IMAGE_TYPES, GLOBAL_ROOM_ID } from "@/lib/chat/constants";
+import {
+  MAX_IMAGE_BYTES,
+  ALLOWED_IMAGE_TYPES,
+  MAX_VIDEO_BYTES,
+  MAX_VIDEO_SECONDS,
+  ALLOWED_VIDEO_TYPES,
+  TYPING_TIMEOUT_MS,
+  GLOBAL_ROOM_ID,
+} from "@/lib/chat/constants";
 import type { ConversationSummary } from "@/lib/chat/conversations";
 import NewChatModal from "./NewChatModal";
 
@@ -35,25 +43,40 @@ export default function ChatClient({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const { conversations, hydrate, setActiveConversationId, markRead } = useChat();
+  const { conversations, hydrate, setActiveConversationId, markRead, onlineUserIds } = useChat();
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [chatInput, setChatInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<File | null>(null);
+  const [pendingMediaType, setPendingMediaType] = useState<"image" | "video" | null>(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [members, setMembers] = useState<{ user_id: string; profiles: Profile | null }[] | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
 
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const lastTypingSentRef = useRef(0);
   const profileCacheRef = useRef<Map<string, Profile>>(
     new Map(initialMessages.filter((m) => m.profiles).map((m) => [m.sender_id, m.profiles as Profile]))
   );
 
   useEffect(() => {
     hydrate(initialConversations);
+    if (!profileCacheRef.current.has(currentUserId)) {
+      supabase
+        .from("profiles")
+        .select("username, full_name, avatar_url")
+        .eq("id", currentUserId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) profileCacheRef.current.set(currentUserId, data);
+        });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -62,10 +85,16 @@ export default function ChatClient({
     markRead(activeConversationId);
     setMessages(initialMessages);
     setMembers(null);
+    setTypingUsers(new Map());
+    typingTimeoutsRef.current.forEach((t) => clearTimeout(t));
+    typingTimeoutsRef.current.clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConversationId]);
 
   useEffect(() => {
+    // One channel per open conversation, torn down on switch/unmount — carries
+    // both the message INSERT feed and the ephemeral typing broadcast, rather
+    // than opening a second connection just for typing.
     const channel = supabase
       .channel(`chat-room-${activeConversationId}`)
       .on(
@@ -76,6 +105,12 @@ export default function ChatClient({
           const cached = profileCacheRef.current.get(msg.sender_id) ?? null;
 
           setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, { ...msg, profiles: cached }]));
+          setTypingUsers((prev) => {
+            if (!prev.has(msg.sender_id)) return prev;
+            const next = new Map(prev);
+            next.delete(msg.sender_id);
+            return next;
+          });
 
           if (!cached && msg.sender_id !== currentUserId) {
             supabase
@@ -91,9 +126,32 @@ export default function ChatClient({
           }
         }
       )
+      .on("broadcast", { event: "typing" }, ({ payload }: { payload: { userId: string; name: string } }) => {
+        if (payload.userId === currentUserId) return;
+
+        setTypingUsers((prev) => new Map(prev).set(payload.userId, payload.name));
+
+        const existingTimeout = typingTimeoutsRef.current.get(payload.userId);
+        if (existingTimeout) clearTimeout(existingTimeout);
+        typingTimeoutsRef.current.set(
+          payload.userId,
+          setTimeout(() => {
+            setTypingUsers((prev) => {
+              const next = new Map(prev);
+              next.delete(payload.userId);
+              return next;
+            });
+            typingTimeoutsRef.current.delete(payload.userId);
+          }, TYPING_TIMEOUT_MS)
+        );
+      })
       .subscribe();
+
+    channelRef.current = channel;
+
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConversationId, supabase]);
@@ -113,26 +171,89 @@ export default function ChatClient({
     router.push(`/chat?c=${id}`);
   }
 
-  function pickImage(files: FileList | null) {
+  function handleTyping() {
+    if (!channelRef.current) return;
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < 2000) return;
+    lastTypingSentRef.current = now;
+    channelRef.current.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { userId: currentUserId, name: profileCacheRef.current.get(currentUserId)?.username || "Someone" },
+    });
+  }
+
+  function pickMedia(files: FileList | null) {
     setUploadError(null);
-    const file = files?.[0];
-    if (!file) return;
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setUploadError("Only JPEG, PNG, WebP, or GIF images are supported.");
+    const picked = files?.[0];
+    if (!picked) return;
+    const file: File = picked;
+
+    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+
+    if (!isImage && !isVideo) {
+      setUploadError("Only JPEG, PNG, WebP, GIF images or MP4, WebM, MOV videos are supported.");
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
+    if (isImage && file.size > MAX_IMAGE_BYTES) {
       setUploadError("Images must be under 5MB.");
       return;
     }
+    if (isVideo && file.size > MAX_VIDEO_BYTES) {
+      setUploadError("Videos must be under 25MB.");
+      return;
+    }
+
     if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
-    setPendingImage(file);
-    setPendingPreviewUrl(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+
+    if (isImage) {
+      setPendingMedia(file);
+      setPendingMediaType("image");
+      setPendingPreviewUrl(previewUrl);
+      return;
+    }
+
+    // Duration check needs the browser to actually load the video's metadata,
+    // which some browsers defer/throttle for backgrounded tabs — don't let a
+    // slow or stalled probe block sending the video entirely, just skip the
+    // duration check if metadata hasn't shown up after a few seconds.
+    let settled = false;
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.style.display = "none";
+    document.body.appendChild(probe);
+
+    function accept() {
+      if (settled) return;
+      settled = true;
+      probe.remove();
+      setPendingMedia(file);
+      setPendingMediaType("video");
+      setPendingPreviewUrl(previewUrl);
+    }
+
+    probe.onloadedmetadata = () => {
+      if (settled) return;
+      if (probe.duration > MAX_VIDEO_SECONDS) {
+        settled = true;
+        probe.remove();
+        setUploadError(`Videos must be under ${MAX_VIDEO_SECONDS} seconds.`);
+        URL.revokeObjectURL(previewUrl);
+        return;
+      }
+      accept();
+    };
+    probe.onerror = accept;
+    setTimeout(accept, 4000);
+    probe.src = previewUrl;
   }
 
-  function clearPendingImage() {
+  function clearPendingMedia() {
     if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
-    setPendingImage(null);
+    setPendingMedia(null);
+    setPendingMediaType(null);
     setPendingPreviewUrl(null);
   }
 
@@ -142,7 +263,7 @@ export default function ChatClient({
       return;
     }
     const trimmed = chatInput.trim();
-    if (!trimmed && !pendingImage) return;
+    if (!trimmed && !pendingMedia) return;
 
     setSending(true);
     setUploadError(null);
@@ -150,16 +271,16 @@ export default function ChatClient({
     let mediaUrl: string | null = null;
     let mediaType: string | null = null;
 
-    if (pendingImage) {
-      const path = `${currentUserId}/${crypto.randomUUID()}-${pendingImage.name}`;
-      const { error: uploadErr } = await supabase.storage.from("chat-media").upload(path, pendingImage);
+    if (pendingMedia && pendingMediaType) {
+      const path = `${currentUserId}/${crypto.randomUUID()}-${pendingMedia.name}`;
+      const { error: uploadErr } = await supabase.storage.from("chat-media").upload(path, pendingMedia);
       if (uploadErr) {
         setUploadError(`Upload failed: ${uploadErr.message}`);
         setSending(false);
         return;
       }
       mediaUrl = supabase.storage.from("chat-media").getPublicUrl(path).data.publicUrl;
-      mediaType = "image";
+      mediaType = pendingMediaType;
     }
 
     const { data: inserted, error } = await supabase
@@ -186,7 +307,7 @@ export default function ChatClient({
 
     setMessages((prev) => (prev.some((m) => m.id === inserted.id) ? prev : [...prev, { ...inserted, profiles: senderProfile }]));
     setChatInput("");
-    clearPendingImage();
+    clearPendingMedia();
   }
 
   async function loadMembers() {
@@ -283,7 +404,11 @@ export default function ChatClient({
         {members && (
           <div style={{ padding: "10px 24px", borderBottom: "0.5px solid var(--border)", display: "flex", flexWrap: "wrap", gap: 8 }}>
             {members.map((m) => (
-              <span key={m.user_id} style={{ fontSize: 12, color: "var(--muted)", background: "var(--surface)", padding: "4px 10px", borderRadius: 2 }}>
+              <span
+                key={m.user_id}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--muted)", background: "var(--surface)", padding: "4px 10px", borderRadius: 2 }}
+              >
+                <OnlineDot online={onlineUserIds.has(m.user_id)} />
                 {m.profiles?.full_name || m.profiles?.username || "Member"}
               </span>
             ))}
@@ -296,8 +421,11 @@ export default function ChatClient({
           ) : (
             messages.map((m) => (
               <div key={m.id}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: m.sender_id === currentUserId ? "var(--gold-light)" : "var(--gold)" }}>
-                  {m.profiles?.full_name || m.profiles?.username || "Member"}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <OnlineDot online={onlineUserIds.has(m.sender_id)} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: m.sender_id === currentUserId ? "var(--gold-light)" : "var(--gold)" }}>
+                    {m.profiles?.full_name || m.profiles?.username || "Member"}
+                  </span>
                 </span>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 8 }}>
                   {new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
@@ -311,8 +439,20 @@ export default function ChatClient({
                     style={{ marginTop: 6, maxWidth: 280, maxHeight: 280, borderRadius: 4, display: "block", border: "0.5px solid var(--border)" }}
                   />
                 )}
+                {m.media_url && m.media_type === "video" && (
+                  <video
+                    src={m.media_url}
+                    controls
+                    style={{ marginTop: 6, maxWidth: 320, maxHeight: 320, borderRadius: 4, display: "block", border: "0.5px solid var(--border)" }}
+                  />
+                )}
               </div>
             ))
+          )}
+          {typingUsers.size > 0 && (
+            <div style={{ fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
+              {Array.from(typingUsers.values()).join(", ")} {typingUsers.size === 1 ? "is" : "are"} typing…
+            </div>
           )}
         </div>
 
@@ -320,10 +460,14 @@ export default function ChatClient({
           {uploadError && <div style={{ fontSize: 12, color: "#E74C3C", marginBottom: 8 }}>{uploadError}</div>}
           {pendingPreviewUrl && (
             <div style={{ marginBottom: 8, position: "relative", display: "inline-block" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pendingPreviewUrl} alt="Attachment preview" style={{ height: 64, borderRadius: 4, border: "0.5px solid var(--border)" }} />
+              {pendingMediaType === "video" ? (
+                <video src={pendingPreviewUrl} style={{ height: 64, borderRadius: 4, border: "0.5px solid var(--border)" }} muted />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={pendingPreviewUrl} alt="Attachment preview" style={{ height: 64, borderRadius: 4, border: "0.5px solid var(--border)" }} />
+              )}
               <button
-                onClick={clearPendingImage}
+                onClick={clearPendingMedia}
                 style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "var(--black)", color: "var(--white)", border: "0.5px solid var(--border)", fontSize: 10, cursor: "pointer" }}
               >
                 ✕
@@ -334,9 +478,9 @@ export default function ChatClient({
             <input
               ref={fileInputRef}
               type="file"
-              accept={ALLOWED_IMAGE_TYPES.join(",")}
+              accept={[...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES].join(",")}
               onChange={(e) => {
-                pickImage(e.target.files);
+                pickMedia(e.target.files);
                 e.target.value = "";
               }}
               style={{ display: "none" }}
@@ -344,14 +488,17 @@ export default function ChatClient({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              title="Attach a photo"
+              title="Attach a photo or video"
               style={{ background: "var(--surface)", border: "none", color: "var(--white)", padding: "0 14px", fontSize: 16, cursor: "pointer", borderRadius: 2 }}
             >
               📷
             </button>
             <input
               value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
+              onChange={(e) => {
+                setChatInput(e.target.value);
+                handleTyping();
+              }}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder="Say something…"
               style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none" }}
@@ -377,5 +524,15 @@ export default function ChatClient({
         />
       )}
     </div>
+  );
+}
+
+function OnlineDot({ online }: { online: boolean }) {
+  if (!online) return null;
+  return (
+    <span
+      title="Online"
+      style={{ width: 7, height: 7, borderRadius: "50%", background: "#2ECC71", flexShrink: 0, display: "inline-block" }}
+    />
   );
 }
