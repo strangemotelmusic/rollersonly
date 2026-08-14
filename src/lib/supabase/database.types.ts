@@ -729,6 +729,104 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["dots_bird_orders"]["Insert"]>;
         Relationships: [];
       };
+      chat_conversations: {
+        Row: {
+          id: string;
+          type: string;
+          name: string | null;
+          created_by: string | null;
+          last_message_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: string;
+          name?: string | null;
+          created_by?: string | null;
+          last_message_at?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["chat_conversations"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      chat_participants: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          user_id: string;
+          joined_at: string;
+          last_read_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          user_id: string;
+          joined_at?: string;
+          last_read_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["chat_participants"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_participants_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      chat_messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string | null;
+          media_url: string | null;
+          media_type: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          body?: string | null;
+          media_url?: string | null;
+          media_type?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["chat_messages"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

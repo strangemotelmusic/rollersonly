@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
+import { ChatProvider } from "@/lib/chat-context";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${manrope.variable}`}>
       <body suppressHydrationWarning>
-        <CartProvider>{children}</CartProvider>
+        <ChatProvider>
+          <CartProvider>{children}</CartProvider>
+        </ChatProvider>
       </body>
     </html>
   );

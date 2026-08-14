@@ -30,6 +30,7 @@ export default function NavMobileToggle({
           <Link href="/cart" onClick={() => setOpen(false)}>Cart</Link>
           {isSignedIn ? (
             <>
+              <Link href="/chat" onClick={() => setOpen(false)}>Chat</Link>
               <Link href="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
               <Link href="/settings" onClick={() => setOpen(false)}>Account Settings</Link>
               {isAdmin && (

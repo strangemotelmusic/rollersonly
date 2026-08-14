@@ -5,6 +5,7 @@ import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { signOut } from "@/app/actions/auth";
 import NavMobileToggle from "@/components/NavMobileToggle";
 import CartIcon from "@/components/CartIcon";
+import ChatIcon from "@/components/ChatIcon";
 
 export default async function Nav({ active }: { active?: string }) {
   const supabase = await createClient();
@@ -49,6 +50,7 @@ export default async function Nav({ active }: { active?: string }) {
         <CartIcon />
         {user ? (
           <>
+            <ChatIcon />
             <Link
               href="/dashboard"
               style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--white)", fontSize: 13 }}
