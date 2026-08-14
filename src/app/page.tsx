@@ -310,6 +310,7 @@ export default async function Home() {
 
       {/* MAGAZINE */}
       <div
+        className="rs-2col-b rs-pad-lg"
         style={{
           display: "grid",
           gridTemplateColumns: latestIssue?.cover_image_url ? "1fr 320px" : "1fr",

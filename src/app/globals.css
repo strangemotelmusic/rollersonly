@@ -177,7 +177,7 @@ nav {
 }
 .nav-mobile-panel a:last-child, .nav-mobile-panel button:last-child { border-bottom: none; }
 
-@media (max-width: 860px) {
+@media (max-width: 1280px) {
   nav { padding: 0 20px !important; }
   .nav-links { display: none !important; }
   .nav-cta { display: none !important; }
