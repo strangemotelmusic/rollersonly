@@ -5,6 +5,9 @@ export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "im
 
 export const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
 export const MAX_VIDEO_SECONDS = 60;
-export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+// Raw input cap before transcoding even starts — a browser-side ffmpeg pass
+// on something bigger than this risks stalling the tab. The 25MB cap above
+// applies to the final (already-safe or transcoded) file that gets sent.
+export const MAX_VIDEO_INPUT_BYTES = 150 * 1024 * 1024;
 
 export const TYPING_TIMEOUT_MS = 3000;

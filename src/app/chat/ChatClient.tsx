@@ -10,10 +10,11 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_VIDEO_BYTES,
   MAX_VIDEO_SECONDS,
-  ALLOWED_VIDEO_TYPES,
+  MAX_VIDEO_INPUT_BYTES,
   TYPING_TIMEOUT_MS,
   GLOBAL_ROOM_ID,
 } from "@/lib/chat/constants";
+import { needsTranscode, transcodeToMp4 } from "@/lib/chat/transcode";
 import type { ConversationSummary } from "@/lib/chat/conversations";
 import NewChatModal from "./NewChatModal";
 
@@ -55,6 +56,9 @@ export default function ChatClient({
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [members, setMembers] = useState<{ user_id: string; profiles: Profile | null }[] | null>(null);
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
+  const [converting, setConverting] = useState(false);
+  const [conversionProgress, setConversionProgress] = useState(0);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -183,37 +187,67 @@ export default function ChatClient({
     });
   }
 
-  function pickMedia(files: FileList | null) {
+  async function pickMedia(files: FileList | null) {
     setUploadError(null);
     const picked = files?.[0];
     if (!picked) return;
     const file: File = picked;
 
     const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
-    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    const isVideo = file.type.startsWith("video/");
 
     if (!isImage && !isVideo) {
-      setUploadError("Only JPEG, PNG, WebP, GIF images or MP4, WebM, MOV videos are supported.");
+      setUploadError("Only images or video files are supported.");
       return;
     }
     if (isImage && file.size > MAX_IMAGE_BYTES) {
       setUploadError("Images must be under 5MB.");
       return;
     }
-    if (isVideo && file.size > MAX_VIDEO_BYTES) {
+
+    if (isImage) {
+      if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+      setPendingMedia(file);
+      setPendingMediaType("image");
+      setPendingPreviewUrl(URL.createObjectURL(file));
+      return;
+    }
+
+    // Any video format is accepted — one not natively playable in browsers
+    // gets converted to a web-safe MP4 client-side before it's ever attached.
+    if (needsTranscode(file)) {
+      if (file.size > MAX_VIDEO_INPUT_BYTES) {
+        setUploadError("That video file is too large to convert — try a shorter clip.");
+        return;
+      }
+      setConverting(true);
+      setConversionProgress(0);
+      try {
+        const converted = await transcodeToMp4(file, MAX_VIDEO_SECONDS, setConversionProgress);
+        if (converted.size > MAX_VIDEO_BYTES) {
+          setUploadError("That video is still too large after conversion — try a shorter clip.");
+          return;
+        }
+        if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+        setPendingMedia(converted);
+        setPendingMediaType("video");
+        setPendingPreviewUrl(URL.createObjectURL(converted));
+      } catch (err) {
+        console.error("[transcode] failed", err);
+        setUploadError("Could not convert this video — try a different file.");
+      } finally {
+        setConverting(false);
+      }
+      return;
+    }
+
+    if (file.size > MAX_VIDEO_BYTES) {
       setUploadError("Videos must be under 25MB.");
       return;
     }
 
     if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
     const previewUrl = URL.createObjectURL(file);
-
-    if (isImage) {
-      setPendingMedia(file);
-      setPendingMediaType("image");
-      setPendingPreviewUrl(previewUrl);
-      return;
-    }
 
     // Duration check needs the browser to actually load the video's metadata,
     // which some browsers defer/throttle for backgrounded tabs — don't let a
@@ -248,6 +282,17 @@ export default function ChatClient({
     probe.onerror = accept;
     setTimeout(accept, 4000);
     probe.src = previewUrl;
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDraggingFile(false);
+    if (e.dataTransfer.files.length > 0) pickMedia(e.dataTransfer.files);
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes("Files")) setIsDraggingFile(true);
   }
 
   function clearPendingMedia() {
@@ -389,7 +434,29 @@ export default function ChatClient({
       </div>
 
       {/* MAIN PANE */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={() => setIsDraggingFile(false)}
+        onDrop={handleDrop}
+        style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}
+      >
+        {isDraggingFile && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 10,
+              background: "rgba(212,175,55,0.1)",
+              border: "2px dashed var(--gold)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <span style={{ fontSize: 16, color: "var(--gold)", fontWeight: 600 }}>Drop a photo or video to attach</span>
+          </div>
+        )}
         <div style={{ padding: "18px 24px", borderBottom: "0.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)" }}>
             {activeConversation?.title || (activeConversationId === GLOBAL_ROOM_ID ? "Global Chat" : "Chat")}
@@ -458,6 +525,16 @@ export default function ChatClient({
 
         <div style={{ padding: 16, borderTop: "0.5px solid var(--border)" }}>
           {uploadError && <div style={{ fontSize: 12, color: "#E74C3C", marginBottom: 8 }}>{uploadError}</div>}
+          {converting && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--gold)", marginBottom: 4 }}>
+                Converting video… {Math.round(conversionProgress * 100)}%
+              </div>
+              <div style={{ height: 3, background: "var(--surface)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${Math.round(conversionProgress * 100)}%`, background: "var(--gold)", transition: "width 0.2s ease" }} />
+              </div>
+            </div>
+          )}
           {pendingPreviewUrl && (
             <div style={{ marginBottom: 8, position: "relative", display: "inline-block" }}>
               {pendingMediaType === "video" ? (
@@ -478,7 +555,7 @@ export default function ChatClient({
             <input
               ref={fileInputRef}
               type="file"
-              accept={[...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES].join(",")}
+              accept={[...ALLOWED_IMAGE_TYPES, "video/*"].join(",")}
               onChange={(e) => {
                 pickMedia(e.target.files);
                 e.target.value = "";
@@ -488,8 +565,9 @@ export default function ChatClient({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={converting}
               title="Attach a photo or video"
-              style={{ background: "var(--surface)", border: "none", color: "var(--white)", padding: "0 14px", fontSize: 16, cursor: "pointer", borderRadius: 2 }}
+              style={{ background: "var(--surface)", border: "none", color: "var(--white)", padding: "0 14px", fontSize: 16, cursor: "pointer", borderRadius: 2, opacity: converting ? 0.5 : 1 }}
             >
               📷
             </button>
@@ -505,8 +583,8 @@ export default function ChatClient({
             />
             <button
               onClick={handleSend}
-              disabled={sending}
-              style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 2, opacity: sending ? 0.5 : 1 }}
+              disabled={sending || converting}
+              style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 2, opacity: sending || converting ? 0.5 : 1 }}
             >
               Send
             </button>
