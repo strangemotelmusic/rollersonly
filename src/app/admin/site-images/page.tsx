@@ -29,7 +29,7 @@ export default async function AdminSiteImagesPage() {
             Site Images
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
-            Replace the placeholder bird photos used across the homepage. Each slot updates every place that photo appears.
+            Replace the placeholder bird photos used across the homepage and the Live Auctions page. Each slot updates every place that photo appears.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

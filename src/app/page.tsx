@@ -2,13 +2,23 @@ import Image from "next/image";
 import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import Nav from "@/components/Nav";
+import HeroRotator from "@/components/HeroRotator";
 import { getSiteImages } from "@/lib/site-images";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 const tickerItems = [
   "Blue Bar Champion Cock — Sold $1,850",
   "◆",
-  "Anderson Loft — New Listing: World Cup Bloodline",
+  "Schoening Loft — New Listing: World Cup Bloodline",
   "◆",
   "Live Auction Starting in 18 Minutes — 42 Registered Bidders",
   "◆",
@@ -19,25 +29,25 @@ const tickerItems = [
 ];
 
 const auctionCards = [
-  { id: 1, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_white_red", name: "Blue Bar Champion Cock", breeder: "Anderson Loft · DeSoto, Texas, USA", bidLabel: "Current bid", bid: "$1,240", timeLabel: "Ends in", seconds: 1122, tags: ["Verified Pedigree", "DNA Cert"] },
-  { id: 2, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_red", name: "Red Self Breeding Hen", breeder: "Martinez Champion Loft · California, USA", bidLabel: "Current bid", bid: "$780", timeLabel: "Ends in", seconds: 2655, tags: ["World Cup Line", "Health Cert"] },
-  { id: 3, badge: "Starts in 18 min", badgeClass: "badge-upcoming", imgKey: "bird_lavender", name: "White Badge Breeding Pair", breeder: "Royal Birmingham Loft · Birmingham, UK", bidLabel: "Opening bid", bid: "$600", timeLabel: "Starts in", seconds: 1075, tags: ["Breeding Pair", "NBRC Champion"] },
+  { id: 1, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_white_red", name: "Blue Bar Champion Cock", breeder: "Schoening Loft · Montana, USA", bidLabel: "Current bid", bid: "$1,240", timeLabel: "Ends in", seconds: 1122, tags: ["Verified Pedigree", "DNA Cert"] },
+  { id: 2, badge: "● Live", badgeClass: "badge-live", imgKey: "bird_red", name: "Red Self Breeding Hen", breeder: "Glenn Loft · Ohio, USA", bidLabel: "Current bid", bid: "$780", timeLabel: "Ends in", seconds: 2655, tags: ["World Cup Line", "Health Cert"] },
+  { id: 3, badge: "Starts in 18 min", badgeClass: "badge-upcoming", imgKey: "bird_lavender", name: "White Badge Breeding Pair", breeder: "Deacon Loft · Midlands, UK", bidLabel: "Opening bid", bid: "$600", timeLabel: "Starts in", seconds: 1075, tags: ["Breeding Pair", "NBRC Champion"] },
 ] as const;
 
 const featuredBirds = [
-  { id: 1, imgKey: "bird_white_red", name: "Blue Bar Champion", meta: "Anderson Loft · Texas · Male · 2024", price: "Opening bid $400" },
-  { id: 3, imgKey: "bird_lavender", name: "Lavender Hen — World Cup", meta: "Sterling Loft · Netherlands · Female · 2023", price: "Opening bid $650" },
-  { id: 2, imgKey: "bird_red", name: "Red Self Breeding Cock", meta: "Martinez Loft · California · Male · 2024", price: "Opening bid $350" },
-  { id: 5, imgKey: "bird_white_red2", name: "White Badge Roller Hen", meta: "Royal Birmingham Loft · UK · Female · 2024", price: "Opening bid $500" },
-  { id: 4, imgKey: "bird_black_centertail", name: "Black Centertail Young Cock", meta: "Khan Loft · Texas · Male · 2025", price: "Opening bid $280" },
-  { id: 6, imgKey: "bird_red2", name: "Recessive Red Breeding Hen", meta: "Desert Loft · Arizona · Female · 2024", price: "Opening bid $420" },
+  { id: 1, imgKey: "bird_white_red", name: "Blue Bar Champion", meta: "Schoening Loft · Montana · Male · 2024", price: "Opening bid $400" },
+  { id: 3, imgKey: "bird_lavender", name: "Lavender Hen — World Cup", meta: "Whelan Loft · Ireland · Female · 2023", price: "Opening bid $650" },
+  { id: 2, imgKey: "bird_red", name: "Red Self Breeding Cock", meta: "Glenn Loft · Ohio · Male · 2024", price: "Opening bid $350" },
+  { id: 5, imgKey: "bird_white_red2", name: "White Badge Roller Hen", meta: "Deacon Loft · UK · Female · 2024", price: "Opening bid $500" },
+  { id: 4, imgKey: "bird_black_centertail", name: "Black Centertail Young Cock", meta: "Silvey Loft · Central Region, USA · Male · 2025", price: "Opening bid $280" },
+  { id: 6, imgKey: "bird_red2", name: "Recessive Red Breeding Hen", meta: "Rossouw Loft · Free State, South Africa · Female · 2024", price: "Opening bid $420" },
 ] as const;
 
 const breeders = [
-  { slug: "anderson", initial: "A", name: "Anderson Loft", location: "DeSoto, Texas, USA", sold: 142, championships: 18 },
-  { slug: "martinez", initial: "M", name: "Martinez Champion Loft", location: "Los Angeles, California, USA", sold: 98, championships: 12 },
-  { slug: "royal-birmingham", initial: "R", name: "Royal Birmingham Loft", location: "Birmingham, England, UK", sold: 211, championships: 31 },
-  { slug: "sterling", initial: "S", name: "Sterling Dutch Loft", location: "Amsterdam, Netherlands", sold: 76, championships: 9 },
+  { slug: "schoening", initial: "S", name: "Schoening Loft", location: "Montana, USA", sold: 142, championships: 18 },
+  { slug: "glenn", initial: "G", name: "Glenn Loft", location: "Ohio, USA", sold: 98, championships: 12 },
+  { slug: "deacon", initial: "D", name: "Deacon Loft", location: "Midlands, England, UK", sold: 211, championships: 31 },
+  { slug: "whelan", initial: "W", name: "Whelan Loft", location: "Ireland", sold: 76, championships: 9 },
 ];
 
 const features = [
@@ -52,12 +62,26 @@ export default async function Home() {
   const siteImages = await getSiteImages();
 
   const admin = createAdminClient();
-  const { data: latestIssue } = await admin
-    .from("magazine_issues")
-    .select("id, issue_number, title, cover_image_url")
-    .order("issue_number", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const [{ data: latestIssue }, { data: archivePhotos }] = await Promise.all([
+    admin
+      .from("magazine_issues")
+      .select("id, issue_number, title, cover_image_url")
+      .order("issue_number", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin.from("archive_media").select("media_url").eq("media_type", "image").order("created_at", { ascending: false }).limit(20),
+  ]);
+
+  const fallbackHeroPhotos = [
+    siteImages.bird_white_red,
+    siteImages.bird_red,
+    siteImages.bird_lavender,
+    siteImages.bird_black_centertail,
+    siteImages.bird_red2,
+    siteImages.bird_white_red2,
+  ].filter(Boolean);
+  const vaultPhotos = (archivePhotos ?? []).map((r) => r.media_url);
+  const heroRotatorImages = shuffle(vaultPhotos.length >= 3 ? vaultPhotos : [...vaultPhotos, ...fallbackHeroPhotos]).slice(0, 8);
 
   return (
     <>
@@ -65,6 +89,7 @@ export default async function Home() {
 
       {/* HERO */}
       <div className="hero">
+        <HeroRotator images={heroRotatorImages} />
         <div className="hero-bg-text">ROLLERS</div>
         <div className="hero-line" />
         <Image src="/rollers-only-logo.png" alt="Rollers Only" width={1024} height={1536} className="hero-logo-mid" />

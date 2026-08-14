@@ -3,14 +3,14 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
 const breeders = [
-  { slug: "anderson", name: "James Anderson", loft: "Anderson Elite Loft", location: "DeSoto, TX", initials: "A", tier: "Elite Loft", sales: 48, rating: 4.9, wins: 7, birds: 6, specialties: ["World Cup Line", "NBRC Champion", "Deep Rollers"] },
-  { slug: "martinez", name: "Carlos Martinez", loft: "Martinez Champion Loft", location: "Los Angeles, CA", initials: "M", tier: "Elite Loft", sales: 34, rating: 4.8, wins: 5, birds: 4, specialties: ["World Cup Line", "Kit Flyers"] },
-  { slug: "sterling", name: "Henrik Sterling", loft: "Sterling Dutch Loft", location: "Amsterdam, NL", initials: "S", tier: "Elite Loft", sales: 29, rating: 4.9, wins: 4, birds: 5, specialties: ["European Lines", "Lavender", "Breeding Pairs"] },
-  { slug: "royal-birmingham", name: "William Clarke", loft: "Royal Birmingham Loft", location: "Birmingham, UK", initials: "R", tier: "Elite Loft", sales: 41, rating: 4.7, wins: 3, birds: 8, specialties: ["Heritage Line", "NBRC Champion", "UK Champion"] },
-  { slug: "khan", name: "Arif Khan", loft: "Khan Loft", location: "Dallas, TX", initials: "K", tier: "Breeder", sales: 18, rating: 4.8, wins: 2, birds: 3, specialties: ["Verified Pedigree", "Regional Champion"] },
-  { slug: "desert", name: "Mike Torres", loft: "Desert Loft", location: "Phoenix, AZ", initials: "D", tier: "Breeder", sales: 22, rating: 4.6, wins: 1, birds: 4, specialties: ["Southwest Line", "Recessive Red"] },
-  { slug: "heritage", name: "Tom Wright", loft: "Heritage Birmingham", location: "Memphis, TN", initials: "H", tier: "Breeder", sales: 15, rating: 4.7, wins: 2, birds: 3, specialties: ["Heritage Line", "Blue Bar"] },
-  { slug: "pacific", name: "Daniel Nguyen", loft: "Pacific Coast Loft", location: "San Diego, CA", initials: "P", tier: "Breeder", sales: 11, rating: 4.9, wins: 1, birds: 2, specialties: ["West Coast Line", "Health Cert"] },
+  { slug: "schoening", name: "Rick Schoening", loft: "Schoening Loft", location: "Montana, USA", initials: "S", tier: "Elite Loft", sales: 48, rating: 4.9, wins: 7, birds: 6, specialties: ["World Cup Line", "NBRC Champion", "Deep Rollers"] },
+  { slug: "glenn", name: "Gabe Glenn", loft: "Glenn Loft", location: "Ohio, USA", initials: "G", tier: "Elite Loft", sales: 34, rating: 4.8, wins: 5, birds: 4, specialties: ["World Cup Line", "Kit Flyers"] },
+  { slug: "whelan", name: "Brendan Whelan", loft: "Whelan Loft", location: "Ireland", initials: "W", tier: "Elite Loft", sales: 29, rating: 4.9, wins: 4, birds: 5, specialties: ["European Lines", "Lavender", "Breeding Pairs"] },
+  { slug: "deacon", name: "Darren Deacon", loft: "Deacon Loft", location: "Midlands, UK", initials: "D", tier: "Elite Loft", sales: 41, rating: 4.7, wins: 3, birds: 8, specialties: ["Heritage Line", "NBRC Champion", "UK Champion"] },
+  { slug: "silvey", name: "Willie Silvey", loft: "Silvey Loft", location: "Central Region, USA", initials: "S", tier: "Breeder", sales: 18, rating: 4.8, wins: 2, birds: 3, specialties: ["Verified Pedigree", "Regional Champion"] },
+  { slug: "rossouw", name: "Hannes Rossouw", loft: "Rossouw Loft", location: "Free State, South Africa", initials: "R", tier: "Breeder", sales: 22, rating: 4.6, wins: 1, birds: 4, specialties: ["Verified Pedigree", "Recessive Red"] },
+  { slug: "pejcic", name: "Vukasin Pejcic", loft: "Pejcic Loft", location: "Serbia", initials: "P", tier: "Breeder", sales: 15, rating: 4.7, wins: 2, birds: 3, specialties: ["Heritage Line", "Blue Bar"] },
+  { slug: "aldea", name: "Mihai Aldea", loft: "Aldea Loft", location: "Romania", initials: "A", tier: "Breeder", sales: 11, rating: 4.9, wins: 1, birds: 2, specialties: ["European Line", "Health Cert"] },
 ];
 
 const tierColors: Record<string, { bg: string; color: string }> = {

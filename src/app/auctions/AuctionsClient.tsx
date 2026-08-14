@@ -4,21 +4,22 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import Countdown from "@/components/Countdown";
+import type { SiteImageKey } from "@/lib/site-images";
 
 const liveAuctions = [
-  { id: 1, name: "Blue Bar Champion Cock", loft: "Anderson Elite Loft", location: "DeSoto, TX", bid: "$1,240", bids: 14, seconds: 8280, img: "/bird-white-red.jpg", tags: ["Verified Pedigree", "DNA Cert"], featured: true },
-  { id: 2, name: "Red Self Breeding Hen", loft: "Martinez Champion Loft", location: "Los Angeles, CA", bid: "$780", bids: 9, seconds: 19440, img: "/bird-red.jpg", tags: ["World Cup Line", "Health Cert"], featured: false },
-  { id: 5, name: "White Badge Roller Hen", loft: "Royal Birmingham Loft", location: "Birmingham, UK", bid: "$650", bids: 7, seconds: 32040, img: "/bird-white-red2.jpg", tags: ["NBRC Champion", "Health Cert"], featured: false },
-  { id: 7, name: "Silver Dun Champion Cock", loft: "Anderson Elite Loft", location: "DeSoto, TX", bid: "$920", bids: 11, seconds: 5400, img: "/bird-white-red.jpg", tags: ["World Cup Line", "DNA Cert"], featured: false },
-];
+  { id: 1, name: "Blue Bar Champion Cock", loft: "Schoening Loft", location: "Montana, USA", bid: "$1,240", bids: 14, seconds: 8280, imgKey: "bird_white_red", tags: ["Verified Pedigree", "DNA Cert"], featured: true },
+  { id: 2, name: "Red Self Breeding Hen", loft: "Glenn Loft", location: "Ohio, USA", bid: "$780", bids: 9, seconds: 19440, imgKey: "bird_red", tags: ["World Cup Line", "Health Cert"], featured: false },
+  { id: 5, name: "White Badge Roller Hen", loft: "Deacon Loft", location: "Midlands, UK", bid: "$650", bids: 7, seconds: 32040, imgKey: "bird_white_red2", tags: ["NBRC Champion", "Health Cert"], featured: false },
+  { id: 7, name: "Silver Dun Champion Cock", loft: "Schoening Loft", location: "Montana, USA", bid: "$920", bids: 11, seconds: 5400, imgKey: "bird_white_red", tags: ["World Cup Line", "DNA Cert"], featured: false },
+] as const;
 
 const upcomingAuctions = [
-  { id: 3, name: "Lavender Breeding Pair", loft: "Sterling Dutch Loft", location: "Amsterdam, NL", startBid: "$1,100", date: "Tomorrow · 2:00 PM CT", img: "/bird-lavender.jpg", tags: ["Breeding Pair", "Verified Pedigree"] },
-  { id: 9, name: "Grizzle Breeding Pair", loft: "Royal Birmingham Loft", location: "Birmingham, UK", startBid: "$2,400", date: "Fri · 10:00 AM CT", img: "/bird-red.jpg", tags: ["NBRC Champion", "DNA Cert", "Health Cert"] },
-  { id: 12, name: "Dun Bar Young Cock", loft: "Desert Loft", location: "Phoenix, AZ", startBid: "$310", date: "Sat · 12:00 PM CT", img: "/bird-red2.jpg", tags: ["Verified Pedigree", "Health Cert"] },
-];
+  { id: 3, name: "Lavender Breeding Pair", loft: "Whelan Loft", location: "Ireland", startBid: "$1,100", date: "Tomorrow · 2:00 PM CT", imgKey: "bird_lavender", tags: ["Breeding Pair", "Verified Pedigree"] },
+  { id: 9, name: "Grizzle Breeding Pair", loft: "Deacon Loft", location: "Midlands, UK", startBid: "$2,400", date: "Fri · 10:00 AM CT", imgKey: "bird_red", tags: ["NBRC Champion", "DNA Cert", "Health Cert"] },
+  { id: 12, name: "Dun Bar Young Cock", loft: "Rossouw Loft", location: "Free State, South Africa", startBid: "$310", date: "Sat · 12:00 PM CT", imgKey: "bird_red2", tags: ["Verified Pedigree", "Health Cert"] },
+] as const;
 
-export default function AuctionsClient() {
+export default function AuctionsClient({ images }: { images: Record<SiteImageKey, string> }) {
   const [tab, setTab] = useState<"live" | "upcoming">("live");
 
   return (
@@ -70,7 +71,7 @@ export default function AuctionsClient() {
                 <div key={a.id} className="auction-card rs-card-row" style={{ display: "grid", gridTemplateColumns: "220px 1fr" }}>
                   <div style={{ position: "relative", background: "#000" }}>
                     <div className="auction-badge badge-live">● Live</div>
-                    <Image src={a.img} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                    <Image src={images[a.imgKey]} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
                   </div>
                   <div className="auction-body" style={{ borderTop: "none", borderLeft: "0.5px solid var(--border)" }}>
                     <div className="auction-name">{a.name}</div>
@@ -105,7 +106,7 @@ export default function AuctionsClient() {
                 <div key={a.id} className="auction-card">
                   <div className="auction-img-wrap">
                     <div className="auction-badge" style={{ background: "rgba(212,175,55,0.9)", color: "#000" }}>Upcoming</div>
-                    <Image src={a.img} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                    <Image src={images[a.imgKey]} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
                   </div>
                   <div className="auction-body">
                     <div className="auction-name">{a.name}</div>

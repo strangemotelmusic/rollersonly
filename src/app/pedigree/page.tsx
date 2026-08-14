@@ -3,12 +3,12 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
 const recentBirds = [
-  { color: "#4A6FA5", name: "Blue Bar Champion Cock", ring: "AU24-TX-44821", loft: "Anderson Elite Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "DNA Cert", "Health Cert"] },
-  { color: "#C0392B", name: "Red Self Breeding Hen", ring: "AU23-CA-18204", loft: "Martinez Champion Loft", breed: "Birmingham Roller", year: 2023, certs: ["Verified Pedigree", "Health Cert"] },
-  { color: "#9B59B6", name: "Lavender Cock", ring: "AU24-NL-00442", loft: "Sterling Dutch Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "DNA Cert"] },
-  { color: "#ECF0F1", name: "White Badge Hen", ring: "AU24-UK-09871", loft: "Royal Birmingham Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "DNA Cert", "Health Cert"] },
-  { color: "#2C3E50", name: "Black Centertail Cock", ring: "AU25-TX-11203", loft: "Khan Loft", breed: "Birmingham Roller", year: 2025, certs: ["Verified Pedigree"] },
-  { color: "#E74C3C", name: "Recessive Red Hen", ring: "AU24-AZ-33401", loft: "Desert Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "Health Cert"] },
+  { color: "#4A6FA5", name: "Blue Bar Champion Cock", ring: "AU24-MT-44821", loft: "Schoening Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "DNA Cert", "Health Cert"] },
+  { color: "#C0392B", name: "Red Self Breeding Hen", ring: "AU23-OH-18204", loft: "Glenn Loft", breed: "Birmingham Roller", year: 2023, certs: ["Verified Pedigree", "Health Cert"] },
+  { color: "#9B59B6", name: "Lavender Cock", ring: "AU24-IE-00442", loft: "Whelan Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "DNA Cert"] },
+  { color: "#ECF0F1", name: "White Badge Hen", ring: "AU24-UK-09871", loft: "Deacon Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "DNA Cert", "Health Cert"] },
+  { color: "#2C3E50", name: "Black Centertail Cock", ring: "AU25-US-11203", loft: "Silvey Loft", breed: "Birmingham Roller", year: 2025, certs: ["Verified Pedigree"] },
+  { color: "#E74C3C", name: "Recessive Red Hen", ring: "AU24-ZA-33401", loft: "Rossouw Loft", breed: "Birmingham Roller", year: 2024, certs: ["Verified Pedigree", "Health Cert"] },
 ];
 
 export default function PedigreePage() {
@@ -33,7 +33,7 @@ export default function PedigreePage() {
           </div>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {["NBRC World Cup Line", "Anderson Bloodline", "SW Regional Champions", "Blue Bar", "Red Self", "Birmingham Heritage"].map((tag) => (
+            {["NBRC World Cup Line", "Schoening Bloodline", "SW Regional Champions", "Blue Bar", "Red Self", "Birmingham Heritage"].map((tag) => (
               <span key={tag} style={{ fontSize: 11, letterSpacing: "0.06em", padding: "5px 14px", border: "0.5px solid var(--border-gold)", color: "var(--gold)", borderRadius: 1, cursor: "pointer" }}>{tag}</span>
             ))}
           </div>
@@ -94,29 +94,29 @@ export default function PedigreePage() {
             {/* PEDIGREE TREE */}
             <div style={{ marginTop: 64 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 28 }}>
-                <div style={{ fontFamily: "var(--ff-display)", fontSize: 24, fontWeight: 300, color: "var(--white)" }}>Bloodline Tree — Anderson&apos;s Thunder</div>
+                <div style={{ fontFamily: "var(--ff-display)", fontSize: 24, fontWeight: 300, color: "var(--white)" }}>Bloodline Tree — Schoening&apos;s Thunder</div>
                 <a href="#" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>Download PDF →</a>
               </div>
 
               <div style={{ display: "flex", gap: 20, alignItems: "center", overflowX: "auto", paddingBottom: 16 }}>
                 <TreeGen label="Subject">
-                  <TreeNode name="Anderson's Thunder" ring="AU23-TX-18204" note="97/100 · NBRC Champion 2025" gold />
+                  <TreeNode name="Schoening's Thunder" ring="AU23-MT-18204" note="97/100 · NBRC Champion 2025" gold />
                 </TreeGen>
                 <span style={{ color: "var(--gold)", fontSize: 24, flexShrink: 0 }}>›</span>
                 <TreeGen label="Parents">
-                  <TreeNode name="TX Bluebell Champion" ring="AU21-TX-00442" note="NBRC Champion 2021" gold />
+                  <TreeNode name="MT Bluebell Champion" ring="AU21-MT-00442" note="NBRC Champion 2021" gold />
                   <div style={{ height: 12 }} />
-                  <TreeNode name="Silver Queen Hen" ring="AU20-TX-09871" note="World Cup Finalist 2020" />
+                  <TreeNode name="Silver Queen Hen" ring="AU20-MT-09871" note="World Cup Finalist 2020" />
                 </TreeGen>
                 <span style={{ color: "var(--gold)", fontSize: 24, flexShrink: 0 }}>›</span>
                 <TreeGen label="Grandparents">
-                  <TreeNode name="TX Heritage Blue" ring="AU19-TX-00112" note="Heritage line" />
+                  <TreeNode name="MT Heritage Blue" ring="AU19-MT-00112" note="Heritage line" />
                   <div style={{ height: 8 }} />
-                  <TreeNode name="Anderson's Glory" ring="AU18-TX-00089" note="World Cup line" />
+                  <TreeNode name="Schoening's Glory" ring="AU18-MT-00089" note="World Cup line" />
                   <div style={{ height: 8 }} />
-                  <TreeNode name="Desert Wind Cock" ring="AU19-AZ-00554" note="SW Champion" />
+                  <TreeNode name="Free State Wind Cock" ring="AU19-ZA-00554" note="World Cup line" />
                   <div style={{ height: 8 }} />
-                  <TreeNode name="World Cup Hen" ring="AU18-TX-00302" note="World Cup 2018" />
+                  <TreeNode name="World Cup Hen" ring="AU18-MT-00302" note="World Cup 2018" />
                 </TreeGen>
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function PedigreePage() {
 
             <div style={{ background: "var(--void)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Search by Bloodline</div>
-              {["Anderson", "Martinez", "Sterling Dutch", "Royal Birmingham", "Khan"].map((name) => (
+              {["Schoening", "Glenn", "Whelan", "Deacon", "Silvey"].map((name) => (
                 <div key={name} style={{ padding: "10px 0", borderBottom: "0.5px solid var(--border)", fontSize: 13, color: "var(--muted)", cursor: "pointer", display: "flex", justifyContent: "space-between" }}>
                   {name} <span style={{ color: "var(--gold)" }}>→</span>
                 </div>

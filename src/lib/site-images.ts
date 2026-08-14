@@ -5,12 +5,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // appears, since the original static files were reused across sections.
 export const SITE_IMAGE_SLOTS = [
   { key: "hero", label: "Homepage Hero Image", defaultUrl: "/hero-bird.png" },
-  { key: "bird_white_red", label: "Blue Bar Champion Cock (auction card + featured grid)", defaultUrl: "/bird-white-red.jpg" },
-  { key: "bird_red", label: "Red Self Breeding Hen (auction card + featured grid)", defaultUrl: "/bird-red.jpg" },
-  { key: "bird_lavender", label: "White Badge Breeding Pair (auction card + featured grid + CTA)", defaultUrl: "/bird-lavender.jpg" },
-  { key: "bird_white_red2", label: "White Badge Roller Hen (featured grid)", defaultUrl: "/bird-white-red2.jpg" },
-  { key: "bird_black_centertail", label: "Black Centertail Young Cock (featured grid + platform pillars)", defaultUrl: "/bird-black-centertail.jpg" },
-  { key: "bird_red2", label: "Recessive Red Breeding Hen (featured grid + CTA)", defaultUrl: "/bird-red2.jpg" },
+  { key: "bird_white_red", label: "Blue Bar Champion Cock (homepage + Live Auctions page)", defaultUrl: "/bird-white-red.jpg" },
+  { key: "bird_red", label: "Red Self Breeding Hen (homepage + Live Auctions page)", defaultUrl: "/bird-red.jpg" },
+  { key: "bird_lavender", label: "White Badge Breeding Pair (homepage + Live Auctions page + CTA)", defaultUrl: "/bird-lavender.jpg" },
+  { key: "bird_white_red2", label: "White Badge Roller Hen (homepage + Live Auctions page)", defaultUrl: "/bird-white-red2.jpg" },
+  { key: "bird_black_centertail", label: "Black Centertail Young Cock (homepage featured grid + platform pillars)", defaultUrl: "/bird-black-centertail.jpg" },
+  { key: "bird_red2", label: "Recessive Red Breeding Hen (homepage + Live Auctions page + CTA)", defaultUrl: "/bird-red2.jpg" },
 ] as const;
 
 export type SiteImageKey = (typeof SITE_IMAGE_SLOTS)[number]["key"];

@@ -3,14 +3,14 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
 const kitLeaders = [
-  { rank: 1, loft: "Anderson Elite Loft", breeder: "James Anderson", location: "DeSoto, TX", score: 98.1, kitSize: 13, competition: "NBRC World Cup 2024", badge: "World Cup Champion" },
-  { rank: 2, loft: "Martinez Champion Loft", breeder: "Carlos Martinez", location: "Los Angeles, CA", score: 97.4, kitSize: 15, competition: "NBRC World Cup 2024", badge: "Runner-Up" },
-  { rank: 3, loft: "Sterling Dutch Loft", breeder: "Henrik Sterling", location: "Amsterdam, NL", score: 96.8, kitSize: 11, competition: "NBRC World Cup 2024", badge: null },
-  { rank: 4, loft: "Royal Birmingham Loft", breeder: "William Clarke", location: "Birmingham, UK", score: 96.2, kitSize: 14, competition: "NBRC World Cup 2024", badge: null },
-  { rank: 5, loft: "Khan Loft", breeder: "Arif Khan", location: "Dallas, TX", score: 95.9, kitSize: 12, competition: "NBRC World Cup 2024", badge: null },
-  { rank: 6, loft: "Desert Loft", breeder: "Mike Torres", location: "Phoenix, AZ", score: 95.3, kitSize: 10, competition: "NBRC World Cup 2024", badge: null },
-  { rank: 7, loft: "Heritage Birmingham", breeder: "Tom Wright", location: "Memphis, TN", score: 94.8, kitSize: 13, competition: "NBRC World Cup 2024", badge: null },
-  { rank: 8, loft: "Pacific Coast Loft", breeder: "Daniel Nguyen", location: "San Diego, CA", score: 94.1, kitSize: 11, competition: "NBRC World Cup 2024", badge: null },
+  { rank: 1, loft: "Schoening Loft", breeder: "Rick Schoening", location: "Montana, USA", score: 98.1, kitSize: 13, competition: "NBRC World Cup 2024", badge: "World Cup Champion" },
+  { rank: 2, loft: "Glenn Loft", breeder: "Gabe Glenn", location: "Ohio, USA", score: 97.4, kitSize: 15, competition: "NBRC World Cup 2024", badge: "Runner-Up" },
+  { rank: 3, loft: "Whelan Loft", breeder: "Brendan Whelan", location: "Ireland", score: 96.8, kitSize: 11, competition: "NBRC World Cup 2024", badge: null },
+  { rank: 4, loft: "Deacon Loft", breeder: "Darren Deacon", location: "Midlands, UK", score: 96.2, kitSize: 14, competition: "NBRC World Cup 2024", badge: null },
+  { rank: 5, loft: "Silvey Loft", breeder: "Willie Silvey", location: "Central Region, USA", score: 95.9, kitSize: 12, competition: "NBRC World Cup 2024", badge: null },
+  { rank: 6, loft: "Rossouw Loft", breeder: "Hannes Rossouw", location: "Free State, South Africa", score: 95.3, kitSize: 10, competition: "NBRC World Cup 2024", badge: null },
+  { rank: 7, loft: "Pejcic Loft", breeder: "Vukasin Pejcic", location: "Serbia", score: 94.8, kitSize: 13, competition: "NBRC World Cup 2024", badge: null },
+  { rank: 8, loft: "Aldea Loft", breeder: "Mihai Aldea", location: "Romania", score: 94.1, kitSize: 11, competition: "NBRC World Cup 2024", badge: null },
 ];
 
 const competitions = [
@@ -21,11 +21,11 @@ const competitions = [
 ];
 
 const topBreeders = [
-  { rank: 1, name: "James Anderson", loft: "Anderson Elite Loft", points: 2480, wins: 7, country: "USA" },
-  { rank: 2, name: "Carlos Martinez", loft: "Martinez Champion Loft", points: 2210, wins: 5, country: "USA" },
-  { rank: 3, name: "Henrik Sterling", loft: "Sterling Dutch Loft", points: 1980, wins: 4, country: "NL" },
-  { rank: 4, name: "William Clarke", loft: "Royal Birmingham Loft", points: 1740, wins: 3, country: "UK" },
-  { rank: 5, name: "Arif Khan", loft: "Khan Loft", points: 1520, wins: 2, country: "USA" },
+  { rank: 1, name: "Rick Schoening", loft: "Schoening Loft", points: 2480, wins: 7, country: "USA" },
+  { rank: 2, name: "Gabe Glenn", loft: "Glenn Loft", points: 2210, wins: 5, country: "USA" },
+  { rank: 3, name: "Brendan Whelan", loft: "Whelan Loft", points: 1980, wins: 4, country: "IRL" },
+  { rank: 4, name: "Darren Deacon", loft: "Deacon Loft", points: 1740, wins: 3, country: "UK" },
+  { rank: 5, name: "Willie Silvey", loft: "Silvey Loft", points: 1520, wins: 2, country: "USA" },
 ];
 
 export default function LeaderboardsPage() {
@@ -51,7 +51,7 @@ export default function LeaderboardsPage() {
 
         {/* STATS */}
         <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)" }}>
-          {[["148", "World Cup Entries 2024"], ["42", "Countries Represented"], ["98.1", "Top Score 2024"], ["7", "Anderson Wins (All-Time)"]].map(([val, label]) => (
+          {[["148", "World Cup Entries 2024"], ["42", "Countries Represented"], ["98.1", "Top Score 2024"], ["7", "Schoening Wins (All-Time)"]].map(([val, label]) => (
             <div key={label} style={{ padding: "36px 48px", borderRight: "0.5px solid var(--border)" }}>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 44, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 8 }}>{val}</div>
               <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)" }}>{label}</div>
@@ -104,7 +104,7 @@ export default function LeaderboardsPage() {
                         </div>
                       </td>
                       <td style={{ padding: "18px 12px" }}>
-                        <Link href="/loft/anderson" style={{ fontSize: 11, color: "var(--gold)", textDecoration: "none" }}>Profile →</Link>
+                        <Link href={`/loft/${entry.loft.split(" ")[0].toLowerCase()}`} style={{ fontSize: 11, color: "var(--gold)", textDecoration: "none" }}>Profile →</Link>
                       </td>
                     </tr>
                   ))}

@@ -193,6 +193,7 @@ nav {
   align-items: flex-end;
   overflow: hidden;
   background: var(--black);
+  isolation: isolate;
 }
 .hero-bg-text {
   position: absolute;
