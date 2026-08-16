@@ -217,7 +217,8 @@ export async function remasterVideo(
       "-preset", "veryfast",
       "-crf", "20",
       "-c:a", "aac",
-      "-b:a", "192k",
+      "-b:a", "256k",
+      "-ar", "48000",
       "-movflags", "+faststart",
       outputName,
     ]);

@@ -82,7 +82,8 @@ export async function transcodeToMp4(
       "-maxrate", "1500k",
       "-bufsize", "3000k",
       "-c:a", "aac",
-      "-b:a", "128k",
+      "-b:a", "256k",
+      "-ar", "48000",
       "-movflags", "+faststart",
       outputName,
     ]);
