@@ -28,6 +28,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Pedigrees", href: "/pedigree" },
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Decade of the Spinner", href: "/decade-of-the-spinner" },
+    { label: "Future Issues", href: "/future-issues" },
   ];
 
   const displayName = profile?.full_name || profile?.username || user?.email || "";
@@ -99,6 +100,9 @@ export default async function Nav({ active }: { active?: string }) {
                 </Link>
                 <Link href="/admin/our-breeders" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Our Breeders
+                </Link>
+                <Link href="/admin/future-issues" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
+                  Future Issues
                 </Link>
                 <Link href="/admin/dots-birds" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
                   Manage D.O.T.S Birds

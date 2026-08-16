@@ -623,6 +623,50 @@ export interface Database {
           },
         ];
       };
+      future_issues: {
+        Row: {
+          id: string;
+          title: string;
+          release_label: string | null;
+          description: string | null;
+          cover_url: string | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          release_label?: string | null;
+          description?: string | null;
+          cover_url?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["future_issues"]["Insert"]>;
+        Relationships: [];
+      };
+      featured_videos: {
+        Row: {
+          id: string;
+          title: string;
+          youtube_id: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          youtube_id: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["featured_videos"]["Insert"]>;
+        Relationships: [];
+      };
       magazine_issues: {
         Row: {
           id: string;
