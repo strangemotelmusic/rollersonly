@@ -53,7 +53,7 @@ export default async function LoftPage({ params }: { params: Promise<{ slug: str
 
   const { data: reviewsRaw } = await supabase
     .from("loft_reviews")
-    .select("rating, body, created_at, profiles(username)")
+    .select("rating, body, created_at, profiles(username, avatar_url)")
     .eq("loft_id", loft.id)
     .order("created_at", { ascending: false })
     .limit(10);
@@ -167,16 +167,45 @@ export default async function LoftPage({ params }: { params: Promise<{ slug: str
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 20 }}>Buyer Reviews</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--border)" }}>
-                  {reviewsRaw.map((r, i) => (
-                    <div key={i} style={{ background: "var(--surface)", padding: "24px 28px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                        <div style={{ fontSize: 13, color: "var(--white)" }}>{r.profiles?.username || "Anonymous"}</div>
-                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{r.created_at ? new Date(r.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : ""}</div>
+                  {reviewsRaw.map((r, i) => {
+                    const reviewer = r.profiles?.username || "Anonymous";
+                    return (
+                      <div key={i} style={{ background: "var(--surface)", padding: "24px 28px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span
+                              style={{
+                                position: "relative",
+                                width: 28,
+                                height: 28,
+                                flexShrink: 0,
+                                borderRadius: "50%",
+                                background: "var(--surface2)",
+                                border: "1px solid var(--border-gold)",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontFamily: "var(--ff-display)",
+                                fontSize: 12,
+                                color: "var(--gold)",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {r.profiles?.avatar_url ? (
+                                <Image src={r.profiles.avatar_url} alt={reviewer} fill style={{ objectFit: "cover" }} />
+                              ) : (
+                                reviewer.charAt(0).toUpperCase()
+                              )}
+                            </span>
+                            <div style={{ fontSize: 13, color: "var(--white)" }}>{reviewer}</div>
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--muted)" }}>{r.created_at ? new Date(r.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : ""}</div>
+                        </div>
+                        <div style={{ color: "var(--gold)", fontSize: 12, marginBottom: 8 }}>{"★".repeat(r.rating)}</div>
+                        {r.body && <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.7 }}>{r.body}</p>}
                       </div>
-                      <div style={{ color: "var(--gold)", fontSize: 12, marginBottom: 8 }}>{"★".repeat(r.rating)}</div>
-                      {r.body && <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.7 }}>{r.body}</p>}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

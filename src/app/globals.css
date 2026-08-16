@@ -772,3 +772,30 @@ footer { background: var(--void); border-top: 0.5px solid var(--border); padding
   .footer-top { grid-template-columns: 1fr !important; }
 }
 .footer-badge { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); border: 0.5px solid var(--border); padding: 5px 12px; border-radius: 1px; }
+
+/* ── COMPACT BROWSE GRID ──
+   Denser variant of the auction-card layout so the Browse page can show far
+   more birds at once: auto-fills as many ~200px columns as fit, with a
+   shorter image and tighter body than the homepage/auction cards. */
+.browse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  padding: 1px;
+  margin: 40px;
+}
+.browse-grid .auction-img-wrap { height: 200px; }
+.browse-grid .auction-body { padding: 14px 16px 16px; }
+.browse-grid .auction-name { font-size: 16px; margin-bottom: 2px; }
+.browse-grid .auction-breeder { font-size: 11px; margin-bottom: 12px; }
+.browse-grid .auction-bid { font-size: 20px; }
+.browse-grid .auction-bid-label { font-size: 9px; }
+.browse-grid .tag { font-size: 9px; padding: 3px 8px; }
+@media (max-width: 900px) {
+  .browse-grid { margin: 20px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .browse-grid .auction-img-wrap { height: 160px; }
+}
+@media (max-width: 560px) {
+  .browse-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}

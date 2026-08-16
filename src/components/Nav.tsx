@@ -60,31 +60,32 @@ export default async function Nav({ active }: { active?: string }) {
             <Link href="/spin-vault" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
               The Spin Vault
             </Link>
-            <Link
-              href="/dashboard"
-              style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--white)", fontSize: 13 }}
-            >
-              <span
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  background: "var(--surface2)",
-                  border: "1px solid var(--border-gold)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: "var(--ff-display)",
-                  fontSize: 13,
-                  color: "var(--gold)",
-                  overflow: "hidden",
-                  position: "relative",
-                }}
-              >
-                {avatarUrl ? <Image src={avatarUrl} alt={displayName} fill style={{ objectFit: "cover" }} /> : initial}
-              </span>
-              {displayName}
-            </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Link href="/settings" title="Edit your profile" style={{ display: "flex", textDecoration: "none" }}>
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: "var(--surface2)",
+                    border: "1px solid var(--border-gold)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "var(--ff-display)",
+                    fontSize: 13,
+                    color: "var(--gold)",
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
+                >
+                  {avatarUrl ? <Image src={avatarUrl} alt={displayName} fill style={{ objectFit: "cover" }} /> : initial}
+                </span>
+              </Link>
+              <Link href="/dashboard" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
+                {displayName}
+              </Link>
+            </div>
             {avatarRow?.is_admin && (
               <>
                 <Link href="/admin/certifications" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>

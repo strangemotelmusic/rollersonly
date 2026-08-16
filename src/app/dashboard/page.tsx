@@ -28,7 +28,7 @@ export default async function DashboardPage() {
 
   const { data: billingProfile } = await supabase
     .from("profiles")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -121,6 +121,8 @@ export default async function DashboardPage() {
 
   const displayName = profile?.full_name || profile?.username || user.email;
   const tier = tierLabel[profile?.tier ?? ""] || "Fancier";
+  const avatarUrl = billingProfile?.avatar_url;
+  const initial = (displayName || "?").charAt(0).toUpperCase();
 
   return (
     <>
@@ -129,14 +131,48 @@ export default async function DashboardPage() {
 
         {/* HEADER */}
         <div className="rs-pad-lg" style={{ background: "var(--void)", borderBottom: "0.5px solid var(--border)", padding: "40px 64px" }}>
-          <div className="rs-flex-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>Your Loft</p>
-              <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 40, fontWeight: 300, color: "var(--white)", marginBottom: 6 }}>Welcome back, {displayName}</h1>
-              <p style={{ fontSize: 13, color: "var(--muted)" }}>
-                {loft ? `${loft.name}${loft.location ? ` · ${loft.location}` : ""} · ` : profile?.username ? `${profile.username} · ` : ""}
-                {tier} Member
-              </p>
+          <div className="rs-flex-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+              {/* PROFILE PICTURE + EDIT */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                <Link
+                  href="/settings"
+                  title="Edit your profile picture"
+                  style={{
+                    position: "relative",
+                    width: 88,
+                    height: 88,
+                    borderRadius: "50%",
+                    background: "var(--surface2)",
+                    border: "1px solid var(--border-gold)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "var(--ff-display)",
+                    fontSize: 36,
+                    color: "var(--gold)",
+                    overflow: "hidden",
+                    textDecoration: "none",
+                  }}
+                >
+                  {avatarUrl ? <Image src={avatarUrl} alt={displayName || "Profile"} fill style={{ objectFit: "cover" }} /> : initial}
+                </Link>
+                <Link
+                  href="/settings"
+                  className="btn-ghost"
+                  style={{ fontSize: 10, padding: "6px 14px", whiteSpace: "nowrap" }}
+                >
+                  Edit Profile
+                </Link>
+              </div>
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>Your Loft</p>
+                <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 40, fontWeight: 300, color: "var(--white)", marginBottom: 6 }}>Welcome back, {displayName}</h1>
+                <p style={{ fontSize: 13, color: "var(--muted)" }}>
+                  {loft ? `${loft.name}${loft.location ? ` · ${loft.location}` : ""} · ` : profile?.username ? `${profile.username} · ` : ""}
+                  {tier} Member
+                </p>
+              </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <Link href="/pedigree" className="btn-ghost" style={{ fontSize: 11 }}>Pedigree Vault</Link>

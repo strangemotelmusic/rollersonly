@@ -1,10 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { toggleArchiveLike, addArchiveComment, deleteArchiveComment } from "@/app/actions/archive";
 
 type Profile = { username: string; full_name: string | null; avatar_url: string | null };
+
+function CommentAvatar({ url, name }: { url: string | null; name: string }) {
+  return (
+    <span
+      style={{
+        position: "relative",
+        width: 24,
+        height: 24,
+        flexShrink: 0,
+        borderRadius: "50%",
+        background: "var(--surface2)",
+        border: "1px solid var(--border-gold)",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "var(--ff-display)",
+        fontSize: 11,
+        color: "var(--gold)",
+        overflow: "hidden",
+      }}
+    >
+      {url ? <Image src={url} alt={name} fill style={{ objectFit: "cover" }} /> : name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
 
 type ArchiveItem = {
   id: string;
@@ -337,24 +363,28 @@ function Lightbox({
             ) : comments.length === 0 ? (
               <span style={{ fontSize: 12, color: "var(--muted)" }}>No comments yet — say something.</span>
             ) : (
-              comments.map((c) => (
-                <div key={c.id}>
-                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--gold)" }}>
-                      {c.profiles?.full_name || c.profiles?.username || "Member"}
-                    </span>
-                    {c.user_id === currentUserId && (
-                      <button
-                        onClick={() => handleDeleteComment(c.id)}
-                        style={{ fontSize: 11, color: "var(--subtle)", background: "none", border: "none", cursor: "pointer" }}
-                      >
-                        Delete
-                      </button>
-                    )}
+              comments.map((c) => {
+                const name = c.profiles?.full_name || c.profiles?.username || "Member";
+                return (
+                  <div key={c.id} style={{ display: "flex", gap: 10 }}>
+                    <CommentAvatar url={c.profiles?.avatar_url ?? null} name={name} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--gold)" }}>{name}</span>
+                        {c.user_id === currentUserId && (
+                          <button
+                            onClick={() => handleDeleteComment(c.id)}
+                            style={{ fontSize: 11, color: "var(--subtle)", background: "none", border: "none", cursor: "pointer" }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--white)", marginTop: 2 }}>{c.body}</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--white)", marginTop: 2 }}>{c.body}</div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

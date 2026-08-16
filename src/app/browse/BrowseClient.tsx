@@ -103,7 +103,7 @@ export default function BrowseClient({ birds }: { birds: Bird[] }) {
           {filtered.length === 0 ? (
             <div style={{ margin: 40, padding: 40, textAlign: "center", color: "var(--muted)", fontSize: 14 }}>No birds match these filters yet.</div>
           ) : (
-          <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)", padding: "1px", margin: "40px" }}>
+          <div className="browse-grid">
             {filtered.map((bird) => {
               const badge = statusBadge[bird.status];
               return (
