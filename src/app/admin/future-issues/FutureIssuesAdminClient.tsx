@@ -10,6 +10,7 @@ import {
   addFeaturedVideosBulk,
   deleteFeaturedVideo,
 } from "@/app/actions/future-content-admin";
+import BulkCoverDrop from "./BulkCoverDrop";
 
 type FutureIssue = {
   id: string;
@@ -72,8 +73,17 @@ export default function FutureIssuesAdminClient({
       {/* FUTURE ISSUES */}
       <section>
         <div style={sectionTitle}>Future Issue Covers</div>
-        <button className="btn-gold" style={{ padding: "10px 22px", marginBottom: 24 }} onClick={() => setShowIssueForm((s) => !s)}>
-          {showIssueForm ? "Cancel" : "+ Add Upcoming Issue"}
+
+        <BulkCoverDrop />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "8px 0 20px", color: "var(--subtle)", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          or add one manually
+          <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        </div>
+
+        <button className="btn-ghost" style={{ padding: "10px 22px", marginBottom: 24 }} onClick={() => setShowIssueForm((s) => !s)}>
+          {showIssueForm ? "Cancel" : "+ Add One Issue"}
         </button>
 
         {showIssueForm && (
