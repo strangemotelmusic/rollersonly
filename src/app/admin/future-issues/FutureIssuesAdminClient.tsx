@@ -7,6 +7,7 @@ import {
   updateFutureIssue,
   deleteFutureIssue,
   addFeaturedVideo,
+  addFeaturedVideosBulk,
   deleteFeaturedVideo,
 } from "@/app/actions/future-content-admin";
 
@@ -98,9 +99,20 @@ export default function FutureIssuesAdminClient({
       {/* FEATURED VIDEOS */}
       <section>
         <div style={sectionTitle}>Big Screen — YouTube Videos</div>
+        <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20, marginTop: -8 }}>
+          Videos play one after another on a loop. Add them one at a time with a title, or paste a whole batch below.
+        </p>
         <VideoForm
           onAdd={async (formData) => {
             const result = await addFeaturedVideo(formData);
+            if ("error" in result) return result;
+            window.location.reload();
+            return result;
+          }}
+        />
+        <BulkVideoForm
+          onAdd={async (formData) => {
+            const result = await addFeaturedVideosBulk(formData);
             if ("error" in result) return result;
             window.location.reload();
             return result;
@@ -258,6 +270,40 @@ function VideoForm({ onAdd }: { onAdd: (formData: FormData) => Promise<{ error: 
         Paste any YouTube link — watch, youtu.be, embed, Shorts, or live all work.
       </p>
       {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginTop: 10 }}>{error}</p>}
+    </form>
+  );
+}
+
+function BulkVideoForm({ onAdd }: { onAdd: (formData: FormData) => Promise<{ error: string } | { ok: true; added: number; skipped: number }> }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPending(true);
+    setError(null);
+    const result = await onAdd(new FormData(e.currentTarget));
+    setPending(false);
+    if ("error" in result) setError(result.error);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 24, marginTop: 16 }}>
+      <label style={labelStyle}>Paste Several Links At Once</label>
+      <textarea
+        name="links"
+        required
+        rows={4}
+        placeholder={"https://youtu.be/aaaaaaaaaaa\nhttps://youtube.com/watch?v=bbbbbbbbbbb\nhttps://youtube.com/shorts/ccccccccccc"}
+        style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace", fontSize: 12 }}
+      />
+      <p style={{ fontSize: 11, color: "var(--subtle)", marginTop: 8 }}>
+        One link per line (commas or spaces work too). Each becomes a clip in the rotation, titled Clip 1, Clip 2, and so on.
+      </p>
+      {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginTop: 8 }}>{error}</p>}
+      <button type="submit" disabled={pending} className="btn-ghost" style={{ padding: "10px 22px", marginTop: 12 }}>
+        {pending ? "Adding…" : "Add All Links"}
+      </button>
     </form>
   );
 }

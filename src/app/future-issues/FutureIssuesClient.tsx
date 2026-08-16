@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 type FutureIssue = {
@@ -17,9 +17,93 @@ type FeaturedVideo = {
   youtube_id: string;
 };
 
+// Minimal shape of the bits of the YouTube IFrame API we use.
+type YTPlayer = { loadVideoById: (id: string) => void; destroy: () => void };
+
 export default function FutureIssuesClient({ issues, videos }: { issues: FutureIssue[]; videos: FeaturedVideo[] }) {
   const [activeVideo, setActiveVideo] = useState(0);
   const current = videos[activeVideo];
+
+  const playerRef = useRef<YTPlayer | null>(null);
+  const playerElRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef(0);
+  const videosRef = useRef(videos);
+
+  useEffect(() => {
+    videosRef.current = videos;
+  }, [videos]);
+  useEffect(() => {
+    activeRef.current = activeVideo;
+  }, [activeVideo]);
+
+  // Build a continuously-rotating "channel": load the YouTube IFrame API,
+  // autoplay (muted, so browsers allow it) the first clip, and when each one
+  // ends, advance to the next and loop back to the start — no clicks needed.
+  useEffect(() => {
+    if (videos.length === 0) return;
+    let cancelled = false;
+
+    function advance() {
+      const next = (activeRef.current + 1) % videosRef.current.length;
+      activeRef.current = next;
+      setActiveVideo(next);
+      playerRef.current?.loadVideoById(videosRef.current[next].youtube_id);
+    }
+
+    function createPlayer() {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const YT = (window as any).YT;
+      if (cancelled || !playerElRef.current || !YT?.Player) return;
+      playerRef.current = new YT.Player(playerElRef.current, {
+        width: "100%",
+        height: "100%",
+        host: "https://www.youtube-nocookie.com",
+        videoId: videos[0].youtube_id,
+        playerVars: { autoplay: 1, mute: 1, rel: 0, playsinline: 1, modestbranding: 1 },
+        events: {
+          // 0 === ENDED
+          onStateChange: (e: { data: number }) => {
+            if (e.data === 0) advance();
+          },
+        },
+      });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.YT?.Player) {
+      createPlayer();
+    } else {
+      const prev = w.onYouTubeIframeAPIReady;
+      w.onYouTubeIframeAPIReady = () => {
+        prev?.();
+        createPlayer();
+      };
+      if (!document.getElementById("yt-iframe-api")) {
+        const s = document.createElement("script");
+        s.id = "yt-iframe-api";
+        s.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(s);
+      }
+    }
+
+    return () => {
+      cancelled = true;
+      try {
+        playerRef.current?.destroy();
+      } catch {
+        /* player may not be initialised yet */
+      }
+      playerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videos.length]);
+
+  function selectVideo(i: number) {
+    activeRef.current = i;
+    setActiveVideo(i);
+    playerRef.current?.loadVideoById(videosRef.current[i].youtube_id);
+  }
 
   return (
     <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
@@ -114,21 +198,19 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
               }}
             >
               <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", borderRadius: 4, overflow: "hidden", background: "#000" }}>
-                {current && (
-                  <iframe
-                    key={current.id}
-                    src={`https://www.youtube-nocookie.com/embed/${current.youtube_id}?rel=0`}
-                    title={current.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
-                  />
-                )}
+                <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}>
+                  <div ref={playerElRef} style={{ width: "100%", height: "100%" }} />
+                </div>
               </div>
             </div>
             {current && (
-              <div style={{ textAlign: "center", marginTop: 18, fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)" }}>
-                {current.title}
+              <div style={{ textAlign: "center", marginTop: 18 }}>
+                <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)" }}>{current.title}</div>
+                {videos.length > 1 && (
+                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, letterSpacing: "0.05em" }}>
+                    Playing continuously · {activeVideo + 1} / {videos.length} · tap the video to unmute
+                  </div>
+                )}
               </div>
             )}
 
@@ -138,7 +220,7 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
                 {videos.map((v, i) => (
                   <button
                     key={v.id}
-                    onClick={() => setActiveVideo(i)}
+                    onClick={() => selectVideo(i)}
                     style={{
                       flex: "0 0 auto",
                       width: 180,

@@ -154,6 +154,43 @@ export async function addFeaturedVideo(formData: FormData): Promise<{ error: str
   return { ok: true };
 }
 
+export async function addFeaturedVideosBulk(formData: FormData): Promise<{ error: string } | { ok: true; added: number; skipped: number }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const raw = String(formData.get("links") || "");
+  // Accept links separated by newlines, commas, or spaces.
+  const candidates = raw.split(/[\n,\s]+/).map((s) => s.trim()).filter(Boolean);
+  if (candidates.length === 0) return { error: "Paste at least one YouTube link." };
+
+  const ids: string[] = [];
+  let skipped = 0;
+  for (const c of candidates) {
+    const id = parseYouTubeId(c);
+    if (id && !ids.includes(id)) ids.push(id);
+    else skipped++;
+  }
+  if (ids.length === 0) return { error: "None of those looked like valid YouTube links." };
+
+  const [{ data: maxRow }, { count }] = await Promise.all([
+    admin.from("featured_videos").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle(),
+    admin.from("featured_videos").select("id", { count: "exact", head: true }),
+  ]);
+
+  let order = maxRow?.sort_order ?? 0;
+  let n = count ?? 0;
+  const rows = ids.map((youtube_id) => {
+    order += 1;
+    n += 1;
+    return { title: `Clip ${n}`, youtube_id, sort_order: order };
+  });
+
+  const { error } = await admin.from("featured_videos").insert(rows);
+  if (error) return { error: error.message };
+  return { ok: true, added: ids.length, skipped };
+}
+
 export async function deleteFeaturedVideo(id: string): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
