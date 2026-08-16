@@ -2,15 +2,18 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
+// Ordered to match the 2026 World Cup Top Ten (Decade of the Spinner).
 const breeders = [
-  { slug: "schoening", name: "Rick Schoening", loft: "Schoening Loft", location: "Montana, USA", initials: "S", tier: "Elite Loft", sales: 48, rating: 4.9, wins: 7, birds: 6, specialties: ["World Cup Line", "NBRC Champion", "Deep Rollers"] },
-  { slug: "glenn", name: "Gabe Glenn", loft: "Glenn Loft", location: "Ohio, USA", initials: "G", tier: "Elite Loft", sales: 34, rating: 4.8, wins: 5, birds: 4, specialties: ["World Cup Line", "Kit Flyers"] },
+  { slug: "schoening", name: "Rick Schoening", loft: "Schoening Loft", location: "Montana, USA", initials: "S", tier: "Elite Loft", sales: 48, rating: 4.9, wins: 7, birds: 6, specialties: ["World Cup Champion", "World Cup Line", "Deep Rollers"] },
+  { slug: "glenn", name: "Gabe Glenn", loft: "Glenn Loft", location: "Ohio, USA", initials: "G", tier: "Elite Loft", sales: 34, rating: 4.9, wins: 5, birds: 4, specialties: ["World Cup Line", "Kit Flyers"] },
+  { slug: "guerrero", name: "Alex Guerrero", loft: "Guerrero Loft", location: "S. Central California, USA", initials: "G", tier: "Elite Loft", sales: 31, rating: 4.8, wins: 4, birds: 5, specialties: ["West Coast Line", "Kit Flyers", "Deep Rollers"] },
+  { slug: "dewitt", name: "Jeff DeWitt", loft: "DeWitt Loft", location: "Kentucky, USA", initials: "D", tier: "Elite Loft", sales: 27, rating: 4.8, wins: 3, birds: 4, specialties: ["World Cup Line", "Verified Pedigree"] },
   { slug: "whelan", name: "Brendan Whelan", loft: "Whelan Loft", location: "Ireland", initials: "W", tier: "Elite Loft", sales: 29, rating: 4.9, wins: 4, birds: 5, specialties: ["European Lines", "Lavender", "Breeding Pairs"] },
-  { slug: "deacon", name: "Darren Deacon", loft: "Deacon Loft", location: "Midlands, UK", initials: "D", tier: "Elite Loft", sales: 41, rating: 4.7, wins: 3, birds: 8, specialties: ["Heritage Line", "NBRC Champion", "UK Champion"] },
-  { slug: "silvey", name: "Willie Silvey", loft: "Silvey Loft", location: "Central Region, USA", initials: "S", tier: "Breeder", sales: 18, rating: 4.8, wins: 2, birds: 3, specialties: ["Verified Pedigree", "Regional Champion"] },
-  { slug: "rossouw", name: "Hannes Rossouw", loft: "Rossouw Loft", location: "Free State, South Africa", initials: "R", tier: "Breeder", sales: 22, rating: 4.6, wins: 1, birds: 4, specialties: ["Verified Pedigree", "Recessive Red"] },
+  { slug: "deacon", name: "Darren Deacon", loft: "Deacon Loft", location: "Midlands, UK", initials: "D", tier: "Elite Loft", sales: 41, rating: 4.7, wins: 3, birds: 8, specialties: ["Heritage Line", "UK Champion"] },
   { slug: "pejcic", name: "Vukasin Pejcic", loft: "Pejcic Loft", location: "Serbia", initials: "P", tier: "Breeder", sales: 15, rating: 4.7, wins: 2, birds: 3, specialties: ["Heritage Line", "Blue Bar"] },
   { slug: "aldea", name: "Mihai Aldea", loft: "Aldea Loft", location: "Romania", initials: "A", tier: "Breeder", sales: 11, rating: 4.9, wins: 1, birds: 2, specialties: ["European Line", "Health Cert"] },
+  { slug: "silvey", name: "Willie Silvey", loft: "Silvey Loft", location: "Central Region, USA", initials: "S", tier: "Breeder", sales: 18, rating: 4.8, wins: 2, birds: 3, specialties: ["Verified Pedigree", "Regional Champion"] },
+  { slug: "rossouw", name: "Hannes Rossouw", loft: "Rossouw Loft", location: "Free State, South Africa", initials: "R", tier: "Elite Loft", sales: 22, rating: 4.9, wins: 4, birds: 4, specialties: ["World Cup Champion 2024", "Recessive Red"] },
 ];
 
 const tierColors: Record<string, { bg: string; color: string }> = {

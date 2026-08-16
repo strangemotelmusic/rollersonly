@@ -37,11 +37,12 @@ const featuredBirds = [
   { id: 6, imgKey: "bird_red2", name: "Recessive Red Breeding Hen", meta: "Rossouw Loft · Free State, South Africa · Female · 2024", price: "Opening bid $420" },
 ] as const;
 
+// Top 4 of the 2026 World Cup Top Ten (Decade of the Spinner).
 const breeders = [
   { slug: "schoening", initial: "S", name: "Schoening Loft", location: "Montana, USA", sold: 142, championships: 18 },
   { slug: "glenn", initial: "G", name: "Glenn Loft", location: "Ohio, USA", sold: 98, championships: 12 },
-  { slug: "deacon", initial: "D", name: "Deacon Loft", location: "Midlands, England, UK", sold: 211, championships: 31 },
-  { slug: "whelan", initial: "W", name: "Whelan Loft", location: "Ireland", sold: 76, championships: 9 },
+  { slug: "guerrero", initial: "G", name: "Guerrero Loft", location: "S. Central California, USA", sold: 87, championships: 10 },
+  { slug: "dewitt", initial: "D", name: "DeWitt Loft", location: "Kentucky, USA", sold: 76, championships: 9 },
 ];
 
 const features = [
