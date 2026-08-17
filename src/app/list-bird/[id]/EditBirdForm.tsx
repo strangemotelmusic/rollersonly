@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import SireDamPicker, { type BirdOption } from "@/components/pedigree/SireDamPicker";
 
 const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
 const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--muted)", display: "block", marginBottom: 8 };
@@ -19,7 +20,16 @@ export default function EditBirdForm({
   birdId: string;
   auctionId: string | null;
   auctionStatus: string | null;
-  initial: { name: string; ringNumber: string; sex: string; color: string; birthYear: number; description: string };
+  initial: {
+    name: string;
+    ringNumber: string;
+    sex: string;
+    color: string;
+    birthYear: number;
+    description: string;
+    sire: BirdOption | null;
+    dam: BirdOption | null;
+  };
   existingPhotos: ExistingPhoto[];
 }) {
   const router = useRouter();
@@ -31,6 +41,8 @@ export default function EditBirdForm({
   const [color, setColor] = useState(initial.color);
   const [birthYear, setBirthYear] = useState(initial.birthYear);
   const [description, setDescription] = useState(initial.description);
+  const [sire, setSire] = useState<BirdOption | null>(initial.sire);
+  const [dam, setDam] = useState<BirdOption | null>(initial.dam);
   const [photos, setPhotos] = useState(existingPhotos);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
@@ -76,6 +88,8 @@ export default function EditBirdForm({
         color: color || null,
         birth_year: birthYear,
         notes: description || null,
+        sire_id: sire?.id ?? null,
+        dam_id: dam?.id ?? null,
         ...(newUrls.length > 0 && photos.length === 0 ? { primary_photo_url: newUrls[0] } : {}),
       })
       .eq("id", birdId);
@@ -139,6 +153,11 @@ export default function EditBirdForm({
           <label style={labelStyle}>Birth year</label>
           <input type="number" value={birthYear} onChange={(e) => setBirthYear(Number(e.target.value))} style={inputStyle} />
         </div>
+      </div>
+
+      <div>
+        <label style={labelStyle}>Bloodline (optional)</label>
+        <SireDamPicker sire={sire} dam={dam} onChangeSire={setSire} onChangeDam={setDam} excludeBirdId={birdId} />
       </div>
 
       <div>

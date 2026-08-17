@@ -119,6 +119,7 @@ export interface Database {
           certification_status: string;
           certification_requested_at: string | null;
           certified_at: string | null;
+          bred_from_pair_id: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -151,6 +152,7 @@ export interface Database {
           certification_status?: string;
           certification_requested_at?: string | null;
           certified_at?: string | null;
+          bred_from_pair_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -179,6 +181,152 @@ export interface Database {
           },
           {
             foreignKeyName: "birds_dam_id_fkey";
+            columns: ["dam_id"];
+            isOneToOne: false;
+            referencedRelation: "birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "birds_bred_from_pair_id_fkey";
+            columns: ["bred_from_pair_id"];
+            isOneToOne: false;
+            referencedRelation: "breeding_pairs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fly_log_entries: {
+        Row: {
+          id: string;
+          bird_id: string;
+          owner_id: string;
+          logged_at: string;
+          depth: string | null;
+          frequency: string | null;
+          kit_behavior: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bird_id: string;
+          owner_id: string;
+          logged_at?: string;
+          depth?: string | null;
+          frequency?: string | null;
+          kit_behavior?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["fly_log_entries"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "fly_log_entries_bird_id_fkey";
+            columns: ["bird_id"];
+            isOneToOne: false;
+            referencedRelation: "birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fly_log_entries_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      breeding_seasons: {
+        Row: {
+          id: string;
+          owner_id: string;
+          loft_id: string | null;
+          label: string;
+          start_date: string | null;
+          end_date: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          loft_id?: string | null;
+          label: string;
+          start_date?: string | null;
+          end_date?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["breeding_seasons"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "breeding_seasons_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "breeding_seasons_loft_id_fkey";
+            columns: ["loft_id"];
+            isOneToOne: false;
+            referencedRelation: "lofts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      breeding_pairs: {
+        Row: {
+          id: string;
+          season_id: string;
+          owner_id: string;
+          sire_id: string;
+          dam_id: string;
+          paired_at: string | null;
+          egg_count: number;
+          hatched_count: number;
+          status: string;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          season_id: string;
+          owner_id: string;
+          sire_id: string;
+          dam_id: string;
+          paired_at?: string | null;
+          egg_count?: number;
+          hatched_count?: number;
+          status?: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["breeding_pairs"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "breeding_pairs_season_id_fkey";
+            columns: ["season_id"];
+            isOneToOne: false;
+            referencedRelation: "breeding_seasons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "breeding_pairs_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "breeding_pairs_sire_id_fkey";
+            columns: ["sire_id"];
+            isOneToOne: false;
+            referencedRelation: "birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "breeding_pairs_dam_id_fkey";
             columns: ["dam_id"];
             isOneToOne: false;
             referencedRelation: "birds";

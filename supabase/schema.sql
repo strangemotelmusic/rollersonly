@@ -71,10 +71,58 @@ create table birds (
   primary_photo_url text,
   is_active boolean default true,
   notes text,
+  certification_status text not null default 'none',
+  certification_requested_at timestamptz,
+  certified_at timestamptz,
+  bred_from_pair_id uuid references breeding_pairs(id), -- added with breeding_pairs, see below
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 -- policies: owner insert/update via auth.uid() = owner_id; select public
+
+-- Casual day-to-day fly notes (depth/frequency/kit behavior), distinct from
+-- the verified, competition-grade bird_results table below.
+create table fly_log_entries (
+  id uuid primary key default gen_random_uuid(),
+  bird_id uuid not null references birds(id) on delete cascade,
+  owner_id uuid not null references profiles(id),
+  logged_at date not null default current_date,
+  depth text,
+  frequency text,
+  kit_behavior text,
+  notes text,
+  created_at timestamptz not null default now()
+);
+-- policies: owner full access via auth.uid() = owner_id; no public select
+
+create table breeding_seasons (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references profiles(id),
+  loft_id uuid references lofts(id),
+  label text not null,
+  start_date date,
+  end_date date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+-- policies: owner full access via auth.uid() = owner_id; no public select
+
+-- Offspring aren't a separate table — they're just birds with matching
+-- sire_id/dam_id (optionally bred_from_pair_id for traceability).
+create table breeding_pairs (
+  id uuid primary key default gen_random_uuid(),
+  season_id uuid not null references breeding_seasons(id) on delete cascade,
+  owner_id uuid not null references profiles(id),
+  sire_id uuid not null references birds(id),
+  dam_id uuid not null references birds(id),
+  paired_at date,
+  egg_count integer not null default 0,
+  hatched_count integer not null default 0,
+  status text not null default 'active', -- 'active' | 'split' | 'retired'
+  notes text,
+  created_at timestamptz not null default now()
+);
+-- policies: owner full access via auth.uid() = owner_id; no public select
 
 create table bird_photos (
   id uuid primary key default uuid_generate_v4(),

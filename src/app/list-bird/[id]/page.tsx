@@ -21,6 +21,9 @@ export default async function EditBirdPage({ params }: { params: Promise<{ id: s
     .from("birds")
     .select(
       `id, name, ring_number, sex, color, birth_year, notes, owner_id, primary_photo_url, certification_status,
+       sire_id, dam_id,
+       sire:sire_id(id, name, ring_number, sex),
+       dam:dam_id(id, name, ring_number, sex),
        bird_photos(id, url, sort_order),
        auctions(id, status)`
     )
@@ -66,6 +69,8 @@ export default async function EditBirdPage({ params }: { params: Promise<{ id: s
               color: bird.color ?? "",
               birthYear: bird.birth_year ?? new Date().getFullYear(),
               description: bird.notes ?? "",
+              sire: bird.sire as unknown as { id: string; name: string | null; ring_number: string | null; sex: string | null } | null,
+              dam: bird.dam as unknown as { id: string; name: string | null; ring_number: string | null; sex: string | null } | null,
             }}
             existingPhotos={photos}
           />

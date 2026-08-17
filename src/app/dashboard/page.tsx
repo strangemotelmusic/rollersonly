@@ -175,6 +175,7 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
+              <Link href="/dashboard/loft" className="btn-ghost" style={{ fontSize: 11 }}>My Loft</Link>
               <Link href="/pedigree" className="btn-ghost" style={{ fontSize: 11 }}>Pedigree Vault</Link>
               <Link href="/list-bird" className="btn-gold" style={{ fontSize: 11 }}>List a Bird</Link>
             </div>
@@ -317,9 +318,9 @@ export default async function DashboardPage() {
             <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Quick Actions</div>
               {[
-                { label: "Register a Bird", href: "/list-bird" },
+                { label: "My Loft", href: "/dashboard/loft" },
                 { label: "Account Settings", href: "/settings" },
-                { label: "Add to Pedigree Vault", href: "/pedigree" },
+                { label: "Pedigree Vault", href: "/pedigree" },
                 { label: "View Leaderboards", href: "/leaderboards" },
                 { label: "Contact Support", href: "mailto:strangemotelmusic@gmail.com" },
               ].map(({ label, href }) => (

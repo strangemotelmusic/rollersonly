@@ -165,6 +165,7 @@ function AccountMenu({
       {open && (
         <div className="nav-panel nav-panel-right">
           <Link href="/dashboard" className="nav-panel-item" onClick={() => setOpen(false)}>Dashboard</Link>
+          <Link href="/dashboard/loft" className="nav-panel-item" onClick={() => setOpen(false)}>My Loft</Link>
           <Link href="/settings" className="nav-panel-item" onClick={() => setOpen(false)}>Account Settings</Link>
           {isAdmin && (
             <>
