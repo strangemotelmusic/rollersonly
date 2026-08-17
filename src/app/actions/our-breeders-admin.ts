@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 
 type OurBreeder = Database["public"]["Tables"]["our_breeders"]["Row"];
 type OurBreederUpdate = Database["public"]["Tables"]["our_breeders"]["Update"];
@@ -136,13 +136,48 @@ export async function removeOurBreederPhoto(id: string, url: string): Promise<{ 
   if ("error" in gate) return gate;
   const { admin } = gate;
 
-  const { data: existing } = await admin.from("our_breeders").select("photo_urls").eq("id", id).maybeSingle();
+  const { data: existing } = await admin.from("our_breeders").select("photo_urls, photo_settings").eq("id", id).maybeSingle();
   if (!existing) return { error: "Breeder not found." };
 
   const photo_urls = existing.photo_urls.filter((u) => u !== url);
-  const { error } = await admin.from("our_breeders").update({ photo_urls, updated_at: new Date().toISOString() }).eq("id", id);
+  const settings = { ...((existing.photo_settings as Record<string, unknown>) ?? {}) };
+  delete settings[url];
+
+  const { error } = await admin
+    .from("our_breeders")
+    .update({ photo_urls, photo_settings: settings as unknown as Json, updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) return { error: error.message };
   return { ok: true };
+}
+
+export async function updateOurBreederPhotoSettings(
+  id: string,
+  url: string,
+  settings: { x: number; y: number; zoom: number }
+): Promise<{ error: string } | { ok: true; breeder: OurBreeder }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  if (!url.startsWith(PHOTO_URL_PREFIX)) return { error: "Unexpected photo URL." };
+  const { x, y, zoom } = settings;
+  if (![x, y, zoom].every((n) => typeof n === "number" && Number.isFinite(n))) return { error: "Invalid crop values." };
+  if (x < 0 || x > 100 || y < 0 || y > 100 || zoom < 1 || zoom > 4) return { error: "Crop values out of range." };
+
+  const { data: existing } = await admin.from("our_breeders").select("photo_settings").eq("id", id).maybeSingle();
+  if (!existing) return { error: "Breeder not found." };
+
+  const photo_settings = { ...((existing.photo_settings as Record<string, unknown>) ?? {}), [url]: { x, y, zoom } };
+
+  const { data, error } = await admin
+    .from("our_breeders")
+    .update({ photo_settings: photo_settings as unknown as Json, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) return { error: error.message };
+  return { ok: true, breeder: data };
 }
 
 export async function deleteOurBreeder(id: string): Promise<{ error: string } | { ok: true }> {

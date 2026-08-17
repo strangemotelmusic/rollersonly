@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { cropFor, cropImageStyle, type PhotoSettingsMap } from "@/lib/our-breeders/crop";
 
 type Breeder = {
   id: string;
@@ -14,6 +15,7 @@ type Breeder = {
   loft_record: string | null;
   bio: string | null;
   photo_urls: string[];
+  photo_settings: PhotoSettingsMap;
 };
 
 export default function OurBreedersClient({ breeders }: { breeders: Breeder[] }) {
@@ -90,7 +92,7 @@ export default function OurBreedersClient({ breeders }: { breeders: Breeder[] })
                 }}
               >
                 <div style={{ position: "relative", width: "100%", aspectRatio: "1", background: "var(--void)" }}>
-                  {b.photo_urls[0] && <Image src={b.photo_urls[0]} alt={b.name} fill style={{ objectFit: "cover" }} />}
+                  {b.photo_urls[0] && <Image src={b.photo_urls[0]} alt={b.name} fill style={cropImageStyle(cropFor(b.photo_settings, b.photo_urls[0]))} />}
                   {b.photo_urls.length > 1 && (
                     <span style={{ position: "absolute", bottom: 8, right: 8, fontSize: 10, fontWeight: 600, color: "var(--white)", background: "rgba(0,0,0,0.6)", padding: "3px 8px", borderRadius: 20 }}>
                       +{b.photo_urls.length - 1}

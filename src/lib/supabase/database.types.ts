@@ -781,6 +781,7 @@ export interface Database {
           loft_record: string | null;
           bio: string | null;
           photo_urls: string[];
+          photo_settings: Json;
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -796,6 +797,7 @@ export interface Database {
           loft_record?: string | null;
           bio?: string | null;
           photo_urls?: string[];
+          photo_settings?: Json;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;

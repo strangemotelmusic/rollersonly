@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { createOurBreeder, updateOurBreeder, removeOurBreederPhoto, deleteOurBreeder } from "@/app/actions/our-breeders-admin";
+import { createOurBreeder, updateOurBreeder, removeOurBreederPhoto, deleteOurBreeder, updateOurBreederPhotoSettings } from "@/app/actions/our-breeders-admin";
+import { asPhotoSettingsMap, cropFor, cropImageStyle, DEFAULT_CROP, type PhotoCropSettings, type PhotoSettingsMap } from "@/lib/our-breeders/crop";
 
 type Breeder = {
   id: string;
@@ -16,8 +17,15 @@ type Breeder = {
   loft_record: string | null;
   bio: string | null;
   photo_urls: string[];
+  photo_settings: PhotoSettingsMap;
   sort_order: number;
 };
+
+// Server actions return photo_settings typed as the generic Supabase Json — normalize to PhotoSettingsMap at the boundary.
+type RawBreeder = Omit<Breeder, "photo_settings"> & { photo_settings: unknown };
+function normalizeBreeder(b: RawBreeder): Breeder {
+  return { ...b, photo_settings: asPhotoSettingsMap(b.photo_settings) };
+}
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -88,6 +96,7 @@ function BreederRow({
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState(false);
 
   async function handleDelete() {
     if (!confirm(`Delete "${breeder.name}"? This can't be undone.`)) return;
@@ -111,15 +120,44 @@ function BreederRow({
           onSaved(updated);
           setEditing(false);
         }}
+        onPhotoSettingsSaved={onSaved}
       />
     );
   }
 
   return (
     <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
-        {breeder.photo_urls[0] && <Image src={breeder.photo_urls[0]} alt={breeder.name} fill style={{ objectFit: "cover" }} />}
-      </div>
+      <button
+        type="button"
+        onClick={() => breeder.photo_urls[0] && setEditingPhoto(true)}
+        disabled={!breeder.photo_urls[0]}
+        title={breeder.photo_urls[0] ? "Click to view full size and adjust crop" : undefined}
+        style={{
+          position: "relative",
+          width: 90,
+          height: 90,
+          flexShrink: 0,
+          background: "var(--void)",
+          borderRadius: 2,
+          overflow: "hidden",
+          padding: 0,
+          border: "0.5px solid var(--border)",
+          cursor: breeder.photo_urls[0] ? "pointer" : "default",
+        }}
+      >
+        {breeder.photo_urls[0] && (
+          <Image src={breeder.photo_urls[0]} alt={breeder.name} fill style={cropImageStyle(cropFor(breeder.photo_settings, breeder.photo_urls[0]))} />
+        )}
+      </button>
+      {editingPhoto && breeder.photo_urls[0] && (
+        <PhotoEditorModal
+          breederId={breeder.id}
+          url={breeder.photo_urls[0]}
+          initialCrop={cropFor(breeder.photo_settings, breeder.photo_urls[0])}
+          onClose={() => setEditingPhoto(false)}
+          onSaved={onSaved}
+        />
+      )}
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 15, color: "var(--white)", marginBottom: 4 }}>
           {breeder.name} {breeder.sex && <span style={{ fontSize: 11, color: "var(--muted)" }}>({breeder.sex})</span>}
@@ -151,17 +189,21 @@ function BreederForm({
   onCancel,
   onSubmit,
   onSaved,
+  onPhotoSettingsSaved,
 }: {
   breeder?: Breeder;
   onCancel: () => void;
-  onSubmit: (formData: FormData) => Promise<{ error: string } | { ok: true; breeder: Breeder }>;
+  onSubmit: (formData: FormData) => Promise<{ error: string } | { ok: true; breeder: RawBreeder }>;
   onSaved: (breeder: Breeder) => void;
+  onPhotoSettingsSaved?: (breeder: Breeder) => void;
 }) {
   const [pending, setPending] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState(breeder?.photo_urls ?? []);
+  const [photoSettings, setPhotoSettings] = useState<PhotoSettingsMap>(breeder?.photo_settings ?? {});
   const [removingUrl, setRemovingUrl] = useState<string | null>(null);
+  const [editingPhotoUrl, setEditingPhotoUrl] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -205,7 +247,7 @@ function BreederForm({
       setError(result.error);
       return;
     }
-    onSaved(result.breeder);
+    onSaved(normalizeBreeder(result.breeder));
   }
 
   async function handleRemovePhoto(url: string) {
@@ -264,11 +306,18 @@ function BreederForm({
 
       {photoUrls.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Existing Photos</label>
+          <label style={labelStyle}>Existing Photos — click to view full size &amp; adjust crop</label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {photoUrls.map((url) => (
               <div key={url} style={{ position: "relative", width: 72, height: 72, borderRadius: 2, overflow: "hidden", border: "0.5px solid var(--border)" }}>
-                <Image src={url} alt="" fill style={{ objectFit: "cover" }} />
+                <button
+                  type="button"
+                  onClick={() => setEditingPhotoUrl(url)}
+                  style={{ position: "absolute", inset: 0, padding: 0, border: "none", cursor: "pointer" }}
+                  title="Click to view full size and adjust crop"
+                >
+                  <Image src={url} alt="" fill style={cropImageStyle(cropFor(photoSettings, url))} />
+                </button>
                 <button
                   type="button"
                   onClick={() => handleRemovePhoto(url)}
@@ -303,6 +352,157 @@ function BreederForm({
           Cancel
         </button>
       </div>
+
+      {breeder && editingPhotoUrl && (
+        <PhotoEditorModal
+          breederId={breeder.id}
+          url={editingPhotoUrl}
+          initialCrop={cropFor(photoSettings, editingPhotoUrl)}
+          onClose={() => setEditingPhotoUrl(null)}
+          onSaved={(updated) => {
+            setPhotoSettings(updated.photo_settings);
+            onPhotoSettingsSaved?.(updated);
+          }}
+        />
+      )}
     </form>
+  );
+}
+
+function PhotoEditorModal({
+  breederId,
+  url,
+  initialCrop,
+  onClose,
+  onSaved,
+}: {
+  breederId: string;
+  url: string;
+  initialCrop: PhotoCropSettings;
+  onClose: () => void;
+  onSaved: (breeder: Breeder) => void;
+}) {
+  const [crop, setCrop] = useState(initialCrop);
+  const [saving, setSaving] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const dragStart = useRef<{ x: number; y: number; origX: number; origY: number } | null>(null);
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragStart.current = { x: e.clientX, y: e.clientY, origX: crop.x, origY: crop.y };
+    setDragging(true);
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragStart.current || !boxRef.current) return;
+    const rect = boxRef.current.getBoundingClientRect();
+    const dxPct = ((e.clientX - dragStart.current.x) / rect.width) * 100;
+    const dyPct = ((e.clientY - dragStart.current.y) / rect.height) * 100;
+    setCrop((c) => ({
+      ...c,
+      x: Math.min(100, Math.max(0, dragStart.current!.origX - dxPct)),
+      y: Math.min(100, Math.max(0, dragStart.current!.origY - dyPct)),
+    }));
+  }
+
+  function endDrag() {
+    dragStart.current = null;
+    setDragging(false);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    const result = await updateOurBreederPhotoSettings(breederId, url, crop);
+    setSaving(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    onSaved(normalizeBreeder(result.breeder));
+    onClose();
+  }
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.94)", display: "flex", alignItems: "center", justifyContent: "center", padding: 32 }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 32,
+          maxWidth: 820,
+          width: "100%",
+          background: "var(--surface)",
+          border: "0.5px solid var(--border-gold)",
+          borderRadius: 2,
+          padding: 32,
+        }}
+      >
+        <div style={{ flex: "1 1 300px" }}>
+          <label style={labelStyle}>Full Photo</label>
+          <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: "#000", borderRadius: 2, overflow: "hidden" }}>
+            <Image src={url} alt="" fill style={{ objectFit: "contain" }} sizes="400px" />
+          </div>
+        </div>
+
+        <div style={{ flex: "1 1 260px" }}>
+          <label style={labelStyle}>How Subscribers Will See It — drag to reposition</label>
+          <div
+            ref={boxRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endDrag}
+            onPointerLeave={endDrag}
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 280,
+              aspectRatio: "1",
+              overflow: "hidden",
+              borderRadius: 2,
+              border: "0.5px solid var(--border-gold)",
+              cursor: dragging ? "grabbing" : "grab",
+              touchAction: "none",
+              userSelect: "none",
+            }}
+          >
+            <Image src={url} alt="" fill style={cropImageStyle(crop)} draggable={false} sizes="280px" />
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <label style={labelStyle}>Zoom</label>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={crop.zoom}
+              onChange={(e) => setCrop((c) => ({ ...c, zoom: Number(e.target.value) }))}
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginTop: 12 }}>{error}</p>}
+
+          <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+            <button type="button" onClick={handleSave} disabled={saving} className="btn-gold" style={{ padding: "10px 22px" }}>
+              {saving ? "Saving…" : "Save Crop"}
+            </button>
+            <button type="button" onClick={() => setCrop(DEFAULT_CROP)} disabled={saving} className="btn-ghost" style={{ padding: "10px 18px", cursor: "pointer" }}>
+              Reset
+            </button>
+            <button type="button" onClick={onClose} disabled={saving} className="btn-ghost" style={{ padding: "10px 18px", cursor: "pointer" }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

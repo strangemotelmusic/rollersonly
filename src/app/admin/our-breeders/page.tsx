@@ -3,6 +3,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { asPhotoSettingsMap } from "@/lib/our-breeders/crop";
 import OurBreedersAdminClient from "./OurBreedersAdminClient";
 
 export default async function AdminOurBreedersPage() {
@@ -19,7 +20,7 @@ export default async function AdminOurBreedersPage() {
 
   const { data: breeders } = await admin
     .from("our_breeders")
-    .select("id, name, sex, color, bloodline, ring_number, flying_record, loft_record, bio, photo_urls, sort_order")
+    .select("id, name, sex, color, bloodline, ring_number, flying_record, loft_record, bio, photo_urls, photo_settings, sort_order")
     .order("sort_order", { ascending: true });
 
   return (
@@ -35,7 +36,9 @@ export default async function AdminOurBreedersPage() {
             flying and loft performance history, and photos.
           </p>
 
-          <OurBreedersAdminClient initialBreeders={breeders ?? []} />
+          <OurBreedersAdminClient
+            initialBreeders={(breeders ?? []).map((b) => ({ ...b, photo_settings: asPhotoSettingsMap(b.photo_settings) }))}
+          />
         </div>
       </div>
       <Footer />
