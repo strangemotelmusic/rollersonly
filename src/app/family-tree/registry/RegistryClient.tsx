@@ -11,7 +11,9 @@ import { buildPedigreeSelectQuery, birdLabel, type PedigreeNode } from "@/lib/pe
 import { renderPedigreePdf } from "@/lib/pedigree/pdf";
 import { emailPedigreePdf, sendPedigreeToSubscriber } from "@/app/actions/pedigree";
 import { searchProfiles } from "@/app/actions/chat";
-import { cropFor, cropImageStyle, type PhotoSettingsMap } from "@/lib/our-breeders/crop";
+import { cropFor, cropImageStyle, asPhotoSettingsMap, type PhotoSettingsMap } from "@/lib/our-breeders/crop";
+import { extractPedigreeFromImage, type ImportNode } from "@/app/actions/pedigree-import";
+import { createPedigreeFromImport } from "@/lib/family-tree/pedigree-import";
 
 export type FamilyTreeBird = {
   id: string;
@@ -38,6 +40,7 @@ export default function RegistryClient({ ownerId, initialMyBirds }: { ownerId: s
   const supabase = createClient();
   const [myBirds, setMyBirds] = useState(initialMyBirds);
   const [showRegister, setShowRegister] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ id: string; name: string | null; ring_number: string | null }[]>([]);
   const [searching, setSearching] = useState(false);
@@ -79,6 +82,15 @@ export default function RegistryClient({ ownerId, initialMyBirds }: { ownerId: s
     if (data) setSelected({ root: data as unknown as PedigreeNode });
   }
 
+  async function reloadMyBirds() {
+    const { data } = await supabase
+      .from("family_tree_birds")
+      .select("id, name, ring_number, sex, color, birth_year, primary_photo_url, photo_settings, sire_id, dam_id")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false });
+    if (data) setMyBirds(data.map((b) => ({ ...b, photo_settings: asPhotoSettingsMap(b.photo_settings) })));
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
       {/* SEARCH */}
@@ -114,8 +126,24 @@ export default function RegistryClient({ ownerId, initialMyBirds }: { ownerId: s
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: "#E8EDF3" }}>My Birds ({myBirds.length})</h2>
-          <button style={btnPrimary} onClick={() => setShowRegister((s) => !s)}>{showRegister ? "Cancel" : "+ Register a Bird"}</button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button style={btnGhost} onClick={() => setShowImport((s) => !s)}>{showImport ? "Cancel" : "📷 Import from Photo"}</button>
+            <button style={btnPrimary} onClick={() => setShowRegister((s) => !s)}>{showRegister ? "Cancel" : "+ Register a Bird"}</button>
+          </div>
         </div>
+
+        {showImport && (
+          <div style={{ ...card, marginBottom: 20, border: "1px solid #2DD4BF" }}>
+            <ImportFromPhotoPanel
+              ownerId={ownerId}
+              onCreated={async (birdId) => {
+                await reloadMyBirds();
+                setShowImport(false);
+                selectBird(birdId);
+              }}
+            />
+          </div>
+        )}
 
         {showRegister && (
           <div style={{ ...card, marginBottom: 20, border: "1px solid #2DD4BF" }}>
@@ -263,6 +291,198 @@ function RegisterForm({ ownerId, onRegistered }: { ownerId: string; onRegistered
       <button style={btnPrimary} onClick={handleSubmit} disabled={saving}>
         {saving ? "Registering…" : "Register Bird"}
       </button>
+    </div>
+  );
+}
+
+function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const [prefix, data] = result.split(",");
+      const mediaType = /data:(.*);base64/.exec(prefix)?.[1] || file.type;
+      resolve({ base64: data, mediaType });
+    };
+    reader.onerror = () => reject(new Error("Could not read that file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+const emptyImportNode = (): ImportNode => ({ name: null, ringNumber: null, sex: null, color: null, sire: null, dam: null });
+
+function ImportFromPhotoPanel({ ownerId, onCreated }: { ownerId: string; onCreated: (birdId: string) => void }) {
+  const supabase = createClient();
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState("");
+  const [tree, setTree] = useState<ImportNode | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  async function handleFile(file: File) {
+    setExtracting(true);
+    setExtractError("");
+    setTree(null);
+    try {
+      const { base64, mediaType } = await fileToBase64(file);
+      const result = await extractPedigreeFromImage(base64, mediaType);
+      if ("error" in result) {
+        setExtractError(result.error);
+      } else {
+        setTree(result.tree);
+      }
+    } catch (e) {
+      setExtractError(e instanceof Error ? e.message : "Could not read that file.");
+    } finally {
+      setExtracting(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!tree) return;
+    setSaving(true);
+    setSaveError("");
+    const result = await createPedigreeFromImport(supabase, ownerId, tree);
+    setSaving(false);
+    if ("error" in result) {
+      setSaveError(result.error);
+      return;
+    }
+    onCreated(result.birdId);
+  }
+
+  if (!tree) {
+    return (
+      <div>
+        <p style={{ fontSize: 13, color: "#C7D0DB", marginBottom: 12 }}>
+          Upload a clear photo or screenshot of a pedigree chart — the bird&apos;s name, band/ring numbers, and its
+          ancestors will be read automatically. You&apos;ll get a chance to review and correct everything before it&apos;s
+          saved.
+        </p>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          disabled={extracting}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+          }}
+          style={{ fontSize: 12, color: "#5B6675" }}
+        />
+        {extracting && <p style={{ fontSize: 13, color: "#2DD4BF", marginTop: 12 }}>Reading the pedigree…</p>}
+        {extractError && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 12 }}>{extractError}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: "#C7D0DB", marginBottom: 16 }}>
+        Review what was read from the photo, fix anything that&apos;s wrong, then save. Existing birds with a matching
+        ring number will be reused instead of duplicated.
+      </p>
+      <ImportNodeEditor node={tree} label="Bird" depth={0} onChange={(n) => n && setTree(n)} allowRemove={false} />
+      {saveError && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 14 }}>{saveError}</p>}
+      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+        <button style={btnPrimary} onClick={handleSave} disabled={saving}>
+          {saving ? "Saving…" : "Save Pedigree"}
+        </button>
+        <button style={btnGhost} onClick={() => setTree(null)} disabled={saving}>
+          Start Over
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ImportNodeEditor({
+  node,
+  label,
+  depth,
+  onChange,
+  allowRemove,
+}: {
+  node: ImportNode;
+  label: string;
+  depth: number;
+  onChange: (node: ImportNode | null) => void;
+  allowRemove: boolean;
+}) {
+  return (
+    <div style={{ marginLeft: depth * 20, marginBottom: 10, paddingLeft: depth > 0 ? 14 : 0, borderLeft: depth > 0 ? "1px solid #1C232E" : "none" }}>
+      <div style={{ ...card, padding: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#2DD4BF" }}>{label}</span>
+          {allowRemove && (
+            <button onClick={() => onChange(null)} style={{ background: "none", border: "none", color: "#5B6675", fontSize: 12, cursor: "pointer" }}>
+              Remove
+            </button>
+          )}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <input
+            value={node.name ?? ""}
+            onChange={(e) => onChange({ ...node, name: e.target.value || null })}
+            placeholder="Name"
+            style={{ ...inputStyle, padding: "8px 10px", fontSize: 12 }}
+          />
+          <input
+            value={node.ringNumber ?? ""}
+            onChange={(e) => onChange({ ...node, ringNumber: e.target.value || null })}
+            placeholder="Ring number"
+            style={{ ...inputStyle, padding: "8px 10px", fontSize: 12 }}
+          />
+          <select
+            value={node.sex ?? ""}
+            onChange={(e) => onChange({ ...node, sex: (e.target.value || null) as ImportNode["sex"] })}
+            style={{ ...inputStyle, padding: "8px 10px", fontSize: 12 }}
+          >
+            <option value="">Sex unknown</option>
+            <option value="cock">Cock</option>
+            <option value="hen">Hen</option>
+          </select>
+          <input
+            value={node.color ?? ""}
+            onChange={(e) => onChange({ ...node, color: e.target.value || null })}
+            placeholder="Color"
+            style={{ ...inputStyle, padding: "8px 10px", fontSize: 12 }}
+          />
+        </div>
+      </div>
+
+      {node.sire ? (
+        <ImportNodeEditor
+          node={node.sire}
+          label={`${label} → Sire`}
+          depth={depth + 1}
+          allowRemove
+          onChange={(n) => onChange({ ...node, sire: n })}
+        />
+      ) : (
+        <button
+          onClick={() => onChange({ ...node, sire: emptyImportNode() })}
+          style={{ marginLeft: (depth + 1) * 20, marginBottom: 10, background: "none", border: "1px dashed #1C232E", color: "#5B6675", fontSize: 11, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}
+        >
+          + Add Sire
+        </button>
+      )}
+
+      {node.dam ? (
+        <ImportNodeEditor
+          node={node.dam}
+          label={`${label} → Dam`}
+          depth={depth + 1}
+          allowRemove
+          onChange={(n) => onChange({ ...node, dam: n })}
+        />
+      ) : (
+        <button
+          onClick={() => onChange({ ...node, dam: emptyImportNode() })}
+          style={{ marginLeft: (depth + 1) * 20, marginBottom: 10, background: "none", border: "1px dashed #1C232E", color: "#5B6675", fontSize: 11, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}
+        >
+          + Add Dam
+        </button>
+      )}
     </div>
   );
 }
