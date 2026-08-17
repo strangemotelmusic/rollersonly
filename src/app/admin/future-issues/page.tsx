@@ -22,7 +22,7 @@ export default async function AdminFutureIssuesPage() {
     admin.from("featured_videos").select("id, title, youtube_id, source, video_url, sort_order").order("sort_order", { ascending: true }),
     admin
       .from("video_submissions")
-      .select("id, title, video_url, status, created_at, profiles(username, full_name)")
+      .select("id, title, video_url, status, created_at, profiles!video_submissions_user_id_fkey(username, full_name)")
       .eq("status", "pending")
       .order("created_at", { ascending: true }),
   ]);
