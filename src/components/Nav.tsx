@@ -1,12 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { signOut } from "@/app/actions/auth";
 import NavMobileToggle from "@/components/NavMobileToggle";
-import CartIcon from "@/components/CartIcon";
-import ChatIcon from "@/components/ChatIcon";
-import NotificationBell from "@/components/NotificationBell";
+import NavClient from "@/components/NavClient";
 
 export default async function Nav({ active }: { active?: string }) {
   const supabase = await createClient();
@@ -19,6 +16,7 @@ export default async function Nav({ active }: { active?: string }) {
     ? await supabase.from("profiles").select("avatar_url, is_admin").eq("id", user.id).maybeSingle()
     : { data: null };
 
+  // Flat list still used by the mobile hamburger panel.
   const links = [
     { label: "Live Auctions", href: "/auctions" },
     { label: "Browse Birds", href: "/browse" },
@@ -33,101 +31,22 @@ export default async function Nav({ active }: { active?: string }) {
 
   const displayName = profile?.full_name || profile?.username || user?.email || "";
   const initial = displayName.charAt(0).toUpperCase();
-  const avatarUrl = avatarRow?.avatar_url;
+  const avatarUrl = avatarRow?.avatar_url ?? null;
 
   return (
     <nav>
       <Link href="/" className="nav-logo">
         Rollers<span>Only</span>
       </Link>
-      <ul className="nav-links">
-        {links.map((l) => (
-          <li key={l.href}>
-            <Link href={l.href} style={active === l.href ? { color: "var(--white)" } : {}}>
-              {l.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <div className="nav-cta" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <CartIcon />
-        {user ? (
-          <>
-            <NotificationBell />
-            <ChatIcon />
-            <Link href="/members" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
-              Members
-            </Link>
-            <Link href="/spin-vault" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
-              The Spin Vault
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Link href="/settings" title="Edit your profile" style={{ display: "flex", textDecoration: "none" }}>
-                <span
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: "var(--surface2)",
-                    border: "1px solid var(--border-gold)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "var(--ff-display)",
-                    fontSize: 13,
-                    color: "var(--gold)",
-                    overflow: "hidden",
-                    position: "relative",
-                  }}
-                >
-                  {avatarUrl ? <Image src={avatarUrl} alt={displayName} fill style={{ objectFit: "cover" }} /> : initial}
-                </span>
-              </Link>
-              <Link href="/dashboard" style={{ textDecoration: "none", color: "var(--white)", fontSize: 13 }}>
-                {displayName}
-              </Link>
-            </div>
-            {avatarRow?.is_admin && (
-              <>
-                <Link href="/admin/certifications" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Review Queue
-                </Link>
-                <Link href="/admin/site-images" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Site Images
-                </Link>
-                <Link href="/admin/live-auctions" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Live Auctions
-                </Link>
-                <Link href="/admin/our-breeders" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Our Breeders
-                </Link>
-                <Link href="/admin/future-issues" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Future Issues
-                </Link>
-                <Link href="/admin/dots-birds" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Manage D.O.T.S Birds
-                </Link>
-                <Link href="/admin/magazine" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Manage Magazine
-                </Link>
-                <Link href="/admin/archive" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>
-                  Manage The Spin Vault
-                </Link>
-              </>
-            )}
-            <form action={signOut}>
-              <button type="submit" className="btn-ghost" style={{ background: "none", cursor: "pointer" }}>
-                Sign out
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <Link href="/signin" className="btn-ghost">Sign in</Link>
-            <Link href="/signup" className="btn-gold">Join Now</Link>
-          </>
-        )}
-      </div>
+      <NavClient
+        isSignedIn={Boolean(user)}
+        isAdmin={Boolean(avatarRow?.is_admin)}
+        displayName={displayName}
+        avatarUrl={avatarUrl}
+        initial={initial}
+        active={active}
+        signOutAction={signOut}
+      />
       <NavMobileToggle links={links} isSignedIn={Boolean(user)} isAdmin={Boolean(avatarRow?.is_admin)} signOutAction={signOut} />
     </nav>
   );
