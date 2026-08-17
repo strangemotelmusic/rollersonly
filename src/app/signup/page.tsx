@@ -6,10 +6,10 @@ import { createClient } from "@/lib/supabase/client";
 import { createCheckoutSession } from "@/app/actions/stripe";
 
 const tiers = [
-  { id: "browse", name: "Browse Only", price: 0, desc: "Explore listings, lofts, and pedigrees — no bidding or selling" },
-  { id: "fancier", name: "Fancier", price: 19, desc: "Browse, bid, and buy with full buyer protection" },
-  { id: "breeder", name: "Breeder", price: 49, desc: "List birds, build your loft profile, Decade of the Spinner included", popular: true },
-  { id: "elite", name: "Elite Loft", price: 149, desc: "Featured placement, Elite badge, championship priority" },
+  { id: "browse", name: "Browse Only", price: 0, desc: "Explore listings and lofts — no bidding or selling" },
+  { id: "fancier", name: "Fancier", price: 19, desc: "Browse, bid, and buy with full buyer protection — plus Family Tree Registry access" },
+  { id: "breeder", name: "Breeder", price: 49, desc: "List birds, build your loft profile, Decade of the Spinner included — plus Family Tree Breeding tools", popular: true },
+  { id: "elite", name: "Elite Loft", price: 149, desc: "Featured placement, Elite badge, championship priority — plus full Family Tree access" },
 ];
 
 export default function SignupPage() {

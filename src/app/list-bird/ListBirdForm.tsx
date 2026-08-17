@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import SireDamPicker, { type BirdOption } from "@/components/pedigree/SireDamPicker";
 
 const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
 const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--muted)", display: "block", marginBottom: 8 };
@@ -27,8 +26,6 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
   const [reservePrice, setReservePrice] = useState(0);
   const [bidIncrement, setBidIncrement] = useState(25);
   const [durationHours, setDurationHours] = useState(72);
-  const [sire, setSire] = useState<BirdOption | null>(null);
-  const [dam, setDam] = useState<BirdOption | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [previewFailed, setPreviewFailed] = useState<Record<number, boolean>>({});
@@ -82,8 +79,6 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         sex,
         color: color || null,
         birth_year: birthYear,
-        sire_id: sire?.id ?? null,
-        dam_id: dam?.id ?? null,
         primary_photo_url: primaryPhotoUrl,
         notes: description || null,
         is_active: true,
@@ -161,11 +156,6 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
           <label style={labelStyle}>Birth year</label>
           <input type="number" value={birthYear} onChange={(e) => setBirthYear(Number(e.target.value))} style={inputStyle} />
         </div>
-      </div>
-
-      <div>
-        <label style={labelStyle}>Bloodline (optional)</label>
-        <SireDamPicker sire={sire} dam={dam} onChangeSire={setSire} onChangeDam={setDam} />
       </div>
 
       <div>

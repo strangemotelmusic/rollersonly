@@ -176,7 +176,6 @@ export default async function DashboardPage() {
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <Link href="/dashboard/loft" className="btn-ghost" style={{ fontSize: 11 }}>My Loft</Link>
-              <Link href="/pedigree" className="btn-ghost" style={{ fontSize: 11 }}>Pedigree Vault</Link>
               <Link href="/list-bird" className="btn-gold" style={{ fontSize: 11 }}>List a Bird</Link>
             </div>
           </div>
@@ -320,7 +319,6 @@ export default async function DashboardPage() {
               {[
                 { label: "My Loft", href: "/dashboard/loft" },
                 { label: "Account Settings", href: "/settings" },
-                { label: "Pedigree Vault", href: "/pedigree" },
                 { label: "View Leaderboards", href: "/leaderboards" },
                 { label: "Contact Support", href: "mailto:strangemotelmusic@gmail.com" },
               ].map(({ label, href }) => (

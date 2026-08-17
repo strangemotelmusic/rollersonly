@@ -11,8 +11,6 @@ export type RegisterBirdInput = {
   sex: string;
   color: string | null;
   birthYear: number | null;
-  sireId: string | null;
-  damId: string | null;
   notes: string | null;
   photos: File[];
 };
@@ -50,8 +48,6 @@ export async function registerBird(
       sex: input.sex,
       color: input.color,
       birth_year: input.birthYear,
-      sire_id: input.sireId,
-      dam_id: input.damId,
       primary_photo_url: primaryPhotoUrl,
       notes: input.notes,
       is_active: false,

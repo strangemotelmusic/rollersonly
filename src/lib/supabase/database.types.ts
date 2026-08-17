@@ -334,6 +334,194 @@ export interface Database {
           },
         ];
       };
+      family_tree_birds: {
+        Row: {
+          id: string;
+          owner_id: string;
+          name: string | null;
+          ring_number: string | null;
+          sex: string | null;
+          color: string | null;
+          birth_year: number | null;
+          sire_id: string | null;
+          dam_id: string | null;
+          primary_photo_url: string | null;
+          photo_settings: Json;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          name?: string | null;
+          ring_number?: string | null;
+          sex?: string | null;
+          color?: string | null;
+          birth_year?: number | null;
+          sire_id?: string | null;
+          dam_id?: string | null;
+          primary_photo_url?: string | null;
+          photo_settings?: Json;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["family_tree_birds"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "family_tree_birds_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_tree_birds_sire_id_fkey";
+            columns: ["sire_id"];
+            isOneToOne: false;
+            referencedRelation: "family_tree_birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_tree_birds_dam_id_fkey";
+            columns: ["dam_id"];
+            isOneToOne: false;
+            referencedRelation: "family_tree_birds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      family_tree_seasons: {
+        Row: {
+          id: string;
+          owner_id: string;
+          label: string;
+          start_date: string | null;
+          end_date: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          label: string;
+          start_date?: string | null;
+          end_date?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["family_tree_seasons"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "family_tree_seasons_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      family_tree_pairs: {
+        Row: {
+          id: string;
+          season_id: string;
+          owner_id: string;
+          sire_id: string;
+          dam_id: string;
+          paired_at: string | null;
+          egg_count: number;
+          hatched_count: number;
+          status: string;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          season_id: string;
+          owner_id: string;
+          sire_id: string;
+          dam_id: string;
+          paired_at?: string | null;
+          egg_count?: number;
+          hatched_count?: number;
+          status?: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["family_tree_pairs"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "family_tree_pairs_season_id_fkey";
+            columns: ["season_id"];
+            isOneToOne: false;
+            referencedRelation: "family_tree_seasons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_tree_pairs_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_tree_pairs_sire_id_fkey";
+            columns: ["sire_id"];
+            isOneToOne: false;
+            referencedRelation: "family_tree_birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_tree_pairs_dam_id_fkey";
+            columns: ["dam_id"];
+            isOneToOne: false;
+            referencedRelation: "family_tree_birds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      family_tree_fly_log: {
+        Row: {
+          id: string;
+          bird_id: string;
+          owner_id: string;
+          logged_at: string;
+          depth: string | null;
+          frequency: string | null;
+          kit_behavior: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bird_id: string;
+          owner_id: string;
+          logged_at?: string;
+          depth?: string | null;
+          frequency?: string | null;
+          kit_behavior?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["family_tree_fly_log"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "family_tree_fly_log_bird_id_fkey";
+            columns: ["bird_id"];
+            isOneToOne: false;
+            referencedRelation: "family_tree_birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "family_tree_fly_log_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       bird_photos: {
         Row: {
           id: string;

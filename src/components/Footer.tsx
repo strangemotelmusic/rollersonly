@@ -15,7 +15,6 @@ export default function Footer() {
           <ul className="footer-links">
             <li><Link href="/auctions">Live Auctions</Link></li>
             <li><Link href="/browse">Browse Birds</Link></li>
-            <li><Link href="/pedigree">Pedigree Vault</Link></li>
             <li><Link href="/leaderboards">Leaderboards</Link></li>
           </ul>
         </div>

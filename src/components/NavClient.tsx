@@ -53,7 +53,7 @@ export default function NavClient({
     { label: "Our Breeders", href: "/our-breeders" },
     ...(isSignedIn ? [{ label: "Members", href: "/members" }] : []),
     { label: "Leaderboards", href: "/leaderboards" },
-    { label: "Pedigrees", href: "/pedigree" },
+    { label: "Family Tree", href: "/family-tree" },
   ];
   const magazine: LinkItem[] = [...MAGAZINE_PUBLIC, ...(isSignedIn ? [{ label: "The Spin Vault", href: "/spin-vault" }] : [])];
 

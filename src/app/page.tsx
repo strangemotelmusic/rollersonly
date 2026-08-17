@@ -47,10 +47,9 @@ const breeders = [
 
 const features = [
   { num: "01", title: "Live Auction Rooms", desc: "Real-time bidding with photo of the bird. Countdown clock, live chat, and escrow auto-triggered on hammer. Breeder submits video same day.", href: "/auctions" },
-  { num: "02", title: "Verified Pedigree Vault", desc: "Every bird registered with a unique platform ID. Bloodlines locked and verified — tamper-proof lineage chains going back generations.", href: "/pedigree" },
-  { num: "03", title: "Custom Breeding Matchmaking", desc: "Browse verified breeder lofts, hand-pick the sire and dam you want paired, and reserve the pairing with a $500 deposit — no guesswork, no waitlist raffles.", href: "/matchmaking" },
-  { num: "04", title: "Health & DNA Certification", desc: "Partner veterinary network. DNA parentage confirmation. Certified birds carry visible trust badges on every listing.", href: "/how-it-works" },
-  { num: "05", title: "Escrow-Protected Payments", desc: "Buyer funds held until arrival confirmed. First platform to offer true escrow protection for roller pigeon transactions globally.", href: "/how-it-works" },
+  { num: "02", title: "Custom Breeding Matchmaking", desc: "Browse verified breeder lofts, hand-pick the sire and dam you want paired, and reserve the pairing with a $500 deposit — no guesswork, no waitlist raffles.", href: "/matchmaking" },
+  { num: "03", title: "Health & DNA Certification", desc: "Partner veterinary network. DNA parentage confirmation. Certified birds carry visible trust badges on every listing.", href: "/how-it-works" },
+  { num: "04", title: "Escrow-Protected Payments", desc: "Buyer funds held until arrival confirmed. First platform to offer true escrow protection for roller pigeon transactions globally.", href: "/how-it-works" },
 ];
 
 export default async function Home() {
@@ -426,7 +425,6 @@ export default async function Home() {
             <ul className="footer-links">
               <li><Link href="/auctions">Live Auctions</Link></li>
               <li><Link href="/browse">Browse Birds</Link></li>
-              <li><Link href="/pedigree">Pedigree Vault</Link></li>
               <li><Link href="/leaderboards">Leaderboards</Link></li>
             </ul>
           </div>

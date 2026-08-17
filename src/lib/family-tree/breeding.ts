@@ -5,14 +5,13 @@ type Client = SupabaseClient<Database>;
 
 export type CreateSeasonInput = {
   ownerId: string;
-  loftId: string | null;
   label: string;
   startDate: string | null;
   endDate: string | null;
   notes: string | null;
 };
 
-/** Direct client write — breeding_seasons RLS is owner-scoped (auth.uid() = owner_id), same convention as birds/auctions. */
+/** Direct client write — family_tree_seasons RLS is owner-scoped (auth.uid() = owner_id). */
 export async function createSeason(
   supabase: Client,
   input: CreateSeasonInput
@@ -20,10 +19,9 @@ export async function createSeason(
   if (!input.label.trim()) return { error: "Season label is required." };
 
   const { data, error } = await supabase
-    .from("breeding_seasons")
+    .from("family_tree_seasons")
     .insert({
       owner_id: input.ownerId,
-      loft_id: input.loftId,
       label: input.label.trim(),
       start_date: input.startDate,
       end_date: input.endDate,
@@ -52,7 +50,7 @@ export async function createBreedingPair(
   if (input.sireId === input.damId) return { error: "Sire and dam must be different birds." };
 
   const { data, error } = await supabase
-    .from("breeding_pairs")
+    .from("family_tree_pairs")
     .insert({
       season_id: input.seasonId,
       owner_id: input.ownerId,
@@ -74,7 +72,7 @@ export async function updatePairStats(
   updates: { eggCount?: number; hatchedCount?: number; status?: "active" | "split" | "retired"; notes?: string | null }
 ): Promise<{ error: string } | { ok: true }> {
   const { error } = await supabase
-    .from("breeding_pairs")
+    .from("family_tree_pairs")
     .update({
       ...(updates.eggCount !== undefined ? { egg_count: updates.eggCount } : {}),
       ...(updates.hatchedCount !== undefined ? { hatched_count: updates.hatchedCount } : {}),
@@ -88,7 +86,7 @@ export async function updatePairStats(
 }
 
 export async function deleteBreedingPair(supabase: Client, pairId: string): Promise<{ error: string } | { ok: true }> {
-  const { error } = await supabase.from("breeding_pairs").delete().eq("id", pairId);
+  const { error } = await supabase.from("family_tree_pairs").delete().eq("id", pairId);
   if (error) return { error: error.message };
   return { ok: true };
 }

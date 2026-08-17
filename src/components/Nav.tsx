@@ -23,8 +23,8 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Buy D.O.T.S Birds", href: "/dots-birds" },
     { label: "Top Breeders", href: "/breeders" },
     { label: "Our Breeders", href: "/our-breeders" },
-    { label: "Pedigrees", href: "/pedigree" },
     { label: "Leaderboards", href: "/leaderboards" },
+    { label: "Family Tree", href: "/family-tree" },
     { label: "Decade of the Spinner", href: "/decade-of-the-spinner" },
     { label: "Future Issues", href: "/future-issues" },
   ];

@@ -124,6 +124,76 @@ create table breeding_pairs (
 );
 -- policies: owner full access via auth.uid() = owner_id; no public select
 
+-- ORPHANED as of the Family Tree split: fly_log_entries, breeding_seasons,
+-- and breeding_pairs above (and birds.bred_from_pair_id) are no longer
+-- referenced anywhere in the app. Marketplace bird registration and pedigree
+-- tracking used to be linked (registering a bird auto-populated a public
+-- pedigree registry); that coupling was intentionally undone. Pedigree,
+-- breeding, and fly-log tracking now live entirely in the tables below,
+-- fully independent of the marketplace `birds` table. Left in place rather
+-- than dropped since they were briefly live in production.
+
+-- Family Tree is a separate product from the marketplace: a bird listed for
+-- auction and a bird tracked in a pedigree are unrelated records, on
+-- purpose. Access to these tables' features is gated by profiles.tier in
+-- the app layer (fancier=registry, breeder=+breeding, elite=+performance).
+create table family_tree_birds (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references profiles(id),
+  name text,
+  ring_number text,
+  sex text,
+  color text,
+  birth_year integer,
+  sire_id uuid references family_tree_birds(id),
+  dam_id uuid references family_tree_birds(id),
+  primary_photo_url text,
+  photo_settings jsonb not null default '{}'::jsonb,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+-- policies: select public (so Registry can show pedigrees to lookyloos); owner insert/update via auth.uid() = owner_id
+
+create table family_tree_seasons (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references profiles(id),
+  label text not null,
+  start_date date,
+  end_date date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+-- policies: owner full access via auth.uid() = owner_id; no public select
+
+create table family_tree_pairs (
+  id uuid primary key default gen_random_uuid(),
+  season_id uuid not null references family_tree_seasons(id) on delete cascade,
+  owner_id uuid not null references profiles(id),
+  sire_id uuid not null references family_tree_birds(id),
+  dam_id uuid not null references family_tree_birds(id),
+  paired_at date,
+  egg_count integer not null default 0,
+  hatched_count integer not null default 0,
+  status text not null default 'active', -- 'active' | 'split' | 'retired'
+  notes text,
+  created_at timestamptz not null default now()
+);
+-- policies: owner full access via auth.uid() = owner_id; no public select
+
+create table family_tree_fly_log (
+  id uuid primary key default gen_random_uuid(),
+  bird_id uuid not null references family_tree_birds(id) on delete cascade,
+  owner_id uuid not null references profiles(id),
+  logged_at date not null default current_date,
+  depth text,
+  frequency text,
+  kit_behavior text,
+  notes text,
+  created_at timestamptz not null default now()
+);
+-- policies: owner full access via auth.uid() = owner_id; no public select
+
 create table bird_photos (
   id uuid primary key default uuid_generate_v4(),
   bird_id uuid not null references birds(id),

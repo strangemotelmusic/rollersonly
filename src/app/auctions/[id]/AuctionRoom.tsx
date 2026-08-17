@@ -199,7 +199,6 @@ export default function AuctionRoom({
             <div style={{ padding: "20px 28px", flex: 1, overflowY: "auto" }}>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Description</div>
               <p style={{ fontSize: 14, color: "var(--white)", lineHeight: 1.7 }}>{auction.description}</p>
-              <Link href="/pedigree" style={{ display: "inline-block", marginTop: 16, fontSize: 12, color: "var(--gold)", textDecoration: "none" }}>View full pedigree →</Link>
             </div>
           )}
         </div>

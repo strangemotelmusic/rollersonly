@@ -13,13 +13,13 @@ export type FlyLogInput = {
   notes: string | null;
 };
 
-/** Direct client write — fly_log_entries RLS is owner-scoped, same convention as birds/auctions. */
+/** Direct client write — family_tree_fly_log RLS is owner-scoped. */
 export async function addFlyLogEntry(
   supabase: Client,
   input: FlyLogInput
 ): Promise<{ error: string } | { ok: true; entryId: string }> {
   const { data, error } = await supabase
-    .from("fly_log_entries")
+    .from("family_tree_fly_log")
     .insert({
       bird_id: input.birdId,
       owner_id: input.ownerId,
@@ -37,7 +37,7 @@ export async function addFlyLogEntry(
 }
 
 export async function deleteFlyLogEntry(supabase: Client, entryId: string): Promise<{ error: string } | { ok: true }> {
-  const { error } = await supabase.from("fly_log_entries").delete().eq("id", entryId);
+  const { error } = await supabase.from("family_tree_fly_log").delete().eq("id", entryId);
   if (error) return { error: error.message };
   return { ok: true };
 }

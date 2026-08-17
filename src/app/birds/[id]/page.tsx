@@ -4,51 +4,8 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
-import { buildAncestorEmbedFields, type PedigreeNode } from "@/lib/pedigree/tree";
 import BirdBidBox from "./BirdBidBox";
 import BirdGallery from "./BirdGallery";
-import BirdPedigreeSection from "./BirdPedigreeSection";
-
-const PEDIGREE_GENERATIONS = 4;
-
-// The sire/dam embed depth is spliced in at runtime (buildAncestorEmbedFields),
-// so supabase-js's template-literal select parser can't statically infer this
-// query's return type at all (not just the sire/dam part) - it types the whole
-// thing as ParserError. Cast past it, same as the existing self-referencing-
-// embed workaround below.
-type BirdDetailRow = {
-  id: string;
-  name: string | null;
-  ring_number: string | null;
-  sex: string | null;
-  color: string | null;
-  birth_year: number | null;
-  roll_quality: string | null;
-  fly_score: number | null;
-  kit_score: number | null;
-  health_certified: boolean | null;
-  dna_certified: boolean | null;
-  certification_status: string;
-  notes: string | null;
-  primary_photo_url: string | null;
-  loft_id: string | null;
-  owner_id: string;
-  lofts: { name: string; location: string | null; slug: string; rating: number | null; total_birds_sold: number | null } | null;
-  profiles: { username: string | null; full_name: string | null; tier: string | null } | null;
-  sire: PedigreeNode | null;
-  dam: PedigreeNode | null;
-  bird_photos: { url: string; is_primary: boolean | null; sort_order: number | null }[];
-  auctions: {
-    id: string;
-    current_bid: number | null;
-    starting_bid: number;
-    bid_increment: number;
-    status: string;
-    ends_at: string;
-    seller_id: string;
-    bids: { id: string; amount: number; created_at: string; profiles: { username: string } | null }[];
-  }[];
-};
 
 export default async function BirdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -60,22 +17,19 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
 
   const profile = user ? await ensureProfile(user) : null;
 
-  const { data: birdRaw } = await supabase
+  const { data: bird } = await supabase
     .from("birds")
     .select(
       `id, name, ring_number, sex, color, birth_year, roll_quality, fly_score, kit_score,
        health_certified, dna_certified, certification_status, notes, primary_photo_url, loft_id, owner_id,
        lofts(name, location, slug, rating, total_birds_sold),
        profiles!birds_owner_id_fkey(username, full_name, tier),
-       ${buildAncestorEmbedFields(PEDIGREE_GENERATIONS)},
        bird_photos(url, is_primary, sort_order),
        auctions(id, current_bid, starting_bid, bid_increment, status, ends_at, seller_id,
          bids(id, amount, created_at, profiles(username)))`
     )
     .eq("id", id)
     .maybeSingle();
-
-  const bird = birdRaw as unknown as BirdDetailRow | null;
 
   if (!bird) {
     return (
@@ -85,25 +39,6 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  // supabase-js's static analyzer flags self-referencing embeds (birds->birds
-  // via sire_id/dam_id) as ambiguous and wants a `birds!<column>` hint, but
-  // that hint form silently returns wrong (empty) results at runtime for
-  // this project - verified directly against the live API. The bare
-  // column-name embed below is what actually works.
-  const sire = bird.sire;
-  const dam = bird.dam;
-  const pedigreeRoot: PedigreeNode = {
-    id: bird.id,
-    name: bird.name,
-    ring_number: bird.ring_number,
-    sex: bird.sex,
-    color: bird.color,
-    primary_photo_url: bird.primary_photo_url,
-    sire_id: sire?.id ?? null,
-    dam_id: dam?.id ?? null,
-    sire,
-    dam,
-  };
   const auction = [...(bird.auctions ?? [])].sort((a, b) => (a.status === "live" ? -1 : 1))[0] ?? null;
   const bids = auction ? [...auction.bids].sort((a, b) => Number(b.amount) - Number(a.amount)) : [];
 
@@ -188,8 +123,6 @@ export default async function BirdPage({ params }: { params: Promise<{ id: strin
                 </div>
               </div>
             )}
-
-            {(sire || dam) && <BirdPedigreeSection root={pedigreeRoot} loftName={bird.lofts?.name ?? null} />}
 
             {relatedBirds.length > 0 && (
               <div>
