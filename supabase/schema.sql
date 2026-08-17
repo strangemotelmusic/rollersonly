@@ -337,3 +337,32 @@ alter table vip_comp_tiers enable row level security;
 -- readable by anon/authenticated roles or committed as data into source
 -- (this repo is public). ensureProfile() checks it via the admin client on
 -- every sign-in and bumps profiles.tier to match if the account is under-tier.
+
+-- Bulk email / subscriber list. Two sources feed one admin "Send Campaign"
+-- flow: existing members (profiles, auto-enrolled unless they opt out) and
+-- a standalone newsletter signup for people without an account.
+alter table profiles add column if not exists marketing_opt_out boolean not null default false;
+alter table profiles add column if not exists unsubscribe_token uuid not null default gen_random_uuid();
+
+create table newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  unsubscribe_token uuid not null default gen_random_uuid(),
+  subscribed_at timestamptz not null default now(),
+  unsubscribed_at timestamptz
+);
+alter table newsletter_subscribers enable row level security;
+-- No anon/authenticated policies — all reads/writes go through the
+-- service-role admin client (subscribeToNewsletter action, unsubscribe
+-- route, admin send flow), same reasoning as vip_comp_tiers.
+
+create table email_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  subject text not null,
+  body text not null,
+  recipient_count integer not null default 0,
+  sent_by uuid references profiles(id),
+  sent_at timestamptz not null default now()
+);
+alter table email_campaigns enable row level security;
+-- No policies — service-role only. Just a send log for the admin dashboard.

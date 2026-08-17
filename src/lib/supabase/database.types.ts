@@ -21,6 +21,8 @@ export interface Database {
           is_verified: boolean | null;
           is_admin: boolean;
           stripe_customer_id: string | null;
+          marketing_opt_out: boolean;
+          unsubscribe_token: string;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -35,6 +37,8 @@ export interface Database {
           is_verified?: boolean | null;
           is_admin?: boolean;
           stripe_customer_id?: string | null;
+          marketing_opt_out?: boolean;
+          unsubscribe_token?: string;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -1474,6 +1478,52 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["vip_comp_tiers"]["Insert"]>;
         Relationships: [];
+      };
+      newsletter_subscribers: {
+        Row: {
+          id: string;
+          email: string;
+          unsubscribe_token: string;
+          subscribed_at: string;
+          unsubscribed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          unsubscribe_token?: string;
+          subscribed_at?: string;
+          unsubscribed_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["newsletter_subscribers"]["Insert"]>;
+        Relationships: [];
+      };
+      email_campaigns: {
+        Row: {
+          id: string;
+          subject: string;
+          body: string;
+          recipient_count: number;
+          sent_by: string | null;
+          sent_at: string;
+        };
+        Insert: {
+          id?: string;
+          subject: string;
+          body: string;
+          recipient_count?: number;
+          sent_by?: string | null;
+          sent_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["email_campaigns"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_sent_by_fkey";
+            columns: ["sent_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;

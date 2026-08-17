@@ -23,6 +23,7 @@ const MAGAZINE_PUBLIC: LinkItem[] = [
 const ADMIN_LINKS: LinkItem[] = [
   { label: "Review Queue", href: "/admin/certifications" },
   { label: "Family Tree", href: "/admin/family-tree" },
+  { label: "Subscribers", href: "/admin/subscribers" },
   { label: "Site Images", href: "/admin/site-images" },
   { label: "Live Auctions", href: "/admin/live-auctions" },
   { label: "Our Breeders", href: "/admin/our-breeders" },

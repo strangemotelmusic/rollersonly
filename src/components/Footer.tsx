@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NewsletterSignupForm from "@/components/NewsletterSignupForm";
 
 export default function Footer() {
   return (
@@ -9,6 +10,8 @@ export default function Footer() {
           <p className="footer-tagline">
             The world&apos;s first dedicated marketplace for elite roller pigeon breeders, competitors, and collectors.
           </p>
+          <div className="footer-col-title" style={{ marginTop: 24 }}>Get Updates</div>
+          <NewsletterSignupForm />
         </div>
         <div>
           <div className="footer-col-title">Platform</div>
