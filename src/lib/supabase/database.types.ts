@@ -1461,6 +1461,20 @@ export interface Database {
           },
         ];
       };
+      vip_comp_tiers: {
+        Row: {
+          email: string;
+          tier: string;
+          created_at: string;
+        };
+        Insert: {
+          email: string;
+          tier: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["vip_comp_tiers"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

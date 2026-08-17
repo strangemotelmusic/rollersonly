@@ -1,5 +1,27 @@
 import type { User } from "@supabase/supabase-js";
 import { createAdminClient } from "./admin";
+import { vipTierFor, tierRank } from "@/lib/vip";
+
+type ProfileRow = { id: string; username: string; full_name: string | null; tier: string };
+
+async function applyVipTier(
+  admin: ReturnType<typeof createAdminClient>,
+  profile: ProfileRow | null,
+  email: string | null | undefined
+): Promise<ProfileRow | null> {
+  if (!profile) return profile;
+  const vip = await vipTierFor(admin, email);
+  if (!vip || tierRank(profile.tier) >= tierRank(vip)) return profile;
+
+  const { data: updated } = await admin
+    .from("profiles")
+    .update({ tier: vip })
+    .eq("id", profile.id)
+    .select("id, username, full_name, tier")
+    .maybeSingle();
+
+  return updated ?? profile;
+}
 
 // Auth users don't always have a matching profiles row yet (e.g. they
 // confirmed email but never visited a page that happened to create one).
@@ -16,7 +38,7 @@ export async function ensureProfile(user: User) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (existing) return existing;
+  if (existing) return applyVipTier(admin, existing, user.email);
 
   const baseUsername = user.user_metadata?.username || user.email!.split("@")[0];
   const fullName = user.user_metadata?.full_name;
@@ -31,7 +53,7 @@ export async function ensureProfile(user: User) {
     .select("id, username, full_name, tier")
     .maybeSingle();
 
-  if (!error) return created;
+  if (!error) return applyVipTier(admin, created, user.email);
 
   // Username collision (or any other transient failure) - retry once with a
   // guaranteed-unique username derived from the user's id rather than
@@ -43,5 +65,5 @@ export async function ensureProfile(user: User) {
     .select("id, username, full_name, tier")
     .maybeSingle();
 
-  return retried;
+  return applyVipTier(admin, retried, user.email);
 }

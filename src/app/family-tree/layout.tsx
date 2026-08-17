@@ -15,9 +15,11 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
   } = await supabase.auth.getUser();
 
   let tier = "browse";
+  let isAdmin = false;
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select("tier").eq("id", user.id).maybeSingle();
+    const { data: profile } = await supabase.from("profiles").select("tier, is_admin").eq("id", user.id).maybeSingle();
     tier = profile?.tier ?? "browse";
+    isAdmin = Boolean(profile?.is_admin);
   }
   const rank = tierRank(tier);
 
@@ -40,13 +42,13 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
                 Family<span style={{ color: "#2DD4BF" }}>Tree</span>
               </span>
               <span style={{ fontSize: 9, color: "#5B6675", letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>
-                Part of RollersOnly
+                Part of RollersOnly · Brought to you by Decade of the Spinner
               </span>
             </Link>
 
             <nav style={{ display: "flex", gap: 4 }}>
               {NAV_ITEMS.map((item) => {
-                const locked = rank < tierRank(item.minTier);
+                const locked = !isAdmin && rank < tierRank(item.minTier);
                 return (
                   <Link
                     key={item.href}
@@ -71,21 +73,38 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "#2DD4BF",
-                border: "1px solid #1C3D3A",
-                background: "#0F1F1D",
-                padding: "4px 10px",
-                borderRadius: 20,
-              }}
-            >
-              {tier === "browse" ? "Free" : tier}
-            </span>
+            {isAdmin ? (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "#0A0D12",
+                  background: "#2DD4BF",
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                }}
+              >
+                Owner · Full Access
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "#2DD4BF",
+                  border: "1px solid #1C3D3A",
+                  background: "#0F1F1D",
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                }}
+              >
+                {tier === "browse" ? "Free" : tier}
+              </span>
+            )}
             <Link href="/" style={{ fontSize: 12, color: "#5B6675", textDecoration: "none" }}>
               ← RollersOnly
             </Link>

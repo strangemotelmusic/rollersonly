@@ -325,3 +325,15 @@ create table matchmaking_requests (
 -- Not yet built: no table exists for magazine content ("Decade of the Spinner").
 -- Needs its own table (e.g. magazine_issues) plus a paid-tier gate — profiles.tier
 -- is the natural gate column, but only once Stripe actually writes to it.
+
+create table vip_comp_tiers (
+  email text primary key,
+  tier text not null check (tier in ('fancier','breeder','elite')),
+  created_at timestamptz not null default now()
+);
+alter table vip_comp_tiers enable row level security;
+-- No policies — service-role only. This table holds real people's email
+-- addresses (comp accounts granted a paid tier for free); it must never be
+-- readable by anon/authenticated roles or committed as data into source
+-- (this repo is public). ensureProfile() checks it via the admin client on
+-- every sign-in and bumps profiles.tier to match if the account is under-tier.
