@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 import { createOurBreeder, updateOurBreeder, removeOurBreederPhoto, deleteOurBreeder } from "@/app/actions/our-breeders-admin";
 
 type Breeder = {
@@ -52,11 +53,10 @@ export default function OurBreedersAdminClient({ initialBreeders }: { initialBre
       {showAddForm && (
         <BreederForm
           onCancel={() => setShowAddForm(false)}
-          onSubmit={async (formData) => {
-            const result = await createOurBreeder(formData);
-            if ("error" in result) return result;
-            window.location.reload();
-            return result;
+          onSubmit={(formData) => createOurBreeder(formData)}
+          onSaved={(breeder) => {
+            setBreeders((prev) => [...prev, breeder]);
+            setShowAddForm(false);
           }}
         />
       )}
@@ -64,14 +64,27 @@ export default function OurBreedersAdminClient({ initialBreeders }: { initialBre
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {breeders.length === 0 && !showAddForm && <p style={{ fontSize: 14, color: "var(--muted)" }}>No breeders added yet.</p>}
         {breeders.map((b) => (
-          <BreederRow key={b.id} breeder={b} onDelete={() => setBreeders((prev) => prev.filter((x) => x.id !== b.id))} />
+          <BreederRow
+            key={b.id}
+            breeder={b}
+            onDelete={() => setBreeders((prev) => prev.filter((x) => x.id !== b.id))}
+            onSaved={(updated) => setBreeders((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function BreederRow({ breeder, onDelete }: { breeder: Breeder; onDelete: () => void }) {
+function BreederRow({
+  breeder,
+  onDelete,
+  onSaved,
+}: {
+  breeder: Breeder;
+  onDelete: () => void;
+  onSaved: (breeder: Breeder) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,11 +106,10 @@ function BreederRow({ breeder, onDelete }: { breeder: Breeder; onDelete: () => v
       <BreederForm
         breeder={breeder}
         onCancel={() => setEditing(false)}
-        onSubmit={async (formData) => {
-          const result = await updateOurBreeder(breeder.id, formData);
-          if ("error" in result) return result;
-          window.location.reload();
-          return result;
+        onSubmit={(formData) => updateOurBreeder(breeder.id, formData)}
+        onSaved={(updated) => {
+          onSaved(updated);
+          setEditing(false);
         }}
       />
     );
@@ -138,12 +150,15 @@ function BreederForm({
   breeder,
   onCancel,
   onSubmit,
+  onSaved,
 }: {
   breeder?: Breeder;
   onCancel: () => void;
-  onSubmit: (formData: FormData) => Promise<{ error: string } | { ok: true }>;
+  onSubmit: (formData: FormData) => Promise<{ error: string } | { ok: true; breeder: Breeder }>;
+  onSaved: (breeder: Breeder) => void;
 }) {
   const [pending, setPending] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState(breeder?.photo_urls ?? []);
   const [removingUrl, setRemovingUrl] = useState<string | null>(null);
@@ -152,10 +167,45 @@ function BreederForm({
     e.preventDefault();
     setPending(true);
     setError(null);
+
     const formData = new FormData(e.currentTarget);
+    const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+    formData.delete("files");
+
+    if (files.length > 0) {
+      setUploadProgress({ done: 0, total: files.length });
+      const supabase = createClient();
+      let done = 0;
+      const uploads = await Promise.all(
+        files.map(async (file) => {
+          const ext = file.name.split(".").pop() || "jpg";
+          const path = `${crypto.randomUUID()}.${ext}`;
+          const { error: uploadErr } = await supabase.storage.from("our-breeders-photos").upload(path, file);
+          done += 1;
+          setUploadProgress({ done, total: files.length });
+          if (uploadErr) return { error: uploadErr.message };
+          return { url: supabase.storage.from("our-breeders-photos").getPublicUrl(path).data.publicUrl };
+        })
+      );
+      const failed = uploads.find((u): u is { error: string } => "error" in u);
+      if (failed) {
+        setPending(false);
+        setUploadProgress(null);
+        setError(`Photo upload failed: ${failed.error}`);
+        return;
+      }
+      const urls = uploads.map((u) => (u as { url: string }).url);
+      formData.set("newPhotoUrls", JSON.stringify(urls));
+      setUploadProgress(null);
+    }
+
     const result = await onSubmit(formData);
     setPending(false);
-    if ("error" in result) setError(result.error);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    onSaved(result.breeder);
   }
 
   async function handleRemovePhoto(url: string) {
@@ -241,7 +291,13 @@ function BreederForm({
       {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginBottom: 16 }}>{error}</p>}
       <div style={{ display: "flex", gap: 12 }}>
         <button type="submit" disabled={pending} className="btn-gold" style={{ padding: "10px 24px" }}>
-          {pending ? "Saving…" : breeder ? "Save Changes" : "Add Breeder"}
+          {uploadProgress
+            ? `Uploading photos… ${uploadProgress.done}/${uploadProgress.total}`
+            : pending
+              ? "Saving…"
+              : breeder
+                ? "Save Changes"
+                : "Add Breeder"}
         </button>
         <button type="button" onClick={onCancel} className="btn-ghost" style={{ padding: "10px 24px", cursor: "pointer" }}>
           Cancel

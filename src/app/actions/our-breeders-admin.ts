@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
+type OurBreeder = Database["public"]["Tables"]["our_breeders"]["Row"];
 type OurBreederUpdate = Database["public"]["Tables"]["our_breeders"]["Update"];
+
+const PHOTO_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/our-breeders-photos/`;
 
 async function requireAdmin(): Promise<{ error: string } | { admin: ReturnType<typeof createAdminClient> }> {
   const supabase = await createClient();
@@ -21,15 +24,16 @@ async function requireAdmin(): Promise<{ error: string } | { admin: ReturnType<t
   return { admin };
 }
 
-async function uploadPhotos(admin: ReturnType<typeof createAdminClient>, formData: FormData): Promise<{ error: string } | { urls: string[] }> {
-  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
-  const urls: string[] = [];
-  for (const file of files) {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${crypto.randomUUID()}.${ext}`;
-    const { error: uploadErr } = await admin.storage.from("our-breeders-photos").upload(path, file);
-    if (uploadErr) return { error: `Photo upload failed: ${uploadErr.message}` };
-    urls.push(admin.storage.from("our-breeders-photos").getPublicUrl(path).data.publicUrl);
+function parseNewPhotoUrls(formData: FormData): { error: string } | { urls: string[] } {
+  const raw = String(formData.get("newPhotoUrls") || "[]");
+  let urls: unknown;
+  try {
+    urls = JSON.parse(raw);
+  } catch {
+    return { error: "Malformed photo list." };
+  }
+  if (!Array.isArray(urls) || !urls.every((u) => typeof u === "string" && u.startsWith(PHOTO_URL_PREFIX))) {
+    return { error: "Photo list contained an unexpected URL." };
   }
   return { urls };
 }
@@ -72,7 +76,7 @@ function parseBreederFields(formData: FormData): { error: string } | { fields: P
   };
 }
 
-export async function createOurBreeder(formData: FormData): Promise<{ error: string } | { ok: true }> {
+export async function createOurBreeder(formData: FormData): Promise<{ error: string } | { ok: true; breeder: OurBreeder }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
   const { admin } = gate;
@@ -80,7 +84,7 @@ export async function createOurBreeder(formData: FormData): Promise<{ error: str
   const parsed = parseBreederFields(formData);
   if ("error" in parsed) return parsed;
 
-  const uploaded = await uploadPhotos(admin, formData);
+  const uploaded = parseNewPhotoUrls(formData);
   if ("error" in uploaded) return uploaded;
 
   const { data: maxRow } = await admin
@@ -90,17 +94,21 @@ export async function createOurBreeder(formData: FormData): Promise<{ error: str
     .limit(1)
     .maybeSingle();
 
-  const { error } = await admin.from("our_breeders").insert({
-    ...parsed.fields,
-    photo_urls: uploaded.urls,
-    sort_order: (maxRow?.sort_order ?? 0) + 1,
-  });
+  const { data, error } = await admin
+    .from("our_breeders")
+    .insert({
+      ...parsed.fields,
+      photo_urls: uploaded.urls,
+      sort_order: (maxRow?.sort_order ?? 0) + 1,
+    })
+    .select()
+    .single();
 
   if (error) return { error: error.message };
-  return { ok: true };
+  return { ok: true, breeder: data };
 }
 
-export async function updateOurBreeder(id: string, formData: FormData): Promise<{ error: string } | { ok: true }> {
+export async function updateOurBreeder(id: string, formData: FormData): Promise<{ error: string } | { ok: true; breeder: OurBreeder }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
   const { admin } = gate;
@@ -108,7 +116,7 @@ export async function updateOurBreeder(id: string, formData: FormData): Promise<
   const parsed = parseBreederFields(formData);
   if ("error" in parsed) return parsed;
 
-  const uploaded = await uploadPhotos(admin, formData);
+  const uploaded = parseNewPhotoUrls(formData);
   if ("error" in uploaded) return uploaded;
 
   const update: OurBreederUpdate = { ...parsed.fields, updated_at: new Date().toISOString() };
@@ -118,9 +126,9 @@ export async function updateOurBreeder(id: string, formData: FormData): Promise<
     update.photo_urls = [...(existing?.photo_urls ?? []), ...uploaded.urls];
   }
 
-  const { error } = await admin.from("our_breeders").update(update).eq("id", id);
+  const { data, error } = await admin.from("our_breeders").update(update).eq("id", id).select().single();
   if (error) return { error: error.message };
-  return { ok: true };
+  return { ok: true, breeder: data };
 }
 
 export async function removeOurBreederPhoto(id: string, url: string): Promise<{ error: string } | { ok: true }> {
