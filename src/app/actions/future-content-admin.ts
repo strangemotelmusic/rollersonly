@@ -191,12 +191,84 @@ export async function addFeaturedVideosBulk(formData: FormData): Promise<{ error
   return { ok: true, added: ids.length, skipped };
 }
 
+export async function updateFeaturedVideoTitle(id: string, title: string): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const trimmed = title.trim();
+  if (!trimmed) return { error: "Name can't be empty." };
+
+  const { error } = await admin.from("featured_videos").update({ title: trimmed, updated_at: new Date().toISOString() }).eq("id", id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
 export async function deleteFeaturedVideo(id: string): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
   const { admin } = gate;
 
   const { error } = await admin.from("featured_videos").delete().eq("id", id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+/* ── MEMBER VIDEO SUBMISSIONS ── */
+
+export async function approveVideoSubmission(id: string): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const {
+    data: { user: adminUser },
+  } = await (await createClient()).auth.getUser();
+
+  const { data: submission } = await admin.from("video_submissions").select("id, user_id, title, video_url, status").eq("id", id).maybeSingle();
+  if (!submission) return { error: "Submission not found." };
+  if (submission.status !== "pending") return { error: "This submission was already reviewed." };
+
+  const { data: maxRow } = await admin
+    .from("featured_videos")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error: insertErr } = await admin.from("featured_videos").insert({
+    title: submission.title,
+    source: "upload",
+    video_url: submission.video_url,
+    submitted_by: submission.user_id,
+    sort_order: (maxRow?.sort_order ?? 0) + 1,
+  });
+  if (insertErr) return { error: insertErr.message };
+
+  const { error: updateErr } = await admin
+    .from("video_submissions")
+    .update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: adminUser?.id ?? null })
+    .eq("id", id);
+  if (updateErr) return { error: updateErr.message };
+
+  return { ok: true };
+}
+
+export async function rejectVideoSubmission(id: string, note: string): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const {
+    data: { user: adminUser },
+  } = await (await createClient()).auth.getUser();
+
+  const { error } = await admin
+    .from("video_submissions")
+    .update({ status: "rejected", rejection_note: note.trim() || null, reviewed_at: new Date().toISOString(), reviewed_by: adminUser?.id ?? null })
+    .eq("id", id)
+    .eq("status", "pending");
+
   if (error) return { error: error.message };
   return { ok: true };
 }

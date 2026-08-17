@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { updateFeaturedVideoTitle } from "@/app/actions/future-content-admin";
 
 type FutureIssue = {
   id: string;
@@ -14,18 +16,35 @@ type FutureIssue = {
 type FeaturedVideo = {
   id: string;
   title: string;
-  youtube_id: string;
+  youtube_id: string | null;
+  source: string;
+  video_url: string | null;
+  submittedByName: string | null;
 };
 
 // Minimal shape of the bits of the YouTube IFrame API we use.
-type YTPlayer = { loadVideoById: (id: string) => void; destroy: () => void };
+type YTPlayer = { loadVideoById: (id: string) => void; pauseVideo: () => void; playVideo: () => void; destroy: () => void };
 
-export default function FutureIssuesClient({ issues, videos }: { issues: FutureIssue[]; videos: FeaturedVideo[] }) {
+export default function FutureIssuesClient({
+  issues,
+  videos,
+  isAdmin,
+  isSignedIn,
+}: {
+  issues: FutureIssue[];
+  videos: FeaturedVideo[];
+  isAdmin: boolean;
+  isSignedIn: boolean;
+}) {
   const [activeVideo, setActiveVideo] = useState(0);
+  const [titles, setTitles] = useState(() => Object.fromEntries(videos.map((v) => [v.id, v.title])));
   const current = videos[activeVideo];
+
+  const hasYouTube = videos.some((v) => v.source === "youtube" && v.youtube_id);
 
   const playerRef = useRef<YTPlayer | null>(null);
   const playerElRef = useRef<HTMLDivElement>(null);
+  const nativeVideoRef = useRef<HTMLVideoElement>(null);
   const activeRef = useRef(0);
   const videosRef = useRef(videos);
 
@@ -36,34 +55,35 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
     activeRef.current = activeVideo;
   }, [activeVideo]);
 
-  // Build a continuously-rotating "channel": load the YouTube IFrame API,
-  // autoplay (muted, so browsers allow it) the first clip, and when each one
-  // ends, advance to the next and loop back to the start — no clicks needed.
-  useEffect(() => {
-    if (videos.length === 0) return;
-    let cancelled = false;
+  function advance() {
+    if (videosRef.current.length === 0) return;
+    const next = (activeRef.current + 1) % videosRef.current.length;
+    activeRef.current = next;
+    setActiveVideo(next);
+  }
 
-    function advance() {
-      const next = (activeRef.current + 1) % videosRef.current.length;
-      activeRef.current = next;
-      setActiveVideo(next);
-      playerRef.current?.loadVideoById(videosRef.current[next].youtube_id);
-    }
+  // Set up the YouTube IFrame API once (only if the rotation has at least one
+  // YouTube clip) — the player instance is reused across every YouTube item
+  // via loadVideoById, and just paused while an uploaded clip is on screen.
+  useEffect(() => {
+    if (!hasYouTube) return;
+    let cancelled = false;
 
     function createPlayer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const YT = (window as any).YT;
       if (cancelled || !playerElRef.current || !YT?.Player) return;
+      const firstYouTube = videosRef.current.find((v) => v.source === "youtube" && v.youtube_id);
+      if (!firstYouTube?.youtube_id) return;
       playerRef.current = new YT.Player(playerElRef.current, {
         width: "100%",
         height: "100%",
         host: "https://www.youtube-nocookie.com",
-        videoId: videos[0].youtube_id,
+        videoId: firstYouTube.youtube_id,
         playerVars: { autoplay: 1, mute: 1, rel: 0, playsinline: 1, modestbranding: 1 },
         events: {
-          // 0 === ENDED
           onStateChange: (e: { data: number }) => {
-            if (e.data === 0) advance();
+            if (e.data === 0) advance(); // 0 === ENDED
           },
         },
       });
@@ -97,13 +117,60 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
       playerRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videos.length]);
+  }, [hasYouTube]);
+
+  // Whenever the active clip changes, make sure exactly the right player is
+  // showing and playing — load/resume the YouTube player for a YouTube clip
+  // (pausing the native <video>), or play the native element for an upload
+  // (pausing YouTube).
+  useEffect(() => {
+    if (!current) return;
+    if (current.source === "youtube" && current.youtube_id) {
+      playerRef.current?.loadVideoById(current.youtube_id);
+      nativeVideoRef.current?.pause();
+    } else {
+      try {
+        playerRef.current?.pauseVideo();
+      } catch {
+        /* player not ready yet */
+      }
+      const el = nativeVideoRef.current;
+      if (el) {
+        el.muted = true;
+        el.play().catch(() => {});
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeVideo, current?.id]);
 
   function selectVideo(i: number) {
     activeRef.current = i;
     setActiveVideo(i);
-    playerRef.current?.loadVideoById(videosRef.current[i].youtube_id);
   }
+
+  function prevVideo() {
+    if (videos.length === 0) return;
+    selectVideo((activeVideo - 1 + videos.length) % videos.length);
+  }
+
+  function nextVideo() {
+    if (videos.length === 0) return;
+    selectVideo((activeVideo + 1) % videos.length);
+  }
+
+  // Left/right arrow keys jump between clips whenever the big screen is on
+  // the page — a keyboard-friendly alternative to clicking the on-screen
+  // arrows or a thumbnail.
+  useEffect(() => {
+    if (videos.length < 2) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft") prevVideo();
+      if (e.key === "ArrowRight") nextVideo();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videos.length, activeVideo]);
 
   return (
     <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
@@ -128,15 +195,7 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
         {issues.length === 0 ? (
           <p style={{ fontSize: 14, color: "var(--muted)", padding: "0 64px" }}>New issues are on the way — check back soon.</p>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              gap: 24,
-              overflowX: "auto",
-              padding: "0 64px 24px",
-              scrollbarWidth: "thin",
-            }}
-          >
+          <div style={{ display: "flex", gap: 24, overflowX: "auto", padding: "0 64px 24px", scrollbarWidth: "thin" }}>
             {issues.map((issue) => (
               <div key={issue.id} style={{ flex: "0 0 auto", width: 260 }}>
                 <div
@@ -180,7 +239,12 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
           <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 10 }}>
             The Big Screen
           </p>
-          <div style={{ fontFamily: "var(--ff-display)", fontSize: 32, fontWeight: 300, color: "var(--white)" }}>The RollersOnly Channel</div>
+          <div style={{ fontFamily: "var(--ff-display)", fontSize: 32, fontWeight: 300, color: "var(--white)", marginBottom: 12 }}>The RollersOnly Channel</div>
+          {isSignedIn && (
+            <Link href="/future-issues/submit" className="btn-ghost" style={{ fontSize: 11, padding: "8px 20px" }}>
+              Submit Your Video →
+            </Link>
+          )}
         </div>
 
         {videos.length === 0 ? (
@@ -198,17 +262,90 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
               }}
             >
               <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", borderRadius: 4, overflow: "hidden", background: "#000" }}>
-                <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: hasYouTube && current?.source === "youtube" ? "block" : "none" }}>
                   <div ref={playerElRef} style={{ width: "100%", height: "100%" }} />
                 </div>
+                {current?.source === "upload" && (
+                  <video
+                    ref={nativeVideoRef}
+                    src={current.video_url ?? undefined}
+                    onEnded={advance}
+                    controls
+                    playsInline
+                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "#000" }}
+                  />
+                )}
+
+                {videos.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevVideo}
+                      title="Previous clip"
+                      style={{
+                        position: "absolute",
+                        left: 14,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.55)",
+                        border: "1px solid rgba(212,175,55,0.4)",
+                        color: "var(--white)",
+                        fontSize: 20,
+                        cursor: "pointer",
+                        zIndex: 5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "background 0.15s, border-color 0.15s",
+                      }}
+                    >
+                      ‹
+                    </button>
+                    <button
+                      onClick={nextVideo}
+                      title="Next clip"
+                      style={{
+                        position: "absolute",
+                        right: 14,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.55)",
+                        border: "1px solid rgba(212,175,55,0.4)",
+                        color: "var(--white)",
+                        fontSize: 20,
+                        cursor: "pointer",
+                        zIndex: 5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "background 0.15s, border-color 0.15s",
+                      }}
+                    >
+                      ›
+                    </button>
+                  </>
+                )}
               </div>
             </div>
+
             {current && (
               <div style={{ textAlign: "center", marginTop: 18 }}>
-                <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)" }}>{current.title}</div>
+                {isAdmin ? (
+                  <EditableNowPlayingTitle key={current.id} video={current} onSaved={(t) => setTitles((prev) => ({ ...prev, [current.id]: t }))} />
+                ) : (
+                  <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)" }}>{titles[current.id] ?? current.title}</div>
+                )}
+                {current.submittedByName && (
+                  <div style={{ fontSize: 11, color: "var(--gold)", marginTop: 4 }}>Submitted by {current.submittedByName}</div>
+                )}
                 {videos.length > 1 && (
                   <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, letterSpacing: "0.05em" }}>
-                    Playing continuously · {activeVideo + 1} / {videos.length} · tap the video to unmute
+                    Playing continuously · {activeVideo + 1} / {videos.length}
                   </div>
                 )}
               </div>
@@ -218,32 +355,26 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
             {videos.length > 1 && (
               <div style={{ display: "flex", gap: 16, overflowX: "auto", padding: "28px 4px 8px", justifyContent: videos.length < 5 ? "center" : "flex-start" }}>
                 {videos.map((v, i) => (
-                  <button
-                    key={v.id}
-                    onClick={() => selectVideo(i)}
-                    style={{
-                      flex: "0 0 auto",
-                      width: 180,
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      textAlign: "left",
-                      opacity: i === activeVideo ? 1 : 0.6,
-                      transition: "opacity 0.2s",
-                    }}
-                  >
-                    <div style={{ position: "relative", width: 180, height: 101, borderRadius: 4, overflow: "hidden", border: i === activeVideo ? "2px solid var(--gold)" : "0.5px solid var(--border)" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`} alt={v.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      {i === activeVideo && (
-                        <span style={{ position: "absolute", bottom: 6, left: 6, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--black)", background: "var(--gold)", padding: "2px 7px", borderRadius: 2 }}>
-                          Now Playing
-                        </span>
-                      )}
+                  <div key={v.id} style={{ flex: "0 0 auto", width: 180 }}>
+                    <button onClick={() => selectVideo(i)} style={{ display: "block", width: "100%", background: "none", border: "none", padding: 0, cursor: "pointer", opacity: i === activeVideo ? 1 : 0.6, transition: "opacity 0.2s" }}>
+                      <div style={{ position: "relative", width: 180, height: 101, borderRadius: 4, overflow: "hidden", border: i === activeVideo ? "2px solid var(--gold)" : "0.5px solid var(--border)", background: "#000" }}>
+                        {v.source === "youtube" && v.youtube_id ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`} alt={v.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <video src={v.video_url ?? undefined} preload="metadata" muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        )}
+                        {i === activeVideo && (
+                          <span style={{ position: "absolute", bottom: 6, left: 6, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--black)", background: "var(--gold)", padding: "2px 7px", borderRadius: 2 }}>
+                            Now Playing
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                    <div style={{ fontSize: 12, color: "var(--white)", marginTop: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {titles[v.id] ?? v.title}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--white)", marginTop: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.title}</div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -251,5 +382,75 @@ export default function FutureIssuesClient({ issues, videos }: { issues: FutureI
         )}
       </div>
     </div>
+  );
+}
+
+function EditableNowPlayingTitle({ video, onSaved }: { video: FeaturedVideo; onSaved: (title: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(video.title);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    if (!draft.trim() || draft.trim() === video.title.trim()) {
+      setEditing(false);
+      setDraft(video.title);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const result = await updateFeaturedVideoTitle(video.id, draft);
+    setSaving(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    onSaved(draft.trim());
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+            autoFocus
+            style={{
+              background: "var(--surface)",
+              border: "0.5px solid var(--border-gold)",
+              color: "var(--white)",
+              fontFamily: "var(--ff-display)",
+              fontSize: 18,
+              padding: "6px 12px",
+              borderRadius: 2,
+              outline: "none",
+              textAlign: "center",
+              minWidth: 260,
+            }}
+          />
+          <button onClick={save} disabled={saving} className="btn-gold" style={{ fontSize: 11, padding: "8px 16px" }}>
+            {saving ? "…" : "Save"}
+          </button>
+          <button onClick={() => { setEditing(false); setDraft(video.title); }} className="btn-ghost" style={{ fontSize: 11, padding: "8px 16px" }}>
+            Cancel
+          </button>
+        </div>
+        {error && <p style={{ fontSize: 12, color: "#e8a3a3" }}>{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setEditing(true)}
+      title="Click to rename this clip"
+      style={{ background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, padding: 0 }}
+    >
+      <span style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)" }}>{video.title}</span>
+      <span style={{ fontSize: 12, color: "var(--gold)" }}>✎</span>
+    </button>
   );
 }

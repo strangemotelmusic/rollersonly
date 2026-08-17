@@ -651,7 +651,10 @@ export interface Database {
         Row: {
           id: string;
           title: string;
-          youtube_id: string;
+          youtube_id: string | null;
+          source: string;
+          video_url: string | null;
+          submitted_by: string | null;
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -659,13 +662,58 @@ export interface Database {
         Insert: {
           id?: string;
           title: string;
-          youtube_id: string;
+          youtube_id?: string | null;
+          source?: string;
+          video_url?: string | null;
+          submitted_by?: string | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["featured_videos"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "featured_videos_submitted_by_fkey";
+            columns: ["submitted_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      video_submissions: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          video_url: string;
+          status: string;
+          rejection_note: string | null;
+          created_at: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          video_url: string;
+          status?: string;
+          rejection_note?: string | null;
+          created_at?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["video_submissions"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "video_submissions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       magazine_issues: {
         Row: {

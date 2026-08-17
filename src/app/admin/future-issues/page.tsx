@@ -17,10 +17,23 @@ export default async function AdminFutureIssuesPage() {
   const { data: profile } = await admin.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
   if (!profile?.is_admin) redirect("/dashboard");
 
-  const [{ data: issues }, { data: videos }] = await Promise.all([
+  const [{ data: issues }, { data: videos }, { data: submissionsRaw }] = await Promise.all([
     admin.from("future_issues").select("id, title, release_label, description, cover_url, sort_order").order("sort_order", { ascending: true }),
-    admin.from("featured_videos").select("id, title, youtube_id, sort_order").order("sort_order", { ascending: true }),
+    admin.from("featured_videos").select("id, title, youtube_id, source, video_url, sort_order").order("sort_order", { ascending: true }),
+    admin
+      .from("video_submissions")
+      .select("id, title, video_url, status, created_at, profiles(username, full_name)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true }),
   ]);
+
+  const submissions = (submissionsRaw ?? []).map((s) => ({
+    id: s.id,
+    title: s.title,
+    video_url: s.video_url,
+    created_at: s.created_at,
+    submitterName: s.profiles?.full_name || s.profiles?.username || "A member",
+  }));
 
   return (
     <>
@@ -35,7 +48,7 @@ export default async function AdminFutureIssuesPage() {
             <a href="/future-issues" style={{ color: "var(--gold)" }}>Future Issues</a> page.
           </p>
 
-          <FutureIssuesAdminClient initialIssues={issues ?? []} initialVideos={videos ?? []} />
+          <FutureIssuesAdminClient initialIssues={issues ?? []} initialVideos={videos ?? []} initialSubmissions={submissions} />
         </div>
       </div>
       <Footer />

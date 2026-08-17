@@ -8,7 +8,10 @@ import {
   deleteFutureIssue,
   addFeaturedVideo,
   addFeaturedVideosBulk,
+  updateFeaturedVideoTitle,
   deleteFeaturedVideo,
+  approveVideoSubmission,
+  rejectVideoSubmission,
 } from "@/app/actions/future-content-admin";
 import BulkCoverDrop from "./BulkCoverDrop";
 
@@ -24,8 +27,18 @@ type FutureIssue = {
 type FeaturedVideo = {
   id: string;
   title: string;
-  youtube_id: string;
+  youtube_id: string | null;
+  source: string;
+  video_url: string | null;
   sort_order: number;
+};
+
+type Submission = {
+  id: string;
+  title: string;
+  video_url: string;
+  created_at: string;
+  submitterName: string;
 };
 
 const inputStyle: React.CSSProperties = {
@@ -60,16 +73,36 @@ const sectionTitle: React.CSSProperties = {
 export default function FutureIssuesAdminClient({
   initialIssues,
   initialVideos,
+  initialSubmissions,
 }: {
   initialIssues: FutureIssue[];
   initialVideos: FeaturedVideo[];
+  initialSubmissions: Submission[];
 }) {
   const [issues, setIssues] = useState(initialIssues);
   const [videos, setVideos] = useState(initialVideos);
+  const [submissions, setSubmissions] = useState(initialSubmissions);
   const [showIssueForm, setShowIssueForm] = useState(false);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
+      {/* MEMBER SUBMISSIONS */}
+      {submissions.length > 0 && (
+        <section>
+          <div style={sectionTitle}>
+            Member Submissions{" "}
+            <span style={{ fontFamily: "var(--ff-body)", fontSize: 13, color: "var(--gold)", fontWeight: 600 }}>
+              {submissions.length} pending
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {submissions.map((s) => (
+              <SubmissionRow key={s.id} submission={s} onResolved={() => setSubmissions((prev) => prev.filter((x) => x.id !== s.id))} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* FUTURE ISSUES */}
       <section>
         <div style={sectionTitle}>Future Issue Covers</div>
@@ -108,9 +141,9 @@ export default function FutureIssuesAdminClient({
 
       {/* FEATURED VIDEOS */}
       <section>
-        <div style={sectionTitle}>Big Screen — YouTube Videos</div>
+        <div style={sectionTitle}>Big Screen — Videos</div>
         <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20, marginTop: -8 }}>
-          Videos play one after another on a loop. Add them one at a time with a title, or paste a whole batch below.
+          Videos play one after another on a loop. Add YouTube links below, or approve a member submission above to add it automatically.
         </p>
         <VideoForm
           onAdd={async (formData) => {
@@ -131,10 +164,86 @@ export default function FutureIssuesAdminClient({
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
           {videos.length === 0 && <p style={{ fontSize: 14, color: "var(--muted)" }}>No videos added yet — paste a YouTube link above.</p>}
           {videos.map((v) => (
-            <VideoRow key={v.id} video={v} onDelete={() => setVideos((prev) => prev.filter((x) => x.id !== v.id))} />
+            <VideoRow
+              key={v.id}
+              video={v}
+              onDelete={() => setVideos((prev) => prev.filter((x) => x.id !== v.id))}
+              onRename={(title) => setVideos((prev) => prev.map((x) => (x.id === v.id ? { ...x, title } : x)))}
+            />
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+function SubmissionRow({ submission, onResolved }: { submission: Submission; onResolved: () => void }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState(false);
+  const [note, setNote] = useState("");
+
+  async function handleApprove() {
+    setPending(true);
+    setError(null);
+    const result = await approveVideoSubmission(submission.id);
+    setPending(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    onResolved();
+  }
+
+  async function handleReject() {
+    setPending(true);
+    setError(null);
+    const result = await rejectVideoSubmission(submission.id, note);
+    setPending(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    onResolved();
+  }
+
+  return (
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 16 }}>
+      <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <video src={submission.video_url} controls preload="metadata" style={{ width: 200, height: 112, background: "#000", borderRadius: 2, flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, color: "var(--white)", marginBottom: 4 }}>{submission.title}</div>
+          <div style={{ fontSize: 12, color: "var(--muted)" }}>
+            Submitted by {submission.submitterName} · {new Date(submission.created_at).toLocaleDateString()}
+          </div>
+          {error && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 6 }}>{error}</p>}
+        </div>
+        <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+          <button onClick={handleApprove} disabled={pending} className="btn-gold" style={{ padding: "8px 18px" }}>
+            {pending ? "…" : "Approve"}
+          </button>
+          <button
+            onClick={() => setRejecting((r) => !r)}
+            disabled={pending}
+            style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+          >
+            Reject
+          </button>
+        </div>
+      </div>
+      {rejecting && (
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Optional reason (visible to the member)"
+            style={{ ...inputStyle, flex: 1 }}
+          />
+          <button onClick={handleReject} disabled={pending} className="btn-ghost" style={{ padding: "8px 18px", whiteSpace: "nowrap" }}>
+            {pending ? "…" : "Confirm Reject"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -308,7 +417,7 @@ function BulkVideoForm({ onAdd }: { onAdd: (formData: FormData) => Promise<{ err
         style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace", fontSize: 12 }}
       />
       <p style={{ fontSize: 11, color: "var(--subtle)", marginTop: 8 }}>
-        One link per line (commas or spaces work too). Each becomes a clip in the rotation, titled Clip 1, Clip 2, and so on.
+        One link per line (commas or spaces work too). Each becomes a clip in the rotation — you can rename them below.
       </p>
       {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginTop: 8 }}>{error}</p>}
       <button type="submit" disabled={pending} className="btn-ghost" style={{ padding: "10px 22px", marginTop: 12 }}>
@@ -318,9 +427,19 @@ function BulkVideoForm({ onAdd }: { onAdd: (formData: FormData) => Promise<{ err
   );
 }
 
-function VideoRow({ video, onDelete }: { video: FeaturedVideo; onDelete: () => void }) {
+function VideoRow({
+  video,
+  onDelete,
+  onRename,
+}: {
+  video: FeaturedVideo;
+  onDelete: () => void;
+  onRename: (title: string) => void;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(video.title);
 
   async function handleDelete() {
     setPending(true);
@@ -333,15 +452,58 @@ function VideoRow({ video, onDelete }: { video: FeaturedVideo; onDelete: () => v
     onDelete();
   }
 
+  async function saveName() {
+    if (nameDraft.trim() === video.title.trim() || !nameDraft.trim()) {
+      setEditingName(false);
+      setNameDraft(video.title);
+      return;
+    }
+    setPending(true);
+    const result = await updateFeaturedVideoTitle(video.id, nameDraft);
+    setPending(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    onRename(nameDraft.trim());
+    setEditingName(false);
+  }
+
   return (
     <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 14, display: "flex", gap: 16, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 120, height: 68, flexShrink: 0, borderRadius: 2, overflow: "hidden", background: "#000" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`} alt={video.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <div style={{ position: "relative", width: 120, height: 68, flexShrink: 0, borderRadius: 2, overflow: "hidden", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {video.source === "upload" ? (
+          <video src={video.video_url ?? undefined} preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`} alt={video.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, color: "var(--white)", marginBottom: 2 }}>{video.title}</div>
-        <div style={{ fontSize: 11, color: "var(--muted)" }}>youtu.be/{video.youtube_id}</div>
+        {editingName ? (
+          <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+            <input
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveName()}
+              autoFocus
+              style={{ ...inputStyle, padding: "6px 10px", fontSize: 13 }}
+            />
+            <button onClick={saveName} disabled={pending} className="btn-ghost" style={{ padding: "6px 14px", fontSize: 11, whiteSpace: "nowrap" }}>Save</button>
+          </div>
+        ) : (
+          <div
+            onClick={() => setEditingName(true)}
+            title="Click to rename"
+            style={{ fontSize: 14, color: "var(--white)", marginBottom: 2, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            {video.title}
+            <span style={{ fontSize: 11, color: "var(--gold)" }}>✎</span>
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: "var(--muted)" }}>
+          {video.source === "upload" ? "Member upload" : `youtu.be/${video.youtube_id}`}
+        </div>
         {error && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 4 }}>{error}</p>}
       </div>
       <button
