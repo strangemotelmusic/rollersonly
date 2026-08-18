@@ -105,8 +105,23 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
                 {tier === "browse" ? "Free" : tier}
               </span>
             )}
-            <Link href="/" style={{ fontSize: 12, color: "#5B6675", textDecoration: "none" }}>
-              ← RollersOnly
+            <Link
+              href="/"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#E8EDF3",
+                textDecoration: "none",
+                border: "1px solid #1C232E",
+                background: "#12181F",
+                padding: "8px 14px",
+                borderRadius: 4,
+              }}
+            >
+              ← Back to RollersOnly
             </Link>
           </div>
         </div>
