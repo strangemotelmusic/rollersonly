@@ -27,7 +27,11 @@ const EXTRACTION_PROMPT = `You are reading a roller pigeon pedigree chart from a
 
 {"name": string|null, "ringNumber": string|null, "sex": "cock"|"hen"|null, "color": string|null, "sire": <same shape>|null, "dam": <same shape>|null}
 
-The root of the tree is the main/featured bird on the chart. "sire" is its father's side of the pedigree, "dam" is its mother's side, and each of those can themselves have a sire/dam going back further generations if the chart shows them. Ring/band numbers are usually a mix of letters and numbers (e.g. club prefix + year + sequence number). Leave any field null if it is not legible or not present. If a branch of the tree is not shown in the image (chart ends early for that line), set it to null rather than guessing. Respond with ONLY the raw JSON object — no markdown code fences, no other text.`;
+The root of the tree is the main/featured bird on the chart. "sire" is its father's side of the pedigree, "dam" is its mother's side, and each of those can themselves have a sire/dam going back further generations if the chart shows them.
+
+Standard pedigree charts consistently place the sire (father, always male) above the dam (mother, always female) within each parent pair — top-half of a generation is the sire's line, bottom-half is the dam's line (a few charts instead use left=sire/right=dam; use whichever spatial convention is visually consistent across the whole chart). Use this position, plus any explicit labels (Sire/Dam, S/D, Cock/Hen, ♂/♀), to correctly assign each bird to the sire or dam branch at every generation — this matters more than the "sex" field below, since branch position is how the tree gets rebuilt correctly.
+
+Ring/band numbers are usually a mix of letters and numbers (e.g. club prefix + year + sequence number). Leave any field null if it is not legible or not present. If a branch of the tree is not shown in the image (chart ends early for that line), set it to null rather than guessing. Respond with ONLY the raw JSON object — no markdown code fences, no other text.`;
 
 type AnthropicContentBlock = { type: string; text?: string };
 type AnthropicResponse = { content?: AnthropicContentBlock[] };
@@ -100,5 +104,19 @@ export async function extractPedigreeFromImage(base64: string, mediaType: string
   }
 
   if (!isValidNode(parsed)) return { error: "Could not understand the pedigree in that image — try a clearer photo." };
-  return { tree: parsed };
+  return { tree: normalizeSexByPosition(parsed, null) };
+}
+
+// Every bird reached via a "sire" edge is definitionally a cock and every bird
+// reached via a "dam" edge is definitionally a hen, regardless of generation —
+// this is exact from tree position alone, so it's more reliable than asking
+// the model to read sex off the image (which it often can't see at all).
+// Only the root bird's sex is left as whatever the model read.
+function normalizeSexByPosition(node: ImportNode, forcedSex: "cock" | "hen" | null): ImportNode {
+  return {
+    ...node,
+    sex: forcedSex ?? node.sex,
+    sire: node.sire ? normalizeSexByPosition(node.sire, "cock") : null,
+    dam: node.dam ? normalizeSexByPosition(node.dam, "hen") : null,
+  };
 }

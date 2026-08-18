@@ -134,14 +134,7 @@ export default function RegistryClient({ ownerId, initialMyBirds }: { ownerId: s
 
         {showImport && (
           <div style={{ ...card, marginBottom: 20, border: "1px solid #2DD4BF" }}>
-            <ImportFromPhotoPanel
-              ownerId={ownerId}
-              onCreated={async (birdId) => {
-                await reloadMyBirds();
-                setShowImport(false);
-                selectBird(birdId);
-              }}
-            />
+            <ImportFromPhotoPanel ownerId={ownerId} onBirdSaved={reloadMyBirds} onClose={() => setShowImport(false)} />
           </div>
         )}
 
@@ -311,86 +304,175 @@ function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }
 
 const emptyImportNode = (): ImportNode => ({ name: null, ringNumber: null, sex: null, color: null, sire: null, dam: null });
 
-function ImportFromPhotoPanel({ ownerId, onCreated }: { ownerId: string; onCreated: (birdId: string) => void }) {
+type QueueStatus = "pending" | "extracting" | "ready" | "error" | "saved";
+type QueueItem = { id: string; fileName: string; file: File; status: QueueStatus; tree?: ImportNode; error?: string };
+
+const IMPORT_CONCURRENCY = 3;
+
+async function runImportQueue(items: QueueItem[], updateItem: (id: string, patch: Partial<QueueItem>) => void) {
+  let index = 0;
+  async function worker() {
+    while (index < items.length) {
+      const item = items[index++];
+      updateItem(item.id, { status: "extracting" });
+      try {
+        const { base64, mediaType } = await fileToBase64(item.file);
+        const result = await extractPedigreeFromImage(base64, mediaType);
+        if ("error" in result) updateItem(item.id, { status: "error", error: result.error });
+        else updateItem(item.id, { status: "ready", tree: result.tree });
+      } catch (e) {
+        updateItem(item.id, { status: "error", error: e instanceof Error ? e.message : "Could not read that file." });
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(IMPORT_CONCURRENCY, items.length) }, worker));
+}
+
+function queueStatusLabel(item: QueueItem): string {
+  switch (item.status) {
+    case "pending":
+      return "Queued…";
+    case "extracting":
+      return "Reading…";
+    case "ready":
+      return "Ready — click to review";
+    case "error":
+      return item.error || "Failed";
+    case "saved":
+      return "Saved ✓";
+  }
+}
+
+function queueStatusColor(status: QueueStatus): string {
+  switch (status) {
+    case "ready":
+      return "#2DD4BF";
+    case "saved":
+      return "#5B6675";
+    case "error":
+      return "#e8a3a3";
+    default:
+      return "#5B6675";
+  }
+}
+
+function ImportFromPhotoPanel({ ownerId, onBirdSaved, onClose }: { ownerId: string; onBirdSaved: () => void; onClose: () => void }) {
   const supabase = createClient();
-  const [extracting, setExtracting] = useState(false);
-  const [extractError, setExtractError] = useState("");
-  const [tree, setTree] = useState<ImportNode | null>(null);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  async function handleFile(file: File) {
-    setExtracting(true);
-    setExtractError("");
-    setTree(null);
-    try {
-      const { base64, mediaType } = await fileToBase64(file);
-      const result = await extractPedigreeFromImage(base64, mediaType);
-      if ("error" in result) {
-        setExtractError(result.error);
-      } else {
-        setTree(result.tree);
-      }
-    } catch (e) {
-      setExtractError(e instanceof Error ? e.message : "Could not read that file.");
-    } finally {
-      setExtracting(false);
-    }
+  function updateItem(id: string, patch: Partial<QueueItem>) {
+    setQueue((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
   }
 
-  async function handleSave() {
-    if (!tree) return;
+  function handleFiles(files: FileList) {
+    const items: QueueItem[] = Array.from(files).map((file) => ({
+      id: crypto.randomUUID(),
+      fileName: file.name,
+      file,
+      status: "pending",
+    }));
+    setQueue((prev) => [...prev, ...items]);
+    runImportQueue(items, updateItem);
+  }
+
+  const active = queue.find((q) => q.id === activeId);
+
+  async function handleSaveActive() {
+    if (!active?.tree) return;
     setSaving(true);
     setSaveError("");
-    const result = await createPedigreeFromImport(supabase, ownerId, tree);
+    const result = await createPedigreeFromImport(supabase, ownerId, active.tree);
     setSaving(false);
     if ("error" in result) {
       setSaveError(result.error);
       return;
     }
-    onCreated(result.birdId);
+    updateItem(active.id, { status: "saved" });
+    setActiveId(null);
+    onBirdSaved();
   }
 
-  if (!tree) {
+  if (active?.tree) {
     return (
       <div>
-        <p style={{ fontSize: 13, color: "#C7D0DB", marginBottom: 12 }}>
-          Upload a clear photo or screenshot of a pedigree chart — the bird&apos;s name, band/ring numbers, and its
-          ancestors will be read automatically. You&apos;ll get a chance to review and correct everything before it&apos;s
-          saved.
+        <button style={btnGhost} onClick={() => setActiveId(null)} disabled={saving}>
+          ← Back to list
+        </button>
+        <p style={{ fontSize: 13, color: "#C7D0DB", margin: "16px 0" }}>
+          Reviewing <strong>{active.fileName}</strong>. Fix anything that&apos;s wrong, then save. Existing birds with
+          a matching ring number will be reused instead of duplicated.
         </p>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          disabled={extracting}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(file);
-          }}
-          style={{ fontSize: 12, color: "#5B6675" }}
+        <ImportNodeEditor
+          node={active.tree}
+          label="Bird"
+          depth={0}
+          allowRemove={false}
+          onChange={(n) => n && updateItem(active.id, { tree: n })}
         />
-        {extracting && <p style={{ fontSize: 13, color: "#2DD4BF", marginTop: 12 }}>Reading the pedigree…</p>}
-        {extractError && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 12 }}>{extractError}</p>}
+        {saveError && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 14 }}>{saveError}</p>}
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <button style={btnPrimary} onClick={handleSaveActive} disabled={saving}>
+            {saving ? "Saving…" : "Save Pedigree"}
+          </button>
+          <button style={btnGhost} onClick={() => setActiveId(null)} disabled={saving}>
+            Cancel
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <p style={{ fontSize: 13, color: "#C7D0DB", marginBottom: 16 }}>
-        Review what was read from the photo, fix anything that&apos;s wrong, then save. Existing birds with a matching
-        ring number will be reused instead of duplicated.
+      <p style={{ fontSize: 13, color: "#C7D0DB", marginBottom: 12 }}>
+        Upload one or many pedigree photos/screenshots at once — each is read separately in the background. Once a
+        photo shows &quot;Ready,&quot; click it to review and save that pedigree.
       </p>
-      <ImportNodeEditor node={tree} label="Bird" depth={0} onChange={(n) => n && setTree(n)} allowRemove={false} />
-      {saveError && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 14 }}>{saveError}</p>}
-      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-        <button style={btnPrimary} onClick={handleSave} disabled={saving}>
-          {saving ? "Saving…" : "Save Pedigree"}
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) handleFiles(e.target.files);
+          e.target.value = "";
+        }}
+        style={{ fontSize: 12, color: "#5B6675" }}
+      />
+
+      {queue.length > 0 && (
+        <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+          {queue.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => item.status === "ready" && setActiveId(item.id)}
+              style={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 14px",
+                background: "#0D1117",
+                border: "1px solid #1C232E",
+                borderRadius: 4,
+                textAlign: "left",
+                cursor: item.status === "ready" ? "pointer" : "default",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#E8EDF3" }}>{item.fileName}</span>
+              <span style={{ fontSize: 11, color: queueStatusColor(item.status) }}>{queueStatusLabel(item)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {queue.length > 0 && (
+        <button style={{ ...btnGhost, marginTop: 16 }} onClick={onClose}>
+          Done
         </button>
-        <button style={btnGhost} onClick={() => setTree(null)} disabled={saving}>
-          Start Over
-        </button>
-      </div>
+      )}
     </div>
   );
 }
