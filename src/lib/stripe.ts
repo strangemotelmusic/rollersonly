@@ -27,3 +27,14 @@ export function getPriceIdToTier(): Record<string, string> {
     Object.entries(getTierPriceIds()).map(([tier, priceId]) => [priceId, tier])
   );
 }
+
+// The Family Tree add-on is a separate, standalone subscription from the
+// marketplace tier - a customer can have both at once, each with its own
+// Stripe Customer id, so webhook handling must never conflate the two.
+export function getFamilyTreeAddonPriceId(): string {
+  return process.env.STRIPE_PRICE_FAMILY_TREE_ADDON!;
+}
+
+export function isFamilyTreeAddonPrice(priceId: string): boolean {
+  return priceId === getFamilyTreeAddonPriceId();
+}

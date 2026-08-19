@@ -366,3 +366,37 @@ create table email_campaigns (
 );
 alter table email_campaigns enable row level security;
 -- No policies — service-role only. Just a send log for the admin dashboard.
+
+-- Family Tree became its own standalone $40/yr add-on, fully decoupled from
+-- the marketplace subscription tier (elite gets it bundled free; everyone
+-- else pays separately). A customer can now have two unrelated Stripe
+-- Customer objects — one for the marketplace tier subscription
+-- (profiles.stripe_customer_id, unchanged) and one for the add-on
+-- (profiles.family_tree_addon_customer_id, new) — since a static Stripe
+-- Payment Link always creates its own Customer rather than reusing an
+-- existing one. The webhook keys each sync path off its own customer-id
+-- column so a lifecycle event on one product can never touch the other.
+alter table profiles add column if not exists family_tree_addon_active boolean not null default false;
+alter table profiles add column if not exists family_tree_addon_customer_id text;
+
+-- Admin photo uploads (Future Issue covers, D.O.T.S. birds) moved from
+-- routing through a server action (client -> Vercel -> Supabase, and capped
+-- at Next's 1MB default server-action body size) to uploading straight from
+-- the admin's browser session to Supabase Storage. That requires an insert
+-- policy for the authenticated admin, since these buckets previously only
+-- ever got written to via the service-role client.
+create policy "admins can upload future issue covers"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'future-issue-covers'
+  and exists (select 1 from profiles where id = auth.uid() and is_admin = true)
+);
+
+create policy "admins can upload dots birds photos"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'dots-birds'
+  and exists (select 1 from profiles where id = auth.uid() and is_admin = true)
+);

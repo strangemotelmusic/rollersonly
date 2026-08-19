@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { uploadAdminImage } from "@/lib/admin-uploads";
 import {
   createFutureIssue,
   updateFutureIssue,
@@ -314,6 +316,7 @@ function IssueForm({
   onCancel: () => void;
   onSubmit: (formData: FormData) => Promise<{ error: string } | { ok: true }>;
 }) {
+  const supabase = createClient();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -321,7 +324,21 @@ function IssueForm({
     e.preventDefault();
     setPending(true);
     setError(null);
-    const result = await onSubmit(new FormData(e.currentTarget));
+
+    const formData = new FormData(e.currentTarget);
+    const file = formData.get("file");
+    formData.delete("file");
+    if (file instanceof File && file.size > 0) {
+      const uploaded = await uploadAdminImage(supabase, "future-issue-covers", file);
+      if ("error" in uploaded) {
+        setPending(false);
+        setError(uploaded.error);
+        return;
+      }
+      formData.set("coverUrl", uploaded.url);
+    }
+
+    const result = await onSubmit(formData);
     setPending(false);
     if ("error" in result) setError(result.error);
   }

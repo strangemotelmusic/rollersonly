@@ -1,12 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
-import { getStripe, getPriceIdToTier } from "@/lib/stripe";
+import { getStripe, getPriceIdToTier, isFamilyTreeAddonPrice } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-async function downgradeCustomer(customerId: string) {
-  const admin = createAdminClient();
-  await admin.from("profiles").update({ tier: "browse" }).eq("stripe_customer_id", customerId);
-}
 
 async function fulfillDotsBirdOrder(session: Stripe.Checkout.Session) {
   const admin = createAdminClient();
@@ -24,19 +19,41 @@ async function fulfillDotsBirdOrder(session: Stripe.Checkout.Session) {
     .eq("stripe_session_id", session.id);
 }
 
-async function syncSubscriptionTier(subscription: Stripe.Subscription) {
+// The marketplace tier subscription and the Family Tree add-on subscription
+// are two independent Stripe Customers (a Payment Link always creates its
+// own Customer, separate from profiles.stripe_customer_id). Each sync path
+// below only ever touches its own column, keyed by its own customer id
+// column, so a lifecycle event on one product can never affect the other.
+async function syncTierSubscription(subscription: Stripe.Subscription) {
+  const priceId = subscription.items.data[0]?.price.id;
+  const tier = priceId ? getPriceIdToTier()[priceId] : null;
+  if (!tier) return; // not a marketplace-tier price - ignore (e.g. it's the add-on)
+
   const admin = createAdminClient();
   const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+  const active = subscription.status === "active" || subscription.status === "trialing";
+  await admin.from("profiles").update({ tier: active ? tier : "browse" }).eq("stripe_customer_id", customerId);
+}
 
-  if (subscription.status === "active" || subscription.status === "trialing") {
-    const priceId = subscription.items.data[0]?.price.id;
-    const tier = priceId ? getPriceIdToTier()[priceId] : null;
-    if (tier) {
-      await admin.from("profiles").update({ tier }).eq("stripe_customer_id", customerId);
-    }
-  } else {
-    await downgradeCustomer(customerId);
-  }
+async function syncFamilyTreeAddonSubscription(subscription: Stripe.Subscription) {
+  const priceId = subscription.items.data[0]?.price.id;
+  if (!priceId || !isFamilyTreeAddonPrice(priceId)) return; // not the add-on price - ignore
+
+  const admin = createAdminClient();
+  const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+  const active = subscription.status === "active" || subscription.status === "trialing";
+  await admin.from("profiles").update({ family_tree_addon_active: active }).eq("family_tree_addon_customer_id", customerId);
+}
+
+async function claimFamilyTreeAddonCustomer(session: Stripe.Checkout.Session) {
+  const userId = session.client_reference_id;
+  if (!userId) return; // shouldn't happen - the UI always appends it before sending anyone to the Payment Link
+
+  const admin = createAdminClient();
+  const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+  if (!customerId) return;
+
+  await admin.from("profiles").update({ family_tree_addon_customer_id: customerId, family_tree_addon_active: true }).eq("id", userId);
 }
 
 export async function POST(request: NextRequest) {
@@ -61,26 +78,36 @@ export async function POST(request: NextRequest) {
       if (session.payment_status === "paid" && session.subscription) {
         const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        await syncSubscriptionTier(subscription);
+        const priceId = subscription.items.data[0]?.price.id;
+        if (priceId && isFamilyTreeAddonPrice(priceId)) {
+          // First-time purchase via the Payment Link - this Stripe Customer
+          // is brand new, so there's nothing in family_tree_addon_customer_id
+          // to match yet. client_reference_id (set by the app before sending
+          // anyone to the link) is how we know which profile just paid.
+          await claimFamilyTreeAddonCustomer(session);
+        } else {
+          await syncTierSubscription(subscription);
+        }
       } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.bird_ids) {
         await fulfillDotsBirdOrder(session);
       }
       break;
     }
-    case "customer.subscription.updated": {
-      await syncSubscriptionTier(event.data.object as Stripe.Subscription);
-      break;
-    }
+    case "customer.subscription.updated":
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
-      const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
-      await downgradeCustomer(customerId);
+      await syncTierSubscription(subscription);
+      await syncFamilyTreeAddonSubscription(subscription);
       break;
     }
     case "invoice.payment_failed": {
       const invoice = event.data.object as Stripe.Invoice;
       const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
-      if (customerId) await downgradeCustomer(customerId);
+      if (customerId) {
+        const admin = createAdminClient();
+        await admin.from("profiles").update({ tier: "browse" }).eq("stripe_customer_id", customerId);
+        await admin.from("profiles").update({ family_tree_addon_active: false }).eq("family_tree_addon_customer_id", customerId);
+      }
       break;
     }
   }

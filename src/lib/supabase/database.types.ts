@@ -23,6 +23,8 @@ export interface Database {
           stripe_customer_id: string | null;
           marketing_opt_out: boolean;
           unsubscribe_token: string;
+          family_tree_addon_active: boolean;
+          family_tree_addon_customer_id: string | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -39,6 +41,8 @@ export interface Database {
           stripe_customer_id?: string | null;
           marketing_opt_out?: boolean;
           unsubscribe_token?: string;
+          family_tree_addon_active?: boolean;
+          family_tree_addon_customer_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
         };

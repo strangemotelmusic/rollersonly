@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { tierRank } from "@/lib/family-tree/access";
+import { hasFamilyTreeAccess } from "@/lib/family-tree/access";
 
 const NAV_ITEMS = [
-  { label: "Registry", href: "/family-tree/registry", minTier: "fancier" as const },
-  { label: "Breeding", href: "/family-tree/breeding", minTier: "breeder" as const },
-  { label: "Performance", href: "/family-tree/performance", minTier: "elite" as const },
+  { label: "Registry", href: "/family-tree/registry" },
+  { label: "Breeding", href: "/family-tree/breeding" },
+  { label: "Performance", href: "/family-tree/performance" },
 ];
 
 export default async function FamilyTreeLayout({ children }: { children: React.ReactNode }) {
@@ -14,14 +14,18 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
     data: { user },
   } = await supabase.auth.getUser();
 
-  let tier = "browse";
   let isAdmin = false;
+  let hasAccess = false;
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select("tier, is_admin").eq("id", user.id).maybeSingle();
-    tier = profile?.tier ?? "browse";
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tier, is_admin, family_tree_addon_active")
+      .eq("id", user.id)
+      .maybeSingle();
     isAdmin = Boolean(profile?.is_admin);
+    hasAccess = profile ? hasFamilyTreeAccess(profile) : false;
   }
-  const rank = tierRank(tier);
+  const locked = !hasAccess;
 
   return (
     <div style={{ minHeight: "100vh", background: "#0A0D12", fontFamily: "var(--ff-body)" }}>
@@ -47,28 +51,25 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
             </Link>
 
             <nav style={{ display: "flex", gap: 4 }}>
-              {NAV_ITEMS.map((item) => {
-                const locked = !isAdmin && rank < tierRank(item.minTier);
-                return (
-                  <Link
-                    key={item.href}
-                    href={locked ? `/family-tree?upgrade=${item.minTier}` : item.href}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "8px 14px",
-                      borderRadius: 4,
-                      fontSize: 13,
-                      color: locked ? "#5B6675" : "#C7D0DB",
-                      textDecoration: "none",
-                    }}
-                  >
-                    {item.label}
-                    {locked && <span style={{ fontSize: 11 }}>🔒</span>}
-                  </Link>
-                );
-              })}
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.href}
+                  href={locked ? "/family-tree?upgrade=addon" : item.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "8px 14px",
+                    borderRadius: 4,
+                    fontSize: 13,
+                    color: locked ? "#5B6675" : "#C7D0DB",
+                    textDecoration: "none",
+                  }}
+                >
+                  {item.label}
+                  {locked && <span style={{ fontSize: 11 }}>🔒</span>}
+                </Link>
+              ))}
             </nav>
           </div>
 
@@ -88,7 +89,7 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
               >
                 Owner · Full Access
               </span>
-            ) : (
+            ) : hasAccess ? (
               <span
                 style={{
                   fontSize: 10,
@@ -102,7 +103,23 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
                   borderRadius: 20,
                 }}
               >
-                {tier === "browse" ? "Free" : tier}
+                Member
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "#5B6675",
+                  border: "1px solid #1C232E",
+                  background: "#12181F",
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                }}
+              >
+                Not Subscribed
               </span>
             )}
             <Link

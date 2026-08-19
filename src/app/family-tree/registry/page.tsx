@@ -1,10 +1,10 @@
-import { requireFamilyTreeTier } from "@/lib/family-tree/access";
+import { requireFamilyTreeAccess } from "@/lib/family-tree/access";
 import { createClient } from "@/lib/supabase/server";
 import { asPhotoSettingsMap } from "@/lib/our-breeders/crop";
 import RegistryClient, { type FamilyTreeBird } from "./RegistryClient";
 
 export default async function FamilyTreeRegistryPage() {
-  const profile = await requireFamilyTreeTier("fancier");
+  const profile = await requireFamilyTreeAccess();
   const supabase = await createClient();
 
   const { data: myBirds } = await supabase

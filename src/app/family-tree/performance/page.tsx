@@ -1,9 +1,9 @@
-import { requireFamilyTreeTier } from "@/lib/family-tree/access";
+import { requireFamilyTreeAccess } from "@/lib/family-tree/access";
 import { createClient } from "@/lib/supabase/server";
 import PerformanceClient from "./PerformanceClient";
 
 export default async function FamilyTreePerformancePage() {
-  const profile = await requireFamilyTreeTier("elite");
+  const profile = await requireFamilyTreeAccess();
   const supabase = await createClient();
 
   const [{ data: birds }, { data: flyLog }] = await Promise.all([

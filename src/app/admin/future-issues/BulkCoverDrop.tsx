@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { createFutureIssue } from "@/app/actions/future-content-admin";
 import { extractCoverInfo, infoFromFilename } from "@/lib/future-issues/ocr";
+import { uploadAdminImage } from "@/lib/admin-uploads";
 
 type Item = {
   id: string;
@@ -36,6 +38,7 @@ const smallLabel: React.CSSProperties = {
 };
 
 export default function BulkCoverDrop() {
+  const supabase = createClient();
   const [items, setItems] = useState<Item[]>([]);
   const [dragging, setDragging] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -68,18 +71,25 @@ export default function BulkCoverDrop() {
 
     // OCR each cover in the background, filling in whatever it can read. If OCR
     // fails or reads nothing, the filename-derived values already in place stay.
-    for (const it of newItems) {
-      try {
-        const info = await extractCoverInfo(it.file);
-        update(it.id, {
-          title: info.title || it.title,
-          releaseLabel: info.releaseLabel || it.releaseLabel,
-          reading: false,
-        });
-      } catch {
-        update(it.id, { reading: false });
+    // Runs several covers at once against the Tesseract worker pool instead of
+    // one at a time.
+    let index = 0;
+    async function ocrWorker() {
+      while (index < newItems.length) {
+        const it = newItems[index++];
+        try {
+          const info = await extractCoverInfo(it.file);
+          update(it.id, {
+            title: info.title || it.title,
+            releaseLabel: info.releaseLabel || it.releaseLabel,
+            reading: false,
+          });
+        } catch {
+          update(it.id, { reading: false });
+        }
       }
     }
+    await Promise.all(Array.from({ length: Math.min(3, newItems.length) }, ocrWorker));
   }
 
   function removeItem(id: string) {
@@ -100,20 +110,38 @@ export default function BulkCoverDrop() {
     setSaving(true);
     setError(null);
     setProgress(0);
-    for (let i = 0; i < items.length; i++) {
-      const it = items[i];
-      const fd = new FormData();
-      fd.set("title", it.title.trim() || "Untitled Issue");
-      fd.set("releaseLabel", it.releaseLabel.trim());
-      fd.set("description", it.description.trim());
-      fd.set("file", it.file);
-      const result = await createFutureIssue(fd);
-      if ("error" in result) {
-        setError(`Failed on "${it.title}": ${result.error}`);
-        setSaving(false);
-        return;
+    const failures: string[] = [];
+    let done = 0;
+    let index = 0;
+
+    async function saveWorker() {
+      while (index < items.length) {
+        const it = items[index++];
+        const uploaded = await uploadAdminImage(supabase, "future-issue-covers", it.file);
+        if ("error" in uploaded) {
+          failures.push(`"${it.title}": ${uploaded.error}`);
+          done++;
+          setProgress(done);
+          continue;
+        }
+        const fd = new FormData();
+        fd.set("title", it.title.trim() || "Untitled Issue");
+        fd.set("releaseLabel", it.releaseLabel.trim());
+        fd.set("description", it.description.trim());
+        fd.set("coverUrl", uploaded.url);
+        const result = await createFutureIssue(fd);
+        if ("error" in result) failures.push(`"${it.title}": ${result.error}`);
+        done++;
+        setProgress(done);
       }
-      setProgress(i + 1);
+    }
+
+    await Promise.all(Array.from({ length: Math.min(4, items.length) }, saveWorker));
+
+    setSaving(false);
+    if (failures.length > 0) {
+      setError(`${failures.length} of ${items.length} failed to save:\n${failures.join("\n")}`);
+      return;
     }
     window.location.reload();
   }
@@ -175,7 +203,7 @@ export default function BulkCoverDrop() {
             </button>
           </div>
 
-          {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginBottom: 12 }}>{error}</p>}
+          {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginBottom: 12, whiteSpace: "pre-line" }}>{error}</p>}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {items.map((it) => (

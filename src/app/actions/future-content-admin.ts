@@ -6,6 +6,18 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type FutureIssueUpdate = Database["public"]["Tables"]["future_issues"]["Update"];
 
+const COVER_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/future-issue-covers/`;
+
+// The image itself is already uploaded client-side by the time this runs
+// (see src/lib/admin-uploads.ts) - only validate the URL points at the
+// right bucket rather than accepting an arbitrary string.
+function parseCoverUrl(formData: FormData): { error: string } | { url: string | null } {
+  const raw = String(formData.get("coverUrl") || "").trim();
+  if (!raw) return { url: null };
+  if (!raw.startsWith(COVER_URL_PREFIX)) return { error: "Unexpected cover image URL." };
+  return { url: raw };
+}
+
 async function requireAdmin(): Promise<{ error: string } | { admin: ReturnType<typeof createAdminClient> }> {
   const supabase = await createClient();
   const {
@@ -52,15 +64,8 @@ export async function createFutureIssue(formData: FormData): Promise<{ error: st
   const description = String(formData.get("description") || "").trim();
   if (!title) return { error: "Issue title is required." };
 
-  let coverUrl: string | null = null;
-  const file = formData.get("file");
-  if (file instanceof File && file.size > 0) {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${crypto.randomUUID()}.${ext}`;
-    const { error: uploadErr } = await admin.storage.from("future-issue-covers").upload(path, file);
-    if (uploadErr) return { error: `Cover upload failed: ${uploadErr.message}` };
-    coverUrl = admin.storage.from("future-issue-covers").getPublicUrl(path).data.publicUrl;
-  }
+  const parsedCover = parseCoverUrl(formData);
+  if ("error" in parsedCover) return parsedCover;
 
   const { data: maxRow } = await admin
     .from("future_issues")
@@ -73,7 +78,7 @@ export async function createFutureIssue(formData: FormData): Promise<{ error: st
     title,
     release_label: releaseLabel || null,
     description: description || null,
-    cover_url: coverUrl,
+    cover_url: parsedCover.url,
     sort_order: (maxRow?.sort_order ?? 0) + 1,
   });
 
@@ -98,14 +103,9 @@ export async function updateFutureIssue(id: string, formData: FormData): Promise
     updated_at: new Date().toISOString(),
   };
 
-  const file = formData.get("file");
-  if (file instanceof File && file.size > 0) {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${crypto.randomUUID()}.${ext}`;
-    const { error: uploadErr } = await admin.storage.from("future-issue-covers").upload(path, file);
-    if (uploadErr) return { error: `Cover upload failed: ${uploadErr.message}` };
-    update.cover_url = admin.storage.from("future-issue-covers").getPublicUrl(path).data.publicUrl;
-  }
+  const parsedCover = parseCoverUrl(formData);
+  if ("error" in parsedCover) return parsedCover;
+  if (parsedCover.url) update.cover_url = parsedCover.url;
 
   const { error } = await admin.from("future_issues").update(update).eq("id", id);
   if (error) return { error: error.message };

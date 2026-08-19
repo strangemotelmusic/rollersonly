@@ -1,9 +1,9 @@
-import { requireFamilyTreeTier } from "@/lib/family-tree/access";
+import { requireFamilyTreeAccess } from "@/lib/family-tree/access";
 import { createClient } from "@/lib/supabase/server";
 import BreedingClient, { type Season } from "./BreedingClient";
 
 export default async function FamilyTreeBreedingPage() {
-  const profile = await requireFamilyTreeTier("breeder");
+  const profile = await requireFamilyTreeAccess();
   const supabase = await createClient();
 
   const { data: seasons } = await supabase

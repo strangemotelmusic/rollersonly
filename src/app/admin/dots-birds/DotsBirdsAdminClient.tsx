@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { uploadAdminImage } from "@/lib/admin-uploads";
 import {
   createDotsBird,
   updateDotsBird,
@@ -9,6 +11,7 @@ import {
   deleteDotsBird,
 } from "@/app/actions/dots-birds-admin";
 import { formatPrice } from "@/lib/dots-birds";
+import BulkDotsBirdDrop from "./BulkDotsBirdDrop";
 
 type Bird = {
   id: string;
@@ -45,23 +48,41 @@ const labelStyle: React.CSSProperties = {
 export default function DotsBirdsAdminClient({ initialBirds }: { initialBirds: Bird[] }) {
   const [birds, setBirds] = useState(initialBirds);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showBulk, setShowBulk] = useState(false);
 
   return (
     <div>
-      <button
-        className="btn-gold"
-        style={{ padding: "10px 22px", marginBottom: 24 }}
-        onClick={() => setShowAddForm((s) => !s)}
-      >
-        {showAddForm ? "Cancel" : "+ Add New Bird"}
-      </button>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+        <button
+          className="btn-gold"
+          style={{ padding: "10px 22px" }}
+          onClick={() => {
+            setShowAddForm((s) => !s);
+            setShowBulk(false);
+          }}
+        >
+          {showAddForm ? "Cancel" : "+ Add New Bird"}
+        </button>
+        <button
+          className="btn-ghost"
+          style={{ padding: "10px 22px", cursor: "pointer" }}
+          onClick={() => {
+            setShowBulk((s) => !s);
+            setShowAddForm(false);
+          }}
+        >
+          {showBulk ? "Cancel Bulk Import" : "🕊️ Bulk Import Photos"}
+        </button>
+      </div>
+
+      {showBulk && <BulkDotsBirdDrop />}
 
       {showAddForm && (
         <BirdForm
           onCancel={() => setShowAddForm(false)}
           onSubmit={async (formData) => {
             const result = await createDotsBird(formData);
-            if (result.error) return result;
+            if ("error" in result) return result;
             window.location.reload();
             return result;
           }}
@@ -104,7 +125,7 @@ function BirdRow({
     setPending(true);
     const result = await setDotsBirdAvailability(bird.id, !bird.is_available);
     setPending(false);
-    if (result.error) {
+    if ("error" in result) {
       setError(result.error);
       return;
     }
@@ -116,7 +137,7 @@ function BirdRow({
     setPending(true);
     const result = await deleteDotsBird(bird.id);
     setPending(false);
-    if (result.error) {
+    if ("error" in result) {
       setError(result.error);
       return;
     }
@@ -130,7 +151,7 @@ function BirdRow({
         onCancel={() => setEditing(false)}
         onSubmit={async (formData) => {
           const result = await updateDotsBird(bird.id, formData);
-          if (result.error) return result;
+          if ("error" in result) return result;
           window.location.reload();
           return result;
         }}
@@ -179,8 +200,9 @@ function BirdForm({
 }: {
   bird?: Bird;
   onCancel: () => void;
-  onSubmit: (formData: FormData) => Promise<{ error?: string }>;
+  onSubmit: (formData: FormData) => Promise<{ error: string } | { ok: true }>;
 }) {
+  const supabase = createClient();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -188,10 +210,23 @@ function BirdForm({
     e.preventDefault();
     setPending(true);
     setError(null);
+
     const formData = new FormData(e.currentTarget);
+    const file = formData.get("file");
+    formData.delete("file");
+    if (file instanceof File && file.size > 0) {
+      const uploaded = await uploadAdminImage(supabase, "dots-birds", file);
+      if ("error" in uploaded) {
+        setPending(false);
+        setError(uploaded.error);
+        return;
+      }
+      formData.set("photoUrl", uploaded.url);
+    }
+
     const result = await onSubmit(formData);
     setPending(false);
-    if (result.error) setError(result.error);
+    if ("error" in result) setError(result.error);
   }
 
   return (
