@@ -28,10 +28,7 @@ export default function DotsBirdsClient({ birds }: { birds: Bird[] }) {
   }
 
   return (
-    <div
-      className="rs-grid-3"
-      style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)", padding: "1px", margin: "40px" }}
-    >
+    <div className="browse-grid">
       {birds.map((bird) => {
         const inCart = has(bird.id);
         return (

@@ -883,16 +883,16 @@ footer { background: var(--void); border-top: 0.5px solid var(--border); padding
    shorter image and tighter body than the homepage/auction cards. */
 .browse-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1px;
   background: var(--border);
   padding: 1px;
   margin: 40px;
 }
-.browse-grid .auction-img-wrap { height: 200px; }
-.browse-grid .auction-body { padding: 14px 16px 16px; }
-.browse-grid .auction-name { font-size: 16px; margin-bottom: 2px; }
-.browse-grid .auction-breeder { font-size: 11px; margin-bottom: 12px; }
+.browse-grid .auction-img-wrap { height: 170px; }
+.browse-grid .auction-body { padding: 12px 14px 14px; }
+.browse-grid .auction-name { font-size: 15px; margin-bottom: 2px; }
+.browse-grid .auction-breeder { font-size: 11px; margin-bottom: 10px; }
 .browse-grid .auction-bid { font-size: 20px; }
 .browse-grid .auction-bid-label { font-size: 9px; }
 .browse-grid .tag { font-size: 9px; padding: 3px 8px; }
