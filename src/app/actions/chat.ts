@@ -79,10 +79,11 @@ export async function searchProfiles(
   if (!trimmed) return { profiles: [] };
 
   const supabase = await createClient();
+  const escaped = trimmed.replace(/[%,]/g, "");
   const { data, error } = await supabase
     .from("profiles")
     .select("id, username, full_name, avatar_url")
-    .ilike("username", `%${trimmed}%`)
+    .or(`username.ilike.%${escaped}%,full_name.ilike.%${escaped}%`)
     .neq("id", gate.user.id)
     .limit(20);
 

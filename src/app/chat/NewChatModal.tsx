@@ -87,7 +87,7 @@ export default function NewChatModal({
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by username…"
+            placeholder="Search by name or username…"
             style={{ width: "100%", background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none", boxSizing: "border-box" }}
           />
 

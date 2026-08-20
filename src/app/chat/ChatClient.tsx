@@ -390,6 +390,27 @@ export default function ChatClient({
             + New
           </button>
         </div>
+        <button
+          onClick={() => setShowNewChatModal(true)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            width: "calc(100% - 40px)",
+            margin: "14px 20px",
+            background: "var(--surface)",
+            border: "none",
+            color: "var(--muted)",
+            padding: "10px 14px",
+            fontSize: 13,
+            borderRadius: 2,
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <span>🔍</span>
+          <span>Search people to chat with…</span>
+        </button>
         <div style={{ display: "flex", borderBottom: "0.5px solid var(--border)" }}>
           {sidebarTabs.map((t) => (
             <button
