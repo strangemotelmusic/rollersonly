@@ -50,7 +50,7 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
               </span>
             </Link>
 
-            <nav style={{ display: "flex", gap: 4 }}>
+            <div style={{ display: "flex", gap: 4 }}>
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
@@ -70,7 +70,7 @@ export default async function FamilyTreeLayout({ children }: { children: React.R
                   {locked && <span style={{ fontSize: 11 }}>🔒</span>}
                 </Link>
               ))}
-            </nav>
+            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>

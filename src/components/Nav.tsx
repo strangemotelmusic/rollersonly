@@ -34,7 +34,7 @@ export default async function Nav({ active }: { active?: string }) {
   const avatarUrl = avatarRow?.avatar_url ?? null;
 
   return (
-    <nav>
+    <nav className="site-nav">
       <Link href="/" className="nav-logo">
         Rollers<span>Only</span>
       </Link>

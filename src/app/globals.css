@@ -103,7 +103,7 @@ body {
 .btn-ghost-lg:hover { border-color: var(--white); }
 
 /* ── NAV ── */
-nav {
+.site-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 48px;
@@ -274,7 +274,7 @@ nav {
 .nav-mobile-panel a:last-child, .nav-mobile-panel button:last-child { border-bottom: none; }
 
 @media (max-width: 1024px) {
-  nav { padding: 0 20px !important; }
+  .site-nav { padding: 0 20px !important; }
   .nav-links { display: none !important; }
   .nav-cta { display: none !important; }
   .nav-desktop { display: none !important; }
