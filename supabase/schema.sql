@@ -402,14 +402,16 @@ with check (
 );
 
 -- Push notifications for the RollersOnly mobile app. A device registers its
--- Expo push token here on sign-in; a Database Webhook (a plain Postgres
--- trigger using the built-in supabase_functions.http_request() helper - not
--- a hand-rolled function, this ships in every Supabase project) fires on
--- every chat_messages insert and POSTs the new row to
--- /api/push/dispatch, which looks up the other participants' tokens here
--- and sends via Expo's Push API. The Authorization header is a shared
--- secret (PUSH_WEBHOOK_SECRET), same pattern as CRON_SECRET already used
--- for src/app/api/cron/settle-auctions.
+-- Expo push token here on sign-in; a trigger fires on every chat_messages
+-- insert and POSTs the new row to /api/push/dispatch via the pg_net
+-- extension (available by default in every Supabase project, unlike the
+-- supabase_functions.http_request() helper the Dashboard's "Database
+-- Webhooks" UI normally provisions on first use - this project never had
+-- that UI feature touched, so that schema didn't exist; pg_net is the
+-- direct, always-available equivalent). The dispatch route looks up the
+-- other participants' tokens here and sends via Expo's Push API. The
+-- Authorization header is a shared secret (PUSH_WEBHOOK_SECRET), same
+-- pattern as CRON_SECRET already used for src/app/api/cron/settle-auctions.
 create table push_tokens (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
@@ -421,13 +423,23 @@ alter table push_tokens enable row level security;
 create policy "users manage own push tokens" on push_tokens
   for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-create trigger "chat_message_push_notification"
-after insert on "public"."chat_messages"
+create extension if not exists pg_net schema extensions;
+
+create or replace function notify_new_chat_message()
+returns trigger
+language plpgsql
+as $$
+begin
+  perform net.http_post(
+    'https://rollersonly.com/api/push/dispatch'::text,
+    jsonb_build_object('record', to_jsonb(new.*)),
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer REPLACE_WITH_PUSH_WEBHOOK_SECRET"}'::jsonb
+  );
+  return new;
+end;
+$$;
+
+create trigger chat_message_push_notification
+after insert on chat_messages
 for each row
-execute function "supabase_functions"."http_request"(
-  'https://rollersonly.com/api/push/dispatch',
-  'POST',
-  '{"Content-Type":"application/json","Authorization":"Bearer REPLACE_WITH_PUSH_WEBHOOK_SECRET"}',
-  '{}',
-  '5000'
-);
+execute function notify_new_chat_message();
