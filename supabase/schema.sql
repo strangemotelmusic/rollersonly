@@ -400,3 +400,34 @@ with check (
   bucket_id = 'dots-birds'
   and exists (select 1 from profiles where id = auth.uid() and is_admin = true)
 );
+
+-- Push notifications for the RollersOnly mobile app. A device registers its
+-- Expo push token here on sign-in; a Database Webhook (a plain Postgres
+-- trigger using the built-in supabase_functions.http_request() helper - not
+-- a hand-rolled function, this ships in every Supabase project) fires on
+-- every chat_messages insert and POSTs the new row to
+-- /api/push/dispatch, which looks up the other participants' tokens here
+-- and sends via Expo's Push API. The Authorization header is a shared
+-- secret (PUSH_WEBHOOK_SECRET), same pattern as CRON_SECRET already used
+-- for src/app/api/cron/settle-auctions.
+create table push_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  expo_push_token text not null unique,
+  device_info text,
+  created_at timestamptz not null default now()
+);
+alter table push_tokens enable row level security;
+create policy "users manage own push tokens" on push_tokens
+  for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create trigger "chat_message_push_notification"
+after insert on "public"."chat_messages"
+for each row
+execute function "supabase_functions"."http_request"(
+  'https://rollersonly.com/api/push/dispatch',
+  'POST',
+  '{"Content-Type":"application/json","Authorization":"Bearer REPLACE_WITH_PUSH_WEBHOOK_SECRET"}',
+  '{}',
+  '5000'
+);

@@ -1483,6 +1483,32 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["vip_comp_tiers"]["Insert"]>;
         Relationships: [];
       };
+      push_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          expo_push_token: string;
+          device_info: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          expo_push_token: string;
+          device_info?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["push_tokens"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       newsletter_subscribers: {
         Row: {
           id: string;
