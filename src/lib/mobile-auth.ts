@@ -17,3 +17,20 @@ export async function requireMobileUser(request: NextRequest): Promise<{ error: 
 
   return { userId: data.user.id };
 }
+
+// Every admin Route Handler under src/app/api/mobile/admin/* starts here
+// instead of requireMobileUser - same bearer-token check, plus the
+// profiles.is_admin gate every web admin page/action re-implements
+// individually. Centralized here rather than copy-pasted per route.
+export async function requireMobileAdmin(
+  request: NextRequest
+): Promise<{ error: string; status: number } | { userId: string; admin: ReturnType<typeof createAdminClient> }> {
+  const auth = await requireMobileUser(request);
+  if ("error" in auth) return auth;
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from("profiles").select("is_admin").eq("id", auth.userId).maybeSingle();
+  if (!profile?.is_admin) return { error: "Admins only.", status: 403 };
+
+  return { userId: auth.userId, admin };
+}
