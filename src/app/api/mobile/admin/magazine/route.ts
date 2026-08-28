@@ -5,6 +5,7 @@ import type { Database } from "@/lib/supabase/database.types";
 type IssueUpdate = Database["public"]["Tables"]["magazine_issues"]["Update"];
 
 const PHOTO_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/magazine-covers/`;
+const PDF_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/magazine-pdfs/`;
 
 export async function GET(request: NextRequest) {
   const auth = await requireMobileAdmin(request);
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
 
   const { data } = await admin
     .from("magazine_issues")
-    .select("id, issue_number, title, description, content, cover_image_url, published_at")
+    .select("id, issue_number, title, description, content, cover_image_url, pdf_url, published_at")
     .order("issue_number", { ascending: false });
 
   return NextResponse.json({ issues: data ?? [] });
@@ -49,6 +50,14 @@ export async function POST(request: NextRequest) {
     coverImageUrl = body.coverImageUrl;
   }
 
+  let pdfUrl: string | undefined;
+  if (body.pdfUrl) {
+    if (!String(body.pdfUrl).startsWith(PDF_URL_PREFIX)) {
+      return NextResponse.json({ error: "Unexpected PDF URL." }, { status: 400 });
+    }
+    pdfUrl = body.pdfUrl;
+  }
+
   if (body.action === "create") {
     const { error } = await admin.from("magazine_issues").insert({
       title,
@@ -56,6 +65,7 @@ export async function POST(request: NextRequest) {
       description: body.description ? String(body.description).trim() : null,
       content: body.content ? String(body.content).trim() : null,
       cover_image_url: coverImageUrl ?? null,
+      pdf_url: pdfUrl ?? null,
       published_at: body.publishedAt ? new Date(body.publishedAt).toISOString() : new Date().toISOString(),
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -70,6 +80,7 @@ export async function POST(request: NextRequest) {
   };
   if (body.publishedAt) update.published_at = new Date(body.publishedAt).toISOString();
   if (coverImageUrl) update.cover_image_url = coverImageUrl;
+  if (pdfUrl) update.pdf_url = pdfUrl;
 
   const { error } = await admin.from("magazine_issues").update(update).eq("id", body.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

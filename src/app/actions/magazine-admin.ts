@@ -6,22 +6,35 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type MagazineIssueUpdate = Database["public"]["Tables"]["magazine_issues"]["Update"];
 
-async function requireAdmin() {
+const PDF_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/magazine-pdfs/`;
+
+// The PDF is already uploaded client-side by the time this runs (bypasses
+// the server action body-size cap - see MagazineAdminClient.tsx) - only
+// validate the URL points at the right bucket rather than accepting an
+// arbitrary string.
+function parsePdfUrl(formData: FormData): { error: string } | { url: string | null } {
+  const raw = String(formData.get("pdfUrl") || "").trim();
+  if (!raw) return { url: null };
+  if (!raw.startsWith(PDF_URL_PREFIX)) return { error: "Unexpected PDF URL." };
+  return { url: raw };
+}
+
+async function requireAdmin(): Promise<{ error: string } | { admin: ReturnType<typeof createAdminClient> }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { error: "You must be signed in." } as const;
+  if (!user) return { error: "You must be signed in." };
 
   const admin = createAdminClient();
   const { data: profile } = await admin.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
-  if (!profile?.is_admin) return { error: "Admins only." } as const;
+  if (!profile?.is_admin) return { error: "Admins only." };
 
-  return { admin } as const;
+  return { admin };
 }
 
-export async function createMagazineIssue(formData: FormData) {
+export async function createMagazineIssue(formData: FormData): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
   const { admin } = gate;
@@ -37,6 +50,9 @@ export async function createMagazineIssue(formData: FormData) {
   if (!issueNumberRaw || !Number.isInteger(issueNumber) || issueNumber <= 0) {
     return { error: "Enter a valid issue number." };
   }
+
+  const parsedPdf = parsePdfUrl(formData);
+  if ("error" in parsedPdf) return parsedPdf;
 
   let coverImageUrl: string | null = null;
   const file = formData.get("file");
@@ -54,6 +70,7 @@ export async function createMagazineIssue(formData: FormData) {
     description: description || null,
     content: content || null,
     cover_image_url: coverImageUrl,
+    pdf_url: parsedPdf.url,
     published_at: publishedAt ? new Date(publishedAt).toISOString() : new Date().toISOString(),
   });
 
@@ -61,7 +78,7 @@ export async function createMagazineIssue(formData: FormData) {
   return { ok: true };
 }
 
-export async function updateMagazineIssue(id: string, formData: FormData) {
+export async function updateMagazineIssue(id: string, formData: FormData): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
   const { admin } = gate;
@@ -78,6 +95,9 @@ export async function updateMagazineIssue(id: string, formData: FormData) {
     return { error: "Enter a valid issue number." };
   }
 
+  const parsedPdf = parsePdfUrl(formData);
+  if ("error" in parsedPdf) return parsedPdf;
+
   const update: MagazineIssueUpdate = {
     title,
     issue_number: issueNumber,
@@ -85,6 +105,7 @@ export async function updateMagazineIssue(id: string, formData: FormData) {
     content: content || null,
   };
   if (publishedAt) update.published_at = new Date(publishedAt).toISOString();
+  if (parsedPdf.url) update.pdf_url = parsedPdf.url;
 
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
@@ -100,7 +121,7 @@ export async function updateMagazineIssue(id: string, formData: FormData) {
   return { ok: true };
 }
 
-export async function deleteMagazineIssue(id: string) {
+export async function deleteMagazineIssue(id: string): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
   const { admin } = gate;

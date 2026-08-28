@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   if (issueId) {
     const { data: issue } = await admin
       .from("magazine_issues")
-      .select("id, issue_number, title, description, cover_image_url, content, published_at")
+      .select("id, issue_number, title, description, cover_image_url, content, pdf_url, published_at")
       .eq("id", issueId)
       .maybeSingle();
 

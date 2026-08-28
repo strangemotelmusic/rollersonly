@@ -19,7 +19,7 @@ export default async function AdminMagazinePage() {
 
   const { data: issues } = await admin
     .from("magazine_issues")
-    .select("id, issue_number, title, description, content, cover_image_url, published_at")
+    .select("id, issue_number, title, description, content, cover_image_url, pdf_url, published_at")
     .order("issue_number", { ascending: false });
 
   return (

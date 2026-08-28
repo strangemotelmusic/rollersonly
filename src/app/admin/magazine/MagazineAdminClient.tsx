@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { createMagazineIssue, updateMagazineIssue, deleteMagazineIssue } from "@/app/actions/magazine-admin";
+import { createClient } from "@/lib/supabase/client";
 
 type Issue = {
   id: string;
@@ -11,6 +12,7 @@ type Issue = {
   description: string | null;
   content: string | null;
   cover_image_url: string | null;
+  pdf_url: string | null;
   published_at: string;
 };
 
@@ -54,9 +56,9 @@ export default function MagazineAdminClient({ initialIssues }: { initialIssues: 
           onCancel={() => setShowAddForm(false)}
           onSubmit={async (formData) => {
             const result = await createMagazineIssue(formData);
-            if (result.error) return result;
+            if ("error" in result) return result;
             window.location.reload();
-            return result;
+            return {};
           }}
         />
       )}
@@ -81,7 +83,7 @@ function IssueRow({ issue, onDelete }: { issue: Issue; onDelete: () => void }) {
     setPending(true);
     const result = await deleteMagazineIssue(issue.id);
     setPending(false);
-    if (result.error) {
+    if ("error" in result) {
       setError(result.error);
       return;
     }
@@ -95,9 +97,9 @@ function IssueRow({ issue, onDelete }: { issue: Issue; onDelete: () => void }) {
         onCancel={() => setEditing(false)}
         onSubmit={async (formData) => {
           const result = await updateMagazineIssue(issue.id, formData);
-          if (result.error) return result;
+          if ("error" in result) return result;
           window.location.reload();
-          return result;
+          return {};
         }}
       />
     );
@@ -115,6 +117,11 @@ function IssueRow({ issue, onDelete }: { issue: Issue; onDelete: () => void }) {
         <div style={{ fontSize: 15, color: "var(--white)", marginBottom: 4 }}>{issue.title}</div>
         <div style={{ fontSize: 12, color: "var(--muted)" }}>
           {new Date(issue.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          {issue.pdf_url ? (
+            <span style={{ marginLeft: 10, color: "#2DD4BF" }}>● PDF uploaded</span>
+          ) : (
+            <span style={{ marginLeft: 10, color: "#5B6675" }}>No PDF — text only</span>
+          )}
         </div>
         {error && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 6 }}>{error}</p>}
       </div>
@@ -145,12 +152,41 @@ function IssueForm({
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(issue?.pdf_url ?? null);
+  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+
+  async function handlePdfChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setError("Please choose a PDF file.");
+      return;
+    }
+    setError(null);
+    setUploadingPdf(true);
+    // Uploaded straight from the browser to Storage, bypassing the server
+    // action entirely - a full magazine issue PDF can easily run 10-50MB+,
+    // well past what a Next.js server action body can take.
+    const supabase = createClient();
+    const path = `${crypto.randomUUID()}.pdf`;
+    const { error: uploadErr } = await supabase.storage.from("magazine-pdfs").upload(path, file, { contentType: "application/pdf" });
+    setUploadingPdf(false);
+    if (uploadErr) {
+      setError(`PDF upload failed: ${uploadErr.message}`);
+      return;
+    }
+    const url = supabase.storage.from("magazine-pdfs").getPublicUrl(path).data.publicUrl;
+    setPdfUrl(url);
+    setPdfFileName(file.name);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true);
     setError(null);
     const formData = new FormData(e.currentTarget);
+    if (pdfUrl) formData.set("pdfUrl", pdfUrl);
     const result = await onSubmit(formData);
     setPending(false);
     if (result.error) setError(result.error);
@@ -178,12 +214,28 @@ function IssueForm({
         <label style={labelStyle}>Description</label>
         <textarea name="description" defaultValue={issue?.description ?? ""} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
       </div>
+
+      <div style={{ marginBottom: 20, padding: 16, background: "var(--void)", border: "0.5px solid var(--border-gold)", borderRadius: 2 }}>
+        <label style={labelStyle}>Upload Issue PDF</label>
+        <input type="file" accept="application/pdf" onChange={handlePdfChange} disabled={uploadingPdf} style={{ fontSize: 13, color: "var(--muted)" }} />
+        {uploadingPdf && <p style={{ fontSize: 12, color: "var(--gold)", marginTop: 8 }}>Uploading…</p>}
+        {!uploadingPdf && pdfUrl && (
+          <p style={{ fontSize: 12, color: "#2DD4BF", marginTop: 8 }}>
+            ✓ {pdfFileName || "PDF on file"} — readers will get the flipbook viewer.
+          </p>
+        )}
+        <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 8 }}>
+          Members with access read this as a page-turning flipbook. Leave blank to fall back to the plain-text
+          reader below.
+        </p>
+      </div>
+
       <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>Full Issue Content</label>
-        <textarea name="content" defaultValue={issue?.content ?? ""} rows={12} style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--ff-body)", lineHeight: 1.6 }} />
+        <label style={labelStyle}>Full Issue Content (optional)</label>
+        <textarea name="content" defaultValue={issue?.content ?? ""} rows={8} style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--ff-body)", lineHeight: 1.6 }} />
         <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>
-          The first ~600 characters show as a free sample to non-subscribers; the rest is visible to Breeder and
-          Elite Loft members only.
+          Used for the free sample shown to non-subscribers (first ~600 characters), and as the full reader when no
+          PDF is uploaded.
         </p>
       </div>
       <div style={{ marginBottom: 20 }}>
@@ -192,7 +244,7 @@ function IssueForm({
       </div>
       {error && <p style={{ fontSize: 13, color: "#e8a3a3", marginBottom: 16 }}>{error}</p>}
       <div style={{ display: "flex", gap: 12 }}>
-        <button type="submit" disabled={pending} className="btn-gold" style={{ padding: "10px 24px" }}>
+        <button type="submit" disabled={pending || uploadingPdf} className="btn-gold" style={{ padding: "10px 24px" }}>
           {pending ? "Saving…" : issue ? "Save Changes" : "Add Issue"}
         </button>
         <button type="button" onClick={onCancel} className="btn-ghost" style={{ padding: "10px 24px", cursor: "pointer" }}>

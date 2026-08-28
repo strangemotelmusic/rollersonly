@@ -1067,6 +1067,7 @@ export interface Database {
           description: string | null;
           cover_image_url: string | null;
           content: string | null;
+          pdf_url: string | null;
           published_at: string;
           created_at: string;
         };
@@ -1077,6 +1078,7 @@ export interface Database {
           description?: string | null;
           cover_image_url?: string | null;
           content?: string | null;
+          pdf_url?: string | null;
           published_at?: string;
           created_at?: string;
         };
