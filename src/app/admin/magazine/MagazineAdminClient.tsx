@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { createMagazineIssue, updateMagazineIssue, deleteMagazineIssue } from "@/app/actions/magazine-admin";
 import { createClient } from "@/lib/supabase/client";
-import { uploadLargeFile } from "@/lib/tus-upload";
 
 type Issue = {
   id: string;
@@ -156,7 +155,6 @@ function IssueForm({
   const [pdfUrl, setPdfUrl] = useState<string | null>(issue?.pdf_url ?? null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const [uploadingPdf, setUploadingPdf] = useState(false);
-  const [pdfProgress, setPdfProgress] = useState(0);
 
   async function handlePdfChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -167,19 +165,20 @@ function IssueForm({
     }
     setError(null);
     setUploadingPdf(true);
-    setPdfProgress(0);
-    // Uploaded straight from the browser to Storage via TUS resumable
-    // upload, bypassing the server action entirely - a full magazine issue
-    // PDF can easily run 10-50MB+, well past both a Next.js server action
-    // body limit and Supabase's ~6MB standard-upload ceiling.
+    // Uploaded straight from the browser to Storage, bypassing the server
+    // action entirely - a full magazine issue PDF can easily run 10-50MB+,
+    // well past what a Next.js server action body can take. Storage's
+    // standard upload method supports up to 5GB; the earlier "exceeded
+    // maximum allowed size" failures were the bucket's/project's configured
+    // size limits, now raised, not a technical ceiling on this method.
+    const supabase = createClient();
     const path = `${crypto.randomUUID()}.pdf`;
-    const result = await uploadLargeFile("magazine-pdfs", path, file, setPdfProgress);
+    const { error: uploadErr } = await supabase.storage.from("magazine-pdfs").upload(path, file, { contentType: "application/pdf", upsert: true });
     setUploadingPdf(false);
-    if ("error" in result) {
-      setError(`PDF upload failed: ${result.error}`);
+    if (uploadErr) {
+      setError(`PDF upload failed: ${uploadErr.message}`);
       return;
     }
-    const supabase = createClient();
     const url = supabase.storage.from("magazine-pdfs").getPublicUrl(path).data.publicUrl;
     setPdfUrl(url);
     setPdfFileName(file.name);
@@ -222,7 +221,7 @@ function IssueForm({
       <div style={{ marginBottom: 20, padding: 16, background: "var(--void)", border: "0.5px solid var(--border-gold)", borderRadius: 2 }}>
         <label style={labelStyle}>Upload Issue PDF</label>
         <input type="file" accept="application/pdf" onChange={handlePdfChange} disabled={uploadingPdf} style={{ fontSize: 13, color: "var(--muted)" }} />
-        {uploadingPdf && <p style={{ fontSize: 12, color: "var(--gold)", marginTop: 8 }}>Uploading… {pdfProgress}%</p>}
+        {uploadingPdf && <p style={{ fontSize: 12, color: "var(--gold)", marginTop: 8 }}>Uploading… this can take a few minutes for large files.</p>}
         {!uploadingPdf && pdfUrl && (
           <p style={{ fontSize: 12, color: "#2DD4BF", marginTop: 8 }}>
             ✓ {pdfFileName || "PDF on file"} — readers will get the flipbook viewer.
