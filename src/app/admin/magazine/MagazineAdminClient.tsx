@@ -172,6 +172,8 @@ function IssueForm({
     // maximum allowed size" failures were the bucket's/project's configured
     // size limits, now raised, not a technical ceiling on this method.
     const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("[pdf-upload-debug] user id:", session?.user?.id, "role:", session?.user?.role, "has token:", !!session?.access_token, "expires at:", session?.expires_at, "now:", Math.floor(Date.now() / 1000));
     const path = `${crypto.randomUUID()}.pdf`;
     const { error: uploadErr } = await supabase.storage.from("magazine-pdfs").upload(path, file, { contentType: "application/pdf", upsert: true });
     setUploadingPdf(false);
