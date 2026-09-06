@@ -106,8 +106,7 @@ export default function BreedersPage() {
                   </div>
 
                   <div style={{ display: "flex", gap: 8 }}>
-                    <Link href={`/loft/${b.slug}`} style={{ flex: 1, padding: "10px", textAlign: "center", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none", borderRadius: 1 }}>View Loft</Link>
-                    <Link href="/browse" style={{ padding: "10px 16px", border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, textDecoration: "none", borderRadius: 1 }}>Browse Birds →</Link>
+                    <Link href="/browse" style={{ flex: 1, padding: "10px", textAlign: "center", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none", borderRadius: 1 }}>Browse Birds →</Link>
                   </div>
                 </div>
               );

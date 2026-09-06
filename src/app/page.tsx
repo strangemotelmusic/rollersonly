@@ -258,7 +258,7 @@ export default async function Home() {
         </div>
         <div className="breeders-grid">
           {breeders.map((b) => (
-            <Link key={b.slug} href={`/loft/${b.slug}`} style={{ textDecoration: "none" }}>
+            <Link key={b.slug} href="/breeders" style={{ textDecoration: "none" }}>
               <div className="breeder-card">
                 <div className="breeder-avatar">{b.initial}</div>
                 <div className="breeder-name">{b.name}</div>
