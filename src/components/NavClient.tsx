@@ -52,7 +52,7 @@ export default function NavClient({
 }) {
   const community: LinkItem[] = [
     { label: "Top Breeders", href: "/breeders" },
-    { label: "Our Breeders", href: "/our-breeders" },
+    { label: "Our Heroes", href: "/our-breeders" },
     ...(isSignedIn ? [{ label: "Members", href: "/members" }] : []),
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Family Tree", href: "/family-tree" },

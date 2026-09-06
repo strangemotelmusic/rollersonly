@@ -64,7 +64,7 @@ export default function OurBreedersClient({ breeders }: { breeders: Breeder[] })
           Decade of the Spinner
         </p>
         <h1 style={{ fontFamily: "var(--ff-display)", fontSize: "clamp(36px,5vw,60px)", fontWeight: 300, lineHeight: 1.05, color: "var(--white)", marginBottom: 16, maxWidth: 700 }}>
-          Our <em style={{ color: "var(--gold)" }}>Breeders</em>
+          Our <em style={{ color: "var(--gold)" }}>Heroes</em>
         </h1>
         <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.7, maxWidth: 620 }}>
           The foundation birds behind every bloodline on RollersOnly — the champions, sires, and dams that produce the
@@ -74,7 +74,7 @@ export default function OurBreedersClient({ breeders }: { breeders: Breeder[] })
 
       <div style={{ padding: "48px 64px 96px" }}>
         {breeders.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--muted)" }}>No breeders posted yet — check back soon.</p>
+          <p style={{ fontSize: 14, color: "var(--muted)" }}>No heroes posted yet — check back soon.</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 20 }}>
             {breeders.map((b, i) => (
