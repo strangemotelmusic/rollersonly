@@ -38,12 +38,6 @@ export async function proxy(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((r) => path.startsWith(r));
   const isAuthRoute = authRoutes.some((r) => path.startsWith(r));
 
-  if (path === "/" && request.nextUrl.searchParams.get("preview") !== "1") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/decade-of-the-spinner";
-    return NextResponse.redirect(url);
-  }
-
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/signin";
