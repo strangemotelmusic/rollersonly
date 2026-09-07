@@ -1,8 +1,9 @@
-name: Settle auctions
+name: Settle auctions (manual fallback)
 
+# Scheduled trigger removed 2026-09-07: now on Vercel Cron (vercel.json),
+# which runs reliably at */5 on the Pro plan instead of GitHub's throttled
+# schedule triggers. Kept as a manual workflow_dispatch fallback.
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch: {}
 
 jobs:
