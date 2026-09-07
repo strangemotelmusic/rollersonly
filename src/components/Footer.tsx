@@ -43,7 +43,9 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span className="footer-copy">© 2026 RollersOnly LLC. All rights reserved.</span>
+        <span className="footer-copy">
+          © 2026 RollersOnly LLC. All rights reserved. · <Link href="/privacy">Privacy Policy</Link> · <Link href="/terms">Terms of Service</Link>
+        </span>
         <div className="footer-badges">
           <span className="footer-badge">Escrow Protected</span>
           <span className="footer-badge">Verified Pedigrees</span>
