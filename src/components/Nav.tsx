@@ -26,6 +26,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Family Tree", href: "/family-tree" },
     { label: "Decade of the Spinner", href: "/decade-of-the-spinner" },
+    ...(user ? [{ label: "Read the Magazine", href: "/magazine" }] : []),
     { label: "Future Issues", href: "/future-issues" },
   ];
 

@@ -57,7 +57,12 @@ export default function NavClient({
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Family Tree", href: "/family-tree" },
   ];
-  const magazine: LinkItem[] = [...MAGAZINE_PUBLIC, ...(isSignedIn ? [{ label: "The Spin Vault", href: "/spin-vault" }] : [])];
+  const magazine: LinkItem[] = [
+    MAGAZINE_PUBLIC[0],
+    ...(isSignedIn ? [{ label: "Read the Magazine", href: "/magazine" }] : []),
+    ...MAGAZINE_PUBLIC.slice(1),
+    ...(isSignedIn ? [{ label: "The Spin Vault", href: "/spin-vault" }] : []),
+  ];
 
   return (
     <div className="nav-desktop">
