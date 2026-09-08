@@ -17,7 +17,7 @@ export default async function MagazineIssuePage({ params }: { params: Promise<{ 
 
   const profile = user ? await ensureProfile(user) : null;
 
-  if (!hasMagazineAccess(profile?.tier)) {
+  if (!hasMagazineAccess(profile?.tier, profile?.is_admin)) {
     return (
       <>
         <Nav active="/magazine" />

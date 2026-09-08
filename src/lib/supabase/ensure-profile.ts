@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { createAdminClient } from "./admin";
 import { vipTierFor, tierRank } from "@/lib/vip";
 
-type ProfileRow = { id: string; username: string; full_name: string | null; tier: string };
+type ProfileRow = { id: string; username: string; full_name: string | null; tier: string; is_admin: boolean };
 
 async function applyVipTier(
   admin: ReturnType<typeof createAdminClient>,
@@ -17,7 +17,7 @@ async function applyVipTier(
     .from("profiles")
     .update({ tier: vip })
     .eq("id", profile.id)
-    .select("id, username, full_name, tier")
+    .select("id, username, full_name, tier, is_admin")
     .maybeSingle();
 
   return updated ?? profile;
@@ -34,7 +34,7 @@ export async function ensureProfile(user: User) {
 
   const { data: existing } = await admin
     .from("profiles")
-    .select("id, username, full_name, tier")
+    .select("id, username, full_name, tier, is_admin")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -50,7 +50,7 @@ export async function ensureProfile(user: User) {
   const { data: created, error } = await admin
     .from("profiles")
     .upsert({ id: user.id, username: baseUsername, full_name: fullName, tier })
-    .select("id, username, full_name, tier")
+    .select("id, username, full_name, tier, is_admin")
     .maybeSingle();
 
   if (!error) return applyVipTier(admin, created, user.email);
@@ -62,7 +62,7 @@ export async function ensureProfile(user: User) {
   const { data: retried } = await admin
     .from("profiles")
     .upsert({ id: user.id, username: `${baseUsername}_${user.id.slice(0, 6)}`, full_name: fullName, tier })
-    .select("id, username, full_name, tier")
+    .select("id, username, full_name, tier, is_admin")
     .maybeSingle();
 
   return applyVipTier(admin, retried, user.email);

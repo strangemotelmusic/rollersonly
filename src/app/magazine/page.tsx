@@ -14,7 +14,7 @@ export default async function MagazinePage() {
   } = await supabase.auth.getUser();
 
   const profile = user ? await ensureProfile(user) : null;
-  const hasAccess = hasMagazineAccess(profile?.tier);
+  const hasAccess = hasMagazineAccess(profile?.tier, profile?.is_admin);
 
   // magazine_issues has no public RLS policy on purpose (full content is
   // paywalled), so every read goes through the admin client - the tier

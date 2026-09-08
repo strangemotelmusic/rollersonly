@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
   const issueId = searchParams.get("id");
 
   const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("tier").eq("id", auth.userId).maybeSingle();
-  const hasAccess = hasMagazineAccess(profile?.tier);
+  const { data: profile } = await admin.from("profiles").select("tier, is_admin").eq("id", auth.userId).maybeSingle();
+  const hasAccess = hasMagazineAccess(profile?.tier, profile?.is_admin);
 
   if (issueId) {
     const { data: issue } = await admin

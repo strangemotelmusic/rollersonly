@@ -1,8 +1,11 @@
 // Only breeder and elite subscribers get full magazine access - fancier
-// does not include it. Kept as a single source of truth since the gate is
-// checked from three different pages (index, single issue, homepage CTA).
-export function hasMagazineAccess(tier: string | null | undefined): boolean {
-  return tier === "breeder" || tier === "elite";
+// does not include it. Admins always get access (matches hasFamilyTreeAccess),
+// so site staff checking on published issues aren't locked out by whatever
+// tier their own test account happens to carry. Kept as a single source of
+// truth since the gate is checked from three different pages (index, single
+// issue, homepage CTA).
+export function hasMagazineAccess(tier: string | null | undefined, isAdmin?: boolean): boolean {
+  return isAdmin === true || tier === "breeder" || tier === "elite";
 }
 
 const SAMPLE_EXCERPT_CHARS = 600;
