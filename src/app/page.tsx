@@ -37,14 +37,6 @@ const featuredBirds = [
   { id: 6, imgKey: "bird_red2", name: "Recessive Red Breeding Hen", meta: "Rossouw Loft · Free State, South Africa · Female · 2024", price: "Opening bid $420" },
 ] as const;
 
-// Top 4 of the 2026 World Cup Top Ten (Decade of the Spinner).
-const breeders = [
-  { slug: "schoening", initial: "S", name: "Schoening Loft", location: "Montana, USA", sold: 142, championships: 18 },
-  { slug: "glenn", initial: "G", name: "Glenn Loft", location: "Ohio, USA", sold: 98, championships: 12 },
-  { slug: "guerrero", initial: "G", name: "Guerrero Loft", location: "S. Central California, USA", sold: 87, championships: 10 },
-  { slug: "dewitt", initial: "D", name: "DeWitt Loft", location: "Kentucky, USA", sold: 76, championships: 9 },
-];
-
 const features = [
   { num: "01", title: "Live Auction Rooms", desc: "Real-time bidding with photo of the bird. Countdown clock, live chat, and escrow auto-triggered on hammer. Breeder submits video same day.", href: "/auctions" },
   { num: "02", title: "Custom Breeding Matchmaking", desc: "Browse verified breeder lofts, hand-pick the sire and dam you want paired, and reserve the pairing with a $500 deposit — no guesswork, no waitlist raffles.", href: "/matchmaking" },
@@ -247,39 +239,6 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* TOP BREEDERS */}
-      <div className="breeders-section">
-        <div className="breeders-header">
-          <div>
-            <p className="section-eyebrow">Verified Elite Lofts</p>
-            <h2 className="section-title">Top Breeders</h2>
-          </div>
-          <Link href="/breeders" className="btn-ghost">View all breeders →</Link>
-        </div>
-        <div className="breeders-grid">
-          {breeders.map((b) => (
-            <Link key={b.slug} href="/breeders" style={{ textDecoration: "none" }}>
-              <div className="breeder-card">
-                <div className="breeder-avatar">{b.initial}</div>
-                <div className="breeder-name">{b.name}</div>
-                <div className="breeder-location">{b.location}</div>
-                <div className="breeder-stats">
-                  <div>
-                    <div className="b-stat-val">{b.sold}</div>
-                    <div className="b-stat-label">Birds sold</div>
-                  </div>
-                  <div>
-                    <div className="b-stat-val">{b.championships}</div>
-                    <div className="b-stat-label">Championships</div>
-                  </div>
-                </div>
-                <div className="elite-badge">Elite Loft</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* FEATURES */}
       <div className="features-section">
         <div className="features-left">
@@ -431,8 +390,6 @@ export default async function Home() {
           <div>
             <div className="footer-col-title">Community</div>
             <ul className="footer-links">
-              <li><Link href="/breeders">Top Breeders</Link></li>
-              <li><Link href="/breeders">Elite Lofts</Link></li>
               <li><Link href="/leaderboards">Championship Events</Link></li>
               <li><Link href="/matchmaking">Breeding Matchmaking</Link></li>
               <li><Link href="/how-it-works">About the Sport</Link></li>

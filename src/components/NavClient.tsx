@@ -51,7 +51,6 @@ export default function NavClient({
   signOutAction: () => void;
 }) {
   const community: LinkItem[] = [
-    { label: "Top Breeders", href: "/breeders" },
     { label: "Our Heroes", href: "/our-breeders" },
     ...(isSignedIn ? [{ label: "Members", href: "/members" }] : []),
     { label: "Leaderboards", href: "/leaderboards" },
