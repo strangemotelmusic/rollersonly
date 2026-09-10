@@ -1226,6 +1226,7 @@ export interface Database {
           sort_order: number;
           created_at: string;
           updated_at: string;
+          bloodline: string | null;
         };
         Insert: {
           id?: string;
@@ -1239,6 +1240,7 @@ export interface Database {
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
+          bloodline?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["dots_birds"]["Insert"]>;
         Relationships: [];

@@ -21,6 +21,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Live Auctions", href: "/auctions" },
     { label: "Browse Birds", href: "/browse" },
     { label: "Buy D.O.T.S Birds", href: "/dots-birds" },
+    { label: "Tyson's Corner", href: "/tysons-corner" },
     { label: "Our Heroes", href: "/our-breeders" },
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Master Fliers", href: "/master-fliers" },

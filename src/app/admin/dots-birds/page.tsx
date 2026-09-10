@@ -19,7 +19,7 @@ export default async function AdminDotsBirdsPage() {
 
   const { data: birds } = await admin
     .from("dots_birds")
-    .select("id, name, band_number, age, price_cents, description, photo_url, is_available")
+    .select("id, name, band_number, age, price_cents, description, photo_url, is_available, bloodline")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 

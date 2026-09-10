@@ -52,6 +52,7 @@ export default function NavClient({
 }) {
   const community: LinkItem[] = [
     { label: "Our Heroes", href: "/our-breeders" },
+    { label: "Tyson's Corner", href: "/tysons-corner" },
     ...(isSignedIn ? [{ label: "Members", href: "/members" }] : []),
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Master Fliers", href: "/master-fliers" },

@@ -22,7 +22,10 @@ type Bird = {
   description: string | null;
   photo_url: string | null;
   is_available: boolean;
+  bloodline: string | null;
 };
+
+const BLOODLINES = ["Hannes", "Poen", "McKinney"];
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -169,7 +172,7 @@ function BirdRow({
           {bird.name} {!bird.is_available && <span style={{ fontSize: 11, color: "var(--muted)" }}>(Sold)</span>}
         </div>
         <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>
-          {[bird.band_number && `Band #${bird.band_number}`, bird.age].filter(Boolean).join(" · ")}
+          {[bird.band_number && `Band #${bird.band_number}`, bird.age, bird.bloodline && `${bird.bloodline} bloodline — Tyson's Corner`].filter(Boolean).join(" · ")}
         </div>
         <div style={{ fontFamily: "var(--ff-display)", fontSize: 18, color: "var(--gold)" }}>{formatPrice(bird.price_cents)}</div>
         {error && <p style={{ fontSize: 12, color: "#e8a3a3", marginTop: 6 }}>{error}</p>}
@@ -247,6 +250,15 @@ function BirdForm({
         <div>
           <label style={labelStyle}>Age</label>
           <input name="age" placeholder="e.g. 2024 Young Bird" defaultValue={bird?.age ?? ""} style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Bloodline (Tyson&apos;s Corner)</label>
+          <select name="bloodline" defaultValue={bird?.bloodline ?? ""} style={inputStyle}>
+            <option value="">— Regular D.O.T.S bird —</option>
+            {BLOODLINES.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
         </div>
       </div>
       <div style={{ marginBottom: 16 }}>

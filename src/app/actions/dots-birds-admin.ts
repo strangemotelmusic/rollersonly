@@ -44,6 +44,7 @@ export async function createDotsBird(formData: FormData): Promise<{ error: strin
   const bandNumber = String(formData.get("bandNumber") || "").trim();
   const age = String(formData.get("age") || "").trim();
   const description = String(formData.get("description") || "").trim();
+  const bloodline = String(formData.get("bloodline") || "").trim();
   const priceRaw = String(formData.get("price") || "");
   const price = Number(priceRaw);
 
@@ -59,6 +60,7 @@ export async function createDotsBird(formData: FormData): Promise<{ error: strin
     band_number: bandNumber || null,
     age: age || null,
     description: description || null,
+    bloodline: bloodline || null,
     price_cents: Math.round(price * 100),
     photo_url: photoUrl,
   });
@@ -76,6 +78,7 @@ export async function updateDotsBird(id: string, formData: FormData): Promise<{ 
   const bandNumber = String(formData.get("bandNumber") || "").trim();
   const age = String(formData.get("age") || "").trim();
   const description = String(formData.get("description") || "").trim();
+  const bloodline = String(formData.get("bloodline") || "").trim();
   const priceRaw = String(formData.get("price") || "");
   const price = Number(priceRaw);
 
@@ -87,6 +90,7 @@ export async function updateDotsBird(id: string, formData: FormData): Promise<{ 
     band_number: bandNumber || null,
     age: age || null,
     description: description || null,
+    bloodline: bloodline || null,
     price_cents: Math.round(price * 100),
     updated_at: new Date().toISOString(),
   };
