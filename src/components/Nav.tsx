@@ -23,6 +23,7 @@ export default async function Nav({ active }: { active?: string }) {
     { label: "Buy D.O.T.S Birds", href: "/dots-birds" },
     { label: "Our Heroes", href: "/our-breeders" },
     { label: "Leaderboards", href: "/leaderboards" },
+    { label: "Master Fliers", href: "/master-fliers" },
     { label: "Family Tree", href: "/family-tree" },
     { label: "Decade of the Spinner", href: "/decade-of-the-spinner" },
     ...(user ? [{ label: "Read the Magazine", href: "/magazine" }] : []),

@@ -25,6 +25,7 @@ export default function Footer() {
           <div className="footer-col-title">Community</div>
           <ul className="footer-links">
             <li><Link href="/leaderboards">Championship Events</Link></li>
+            <li><Link href="/master-fliers">NBRC Master Fliers</Link></li>
             <li><Link href="/matchmaking">Breeding Matchmaking</Link></li>
             <li><Link href="/how-it-works#nbrc">About NBRC</Link></li>
           </ul>

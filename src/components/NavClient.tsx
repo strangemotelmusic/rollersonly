@@ -54,6 +54,7 @@ export default function NavClient({
     { label: "Our Heroes", href: "/our-breeders" },
     ...(isSignedIn ? [{ label: "Members", href: "/members" }] : []),
     { label: "Leaderboards", href: "/leaderboards" },
+    { label: "Master Fliers", href: "/master-fliers" },
     { label: "Family Tree", href: "/family-tree" },
   ];
   const magazine: LinkItem[] = [
