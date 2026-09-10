@@ -42,8 +42,8 @@ export default function TysonsCornerClient({ birds }: { birds: Bird[] }) {
     <div style={{ padding: "0 40px 64px" }}>
       <div style={{ maxWidth: 720, margin: "0 auto 48px", padding: "20px 24px", background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, textAlign: "center" }}>
         <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.7 }}>
-          Every order ships live in a shipping box — the bird price is charged now, and the box + shipping cost is
-          arranged separately after your order. Questions before you order?{" "}
+          Every order ships live in a shipping box — a flat $140 (box + shipping) is added at checkout alongside the
+          bird&apos;s price. Questions before you order?{" "}
           <a href="mailto:strangemotelmusic@gmail.com" style={{ color: "var(--gold)" }}>Contact us</a>.
         </p>
       </div>

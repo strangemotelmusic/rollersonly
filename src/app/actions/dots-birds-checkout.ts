@@ -6,6 +6,11 @@ import { getStripe } from "@/lib/stripe";
 
 const SITE_URL = "https://rollersonly.com";
 
+// Tyson's Corner (Hannes/Poen/McKinney bloodline) orders ship live in a
+// shipping box - $40 for the box + $100 shipping, charged once per order
+// as a flat fee, not per bird. Regular D.O.T.S birds are unaffected.
+const TYSONS_CORNER_SHIPPING_CENTS = 14000;
+
 export async function createDotsBirdCheckout(birdIds: string[]) {
   if (birdIds.length === 0) {
     return { error: "Your cart is empty." };
@@ -14,7 +19,7 @@ export async function createDotsBirdCheckout(birdIds: string[]) {
   const admin = createAdminClient();
   const { data: birds } = await admin
     .from("dots_birds")
-    .select("id, name, band_number, price_cents, photo_url, is_available")
+    .select("id, name, band_number, price_cents, photo_url, is_available, bloodline")
     .in("id", birdIds);
 
   if (!birds || birds.length === 0) {
@@ -36,20 +41,38 @@ export async function createDotsBirdCheckout(birdIds: string[]) {
 
   const stripe = getStripe();
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: birds.map((bird) => ({
+  const isTysonsCornerOrder = birds.some((b) => b.bloodline);
+
+  const lineItems = birds.map((bird) => ({
+    quantity: 1,
+    price_data: {
+      currency: "usd",
+      unit_amount: bird.price_cents,
+      product_data: {
+        name: bird.name + (bird.band_number ? ` — Band #${bird.band_number}` : ""),
+        images: bird.photo_url ? [bird.photo_url] : undefined,
+      },
+    },
+  }));
+
+  if (isTysonsCornerOrder) {
+    lineItems.push({
       quantity: 1,
       price_data: {
         currency: "usd",
-        unit_amount: bird.price_cents,
+        unit_amount: TYSONS_CORNER_SHIPPING_CENTS,
         product_data: {
-          name: bird.name + (bird.band_number ? ` — Band #${bird.band_number}` : ""),
-          images: bird.photo_url ? [bird.photo_url] : undefined,
+          name: "Shipping Box & Delivery",
+          images: undefined,
         },
       },
-    })),
-    success_url: `${SITE_URL}/dots-birds?checkout=success`,
+    });
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: lineItems,
+    success_url: `${SITE_URL}/${isTysonsCornerOrder ? "tysons-corner" : "dots-birds"}?checkout=success`,
     cancel_url: `${SITE_URL}/cart?checkout=cancelled`,
     metadata: { bird_ids: birds.map((b) => b.id).join(",") },
   });
