@@ -38,6 +38,7 @@ export default function Footer() {
             <li><Link href="/how-it-works#escrow">Escrow Policy</Link></li>
             <li><a href="mailto:strangemotelmusic@gmail.com">Contact Us</a></li>
             <li><a href="mailto:strangemotelmusic@gmail.com">Become a Partner</a></li>
+            <li><Link href="/about-the-creator">About The Creator</Link></li>
           </ul>
         </div>
       </div>
