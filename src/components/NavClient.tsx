@@ -29,6 +29,7 @@ const ADMIN_LINKS: LinkItem[] = [
   { label: "Our Breeders", href: "/admin/our-breeders" },
   { label: "Future Issues", href: "/admin/future-issues" },
   { label: "D.O.T.S Birds", href: "/admin/dots-birds" },
+  { label: "Tyson's Corner", href: "/admin/tysons-corner" },
   { label: "Magazine", href: "/admin/magazine" },
   { label: "The Spin Vault", href: "/admin/archive" },
 ];

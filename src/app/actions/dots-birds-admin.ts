@@ -127,3 +127,36 @@ export async function deleteDotsBird(id: string): Promise<{ error: string } | { 
   if (error) return { error: error.message };
   return { ok: true };
 }
+
+// Extra photos beyond the single primary photo_url - a small gallery per bird.
+// The photo is already uploaded client-side (see uploadAdminImage) by the time
+// this runs; it just appends the URL to the existing array.
+export async function addDotsBirdPhoto(id: string, url: string): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  if (!url.startsWith(PHOTO_URL_PREFIX)) return { error: "Unexpected photo URL." };
+
+  const { data: bird, error: fetchError } = await admin.from("dots_birds").select("photo_urls").eq("id", id).single();
+  if (fetchError) return { error: fetchError.message };
+
+  const nextUrls = [...(bird.photo_urls ?? []), url];
+  const { error } = await admin.from("dots_birds").update({ photo_urls: nextUrls }).eq("id", id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function removeDotsBirdPhoto(id: string, url: string): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const { data: bird, error: fetchError } = await admin.from("dots_birds").select("photo_urls").eq("id", id).single();
+  if (fetchError) return { error: fetchError.message };
+
+  const nextUrls = (bird.photo_urls ?? []).filter((u: string) => u !== url);
+  const { error } = await admin.from("dots_birds").update({ photo_urls: nextUrls }).eq("id", id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}

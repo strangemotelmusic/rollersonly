@@ -12,12 +12,19 @@ const BLOODLINES = ["Hannes", "Poen", "McKinney"];
 
 export default async function TysonsCornerPage() {
   const admin = createAdminClient();
-  const { data: birds } = await admin
-    .from("dots_birds")
-    .select("id, name, band_number, age, price_cents, description, photo_url, is_available, bloodline")
-    .in("bloodline", BLOODLINES)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
+  const [{ data: birds }, { data: gallery }] = await Promise.all([
+    admin
+      .from("dots_birds")
+      .select("id, name, band_number, age, price_cents, description, photo_url, photo_urls, is_available, bloodline")
+      .in("bloodline", BLOODLINES)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }),
+    admin
+      .from("tysons_corner_gallery")
+      .select("id, image_url, caption")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <>
@@ -40,7 +47,7 @@ export default async function TysonsCornerPage() {
           </p>
         </div>
 
-        <TysonsCornerClient birds={birds ?? []} />
+        <TysonsCornerClient birds={birds ?? []} gallery={gallery ?? []} />
       </div>
       <Footer />
     </>

@@ -1222,6 +1222,7 @@ export interface Database {
           price_cents: number;
           description: string | null;
           photo_url: string | null;
+          photo_urls: string[];
           is_available: boolean;
           sort_order: number;
           created_at: string;
@@ -1236,6 +1237,7 @@ export interface Database {
           price_cents: number;
           description?: string | null;
           photo_url?: string | null;
+          photo_urls?: string[];
           is_available?: boolean;
           sort_order?: number;
           created_at?: string;
@@ -1243,6 +1245,24 @@ export interface Database {
           bloodline?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["dots_birds"]["Insert"]>;
+        Relationships: [];
+      };
+      tysons_corner_gallery: {
+        Row: {
+          id: string;
+          image_url: string;
+          caption: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          image_url: string;
+          caption?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["tysons_corner_gallery"]["Insert"]>;
         Relationships: [];
       };
       dots_bird_orders: {
