@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   const { data } = await admin
     .from("dots_birds")
-    .select("id, name, band_number, age, description, price_cents, photo_url, is_available")
+    .select("id, name, band_number, age, description, price_cents, photo_url, photo_urls, is_available, bloodline")
     .order("sort_order")
     .order("created_at", { ascending: false });
 
@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       age: body.age ? String(body.age).trim() : null,
       description: body.description ? String(body.description).trim() : null,
       price_cents: Math.round(price * 100),
+      bloodline: body.bloodline ? String(body.bloodline).trim() : null,
     };
 
     if (action === "create") {
@@ -74,6 +75,25 @@ export async function POST(request: NextRequest) {
     const update: DotsBirdUpdate = { ...fields, updated_at: new Date().toISOString() };
     if (photoUrl) update.photo_url = photoUrl;
     const { error } = await admin.from("dots_birds").update(update).eq("id", body.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
+  // Extra gallery photos beyond the single primary photo_url - the photo is
+  // already uploaded client-side by the time this runs, same as photoUrl above.
+  if (action === "add-photo" || action === "remove-photo") {
+    const url = String(body.url || "");
+    if (!url.startsWith(PHOTO_URL_PREFIX)) return NextResponse.json({ error: "Unexpected photo URL." }, { status: 400 });
+
+    const { data: bird, error: fetchError } = await admin.from("dots_birds").select("photo_urls").eq("id", body.id).single();
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 });
+
+    const nextUrls =
+      action === "add-photo"
+        ? [...(bird.photo_urls ?? []), url]
+        : (bird.photo_urls ?? []).filter((u: string) => u !== url);
+
+    const { error } = await admin.from("dots_birds").update({ photo_urls: nextUrls }).eq("id", body.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
