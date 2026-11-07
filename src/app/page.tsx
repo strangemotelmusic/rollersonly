@@ -3,6 +3,10 @@ import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import Nav from "@/components/Nav";
 import HeroRotator from "@/components/HeroRotator";
+import Reveal from "@/components/Reveal";
+import StatCounter from "@/components/StatCounter";
+import TiltCard from "@/components/TiltCard";
+import ParallaxDrift from "@/components/ParallaxDrift";
 import { getSiteImages } from "@/lib/site-images";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -114,14 +118,16 @@ export default async function Home() {
           className="hero-welcome-letter"
         />
         <div className="hero-content">
-          <Link href="/magazine" className="hero-magazine-cover-link">
-            <Image
-              src="/decade-of-the-spinner-cover.jpg"
-              alt="Decade of the Spinner — Spring 2027 Collector's Edition"
-              width={1023}
-              height={1537}
-              className="hero-magazine-cover"
-            />
+          <Link href="/magazine" className="hero-magazine-cover-link" style={{ perspective: 800 }}>
+            <TiltCard maxTilt={10}>
+              <Image
+                src="/decade-of-the-spinner-cover.jpg"
+                alt="Decade of the Spinner — Spring 2027 Collector's Edition"
+                width={1023}
+                height={1537}
+                className="hero-magazine-cover"
+              />
+            </TiltCard>
           </Link>
           <p className="hero-eyebrow">The world&apos;s premier roller pigeon marketplace</p>
           <h1 className="hero-title">
@@ -166,32 +172,34 @@ export default async function Home() {
           <Link href="/auctions" className="btn-ghost">View all auctions →</Link>
         </div>
         <div className="auctions-grid">
-          {auctionCards.map((card) => (
-            <Link key={card.id} href={`/auctions`} style={{ textDecoration: "none" }}>
-              <div className="auction-card">
-                <div className="auction-img-wrap">
-                  <div className={`auction-badge ${card.badgeClass}`}>{card.badge}</div>
-                  <Image src={card.imgUrl} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
-                </div>
-                <div className="auction-body">
-                  <div className="auction-name">{card.name}</div>
-                  <div className="auction-breeder">{card.breeder}</div>
-                  <div className="auction-meta">
-                    <div>
-                      <div className="auction-bid-label">{card.bidLabel}</div>
-                      <div className="auction-bid">{card.bid}</div>
+          {auctionCards.map((card, i) => (
+            <Reveal key={card.id} i={i}>
+              <Link href={`/auctions`} style={{ textDecoration: "none" }}>
+                <div className="auction-card">
+                  <div className="auction-img-wrap">
+                    <div className={`auction-badge ${card.badgeClass}`}>{card.badge}</div>
+                    <Image src={card.imgUrl} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
+                  </div>
+                  <div className="auction-body">
+                    <div className="auction-name">{card.name}</div>
+                    <div className="auction-breeder">{card.breeder}</div>
+                    <div className="auction-meta">
+                      <div>
+                        <div className="auction-bid-label">{card.bidLabel}</div>
+                        <div className="auction-bid">{card.bid}</div>
+                      </div>
+                      <div className="auction-timer">
+                        <div className="timer-label">{card.timeLabel}</div>
+                        {card.isLive ? <Countdown seconds={card.seconds} /> : <div className="timer-val">{card.scheduleLabel}</div>}
+                      </div>
                     </div>
-                    <div className="auction-timer">
-                      <div className="timer-label">{card.timeLabel}</div>
-                      {card.isLive ? <Countdown seconds={card.seconds} /> : <div className="timer-val">{card.scheduleLabel}</div>}
+                    <div className="auction-tags">
+                      {card.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}
                     </div>
                   </div>
-                  <div className="auction-tags">
-                    {card.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}
-                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -199,19 +207,19 @@ export default async function Home() {
       {/* STATS BAND */}
       <div className="stats-band">
         <div className="stat-item">
-          <div className="stat-number">12<span>K+</span></div>
+          <div className="stat-number"><StatCounter value={12} /><span>K+</span></div>
           <div className="stat-label">Verified birds registered</div>
         </div>
         <div className="stat-item">
-          <div className="stat-number">$2<span>M+</span></div>
+          <div className="stat-number"><StatCounter value={2} prefix="$" /><span>M+</span></div>
           <div className="stat-label">In transactions protected</div>
         </div>
         <div className="stat-item">
-          <div className="stat-number">340<span>+</span></div>
+          <div className="stat-number"><StatCounter value={340} /><span>+</span></div>
           <div className="stat-label">Elite loft breeders</div>
         </div>
         <div className="stat-item">
-          <div className="stat-number">48<span>+</span></div>
+          <div className="stat-number"><StatCounter value={48} /><span>+</span></div>
           <div className="stat-label">Countries represented</div>
         </div>
       </div>
@@ -223,18 +231,22 @@ export default async function Home() {
           <h2 className="section-title">Featured Birds</h2>
         </div>
         <div className="bird-parade">
-          {featuredBirds.map((bird) => (
-            <Link key={bird.id} href={`/birds/${bird.id}`} style={{ textDecoration: "none" }}>
-              <div className="bird-card">
-                <Image src={siteImages[bird.imgKey]} alt={bird.name} width={280} height={400} className="bird-card-img" />
-                <div className="bird-card-info">
-                  <div className="bird-card-name">{bird.name}</div>
-                  <div className="bird-card-meta">{bird.meta}</div>
-                  <div className="bird-card-price">{bird.price}</div>
-                  <div className="bid-btn">Place Bid</div>
+          {featuredBirds.map((bird, i) => (
+            <Reveal key={bird.id} i={i} style={{ flex: "0 0 280px" }}>
+              <Link href={`/birds/${bird.id}`} style={{ textDecoration: "none" }}>
+                <div className="bird-card">
+                  <TiltCard className="bird-card-tilt" maxTilt={6}>
+                    <Image src={siteImages[bird.imgKey]} alt={bird.name} width={280} height={400} className="bird-card-img" />
+                  </TiltCard>
+                  <div className="bird-card-info">
+                    <div className="bird-card-name">{bird.name}</div>
+                    <div className="bird-card-meta">{bird.meta}</div>
+                    <div className="bird-card-price">{bird.price}</div>
+                    <div className="bid-btn">Place Bid</div>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -248,22 +260,26 @@ export default async function Home() {
             <em style={{ fontFamily: "var(--ff-display)", color: "var(--gold)" }}>Serious</em> Fancier
           </h2>
           <div className="feature-list">
-            {features.map((f) => (
-              <Link key={f.num} href={f.href} style={{ textDecoration: "none" }}>
-                <div className="feature-item">
-                  <span className="feature-num">{f.num}</span>
-                  <div>
-                    <div className="feature-title">{f.title}</div>
-                    <div className="feature-desc">{f.desc}</div>
+            {features.map((f, i) => (
+              <Reveal key={f.num} i={i}>
+                <Link href={f.href} style={{ textDecoration: "none" }}>
+                  <div className="feature-item">
+                    <span className="feature-num">{f.num}</span>
+                    <div>
+                      <div className="feature-title">{f.title}</div>
+                      <div className="feature-desc">{f.desc}</div>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </Reveal>
             ))}
           </div>
         </div>
         <div className="features-right">
           <div className="feature-ring" />
-          <Image src={siteImages.bird_black_centertail} alt="Elite roller pigeon" width={500} height={600} className="feature-bird" />
+          <TiltCard maxTilt={5}>
+            <Image src={siteImages.bird_black_centertail} alt="Elite roller pigeon" width={500} height={600} className="feature-bird" />
+          </TiltCard>
         </div>
       </div>
 
@@ -280,23 +296,30 @@ export default async function Home() {
           padding: "96px 48px",
         }}
       >
-        <div>
-          <p className="section-eyebrow">Member Publication</p>
-          <h2 className="section-title" style={{ marginBottom: 20 }}>
-            Decade of the <em style={{ fontFamily: "var(--ff-display)", color: "var(--gold)" }}>Spinner</em>
-          </h2>
-          <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.8, maxWidth: 480, marginBottom: 32 }}>
-            Ten years of roller pigeon breeding, competition, and bloodline history. Sample any issue for free —
-            Breeder and Elite Loft members read every issue in full.
-          </p>
-          <Link href="/magazine" className="btn-gold-lg">
-            Read the Latest Issue
-          </Link>
-        </div>
-        {latestIssue?.cover_image_url && (
-          <div style={{ position: "relative", height: 420, borderRadius: 2, overflow: "hidden", border: "0.5px solid var(--border)" }}>
-            <Image src={latestIssue.cover_image_url} alt={latestIssue.title} fill style={{ objectFit: "cover" }} />
+        <Reveal i={0}>
+          <div>
+            <p className="section-eyebrow">Member Publication</p>
+            <h2 className="section-title" style={{ marginBottom: 20 }}>
+              Decade of the <em style={{ fontFamily: "var(--ff-display)", color: "var(--gold)" }}>Spinner</em>
+            </h2>
+            <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.8, maxWidth: 480, marginBottom: 32 }}>
+              Ten years of roller pigeon breeding, competition, and bloodline history. Sample any issue for free —
+              Breeder and Elite Loft members read every issue in full.
+            </p>
+            <Link href="/magazine" className="btn-gold-lg">
+              Read the Latest Issue
+            </Link>
           </div>
+        </Reveal>
+        {latestIssue?.cover_image_url && (
+          <Reveal i={1}>
+            <TiltCard
+              maxTilt={6}
+              style={{ position: "relative", height: 420, borderRadius: 2, overflow: "hidden", border: "0.5px solid var(--border)" }}
+            >
+              <Image src={latestIssue.cover_image_url} alt={latestIssue.title} fill style={{ objectFit: "cover" }} />
+            </TiltCard>
+          </Reveal>
         )}
       </div>
 
@@ -310,54 +333,64 @@ export default async function Home() {
           </p>
         </div>
         <div className="pricing-grid">
-          <div className="pricing-card">
-            <div className="pricing-tier">Fancier</div>
-            <div className="pricing-price"><sup>$</sup>19<sub>/mo</sub></div>
-            <div className="pricing-desc">Browse, bid, and buy with full buyer protection.</div>
-            <div className="pricing-feature">Full marketplace access</div>
-            <div className="pricing-feature">Bid in live auctions</div>
-            <div className="pricing-feature">View verified pedigrees</div>
-            <div className="pricing-feature">Escrow buyer protection</div>
-            <div className="pricing-feature">Competition leaderboards</div>
-            <div className="pricing-action">
-              <Link href="/signup" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>Get started</Link>
+          <Reveal i={0}>
+            <div className="pricing-card">
+              <div className="pricing-tier">Fancier</div>
+              <div className="pricing-price"><sup>$</sup>19<sub>/mo</sub></div>
+              <div className="pricing-desc">Browse, bid, and buy with full buyer protection.</div>
+              <div className="pricing-feature">Full marketplace access</div>
+              <div className="pricing-feature">Bid in live auctions</div>
+              <div className="pricing-feature">View verified pedigrees</div>
+              <div className="pricing-feature">Escrow buyer protection</div>
+              <div className="pricing-feature">Competition leaderboards</div>
+              <div className="pricing-action">
+                <Link href="/signup" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>Get started</Link>
+              </div>
             </div>
-          </div>
-          <div className="pricing-card featured">
-            <div className="pricing-tier">Breeder</div>
-            <div className="pricing-price"><sup>$</sup>49<sub>/mo</sub></div>
-            <div className="pricing-desc">List your birds, build your loft reputation globally.</div>
-            <div className="pricing-feature">Everything in Fancier</div>
-            <div className="pricing-feature">Unlimited bird listings</div>
-            <div className="pricing-feature">Public loft profile page</div>
-            <div className="pricing-feature">Pedigree registry access</div>
-            <div className="pricing-feature">AI breeding matchmaker</div>
-            <div className="pricing-feature">Fly video uploads</div>
-            <div className="pricing-action">
-              <Link href="/signup" className="btn-gold" style={{ display: "block", textAlign: "center", padding: "12px", borderRadius: "2px" }}>Join as Breeder</Link>
+          </Reveal>
+          <Reveal i={1}>
+            <div className="pricing-card featured">
+              <div className="pricing-tier">Breeder</div>
+              <div className="pricing-price"><sup>$</sup>49<sub>/mo</sub></div>
+              <div className="pricing-desc">List your birds, build your loft reputation globally.</div>
+              <div className="pricing-feature">Everything in Fancier</div>
+              <div className="pricing-feature">Unlimited bird listings</div>
+              <div className="pricing-feature">Public loft profile page</div>
+              <div className="pricing-feature">Pedigree registry access</div>
+              <div className="pricing-feature">AI breeding matchmaker</div>
+              <div className="pricing-feature">Fly video uploads</div>
+              <div className="pricing-action">
+                <Link href="/signup" className="btn-gold" style={{ display: "block", textAlign: "center", padding: "12px", borderRadius: "2px" }}>Join as Breeder</Link>
+              </div>
             </div>
-          </div>
-          <div className="pricing-card">
-            <div className="pricing-tier">Elite Loft</div>
-            <div className="pricing-price"><sup>$</sup>149<sub>/mo</sub></div>
-            <div className="pricing-desc">For champion breeders who demand maximum reach and credibility.</div>
-            <div className="pricing-feature">Everything in Breeder</div>
-            <div className="pricing-feature">Featured placement in auctions</div>
-            <div className="pricing-feature">Verified Elite badge</div>
-            <div className="pricing-feature">Championship auction priority</div>
-            <div className="pricing-feature">DNA cert display</div>
-            <div className="pricing-feature">Full analytics dashboard</div>
-            <div className="pricing-action">
-              <a href="mailto:strangemotelmusic@gmail.com" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>Apply for Elite</a>
+          </Reveal>
+          <Reveal i={2}>
+            <div className="pricing-card">
+              <div className="pricing-tier">Elite Loft</div>
+              <div className="pricing-price"><sup>$</sup>149<sub>/mo</sub></div>
+              <div className="pricing-desc">For champion breeders who demand maximum reach and credibility.</div>
+              <div className="pricing-feature">Everything in Breeder</div>
+              <div className="pricing-feature">Featured placement in auctions</div>
+              <div className="pricing-feature">Verified Elite badge</div>
+              <div className="pricing-feature">Championship auction priority</div>
+              <div className="pricing-feature">DNA cert display</div>
+              <div className="pricing-feature">Full analytics dashboard</div>
+              <div className="pricing-action">
+                <a href="mailto:strangemotelmusic@gmail.com" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>Apply for Elite</a>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
 
       {/* CTA */}
       <div className="cta-section">
-        <Image src={siteImages.bird_red2} alt="" width={400} height={500} className="cta-bird-left" aria-hidden />
-        <Image src={siteImages.bird_lavender} alt="" width={400} height={500} className="cta-bird-right" aria-hidden />
+        <ParallaxDrift className="cta-bird-left-wrap" range={30}>
+          <Image src={siteImages.bird_red2} alt="" width={400} height={500} className="cta-bird-left" aria-hidden />
+        </ParallaxDrift>
+        <ParallaxDrift className="cta-bird-right-wrap" range={30}>
+          <Image src={siteImages.bird_lavender} alt="" width={400} height={500} className="cta-bird-right" aria-hidden />
+        </ParallaxDrift>
         <h2 className="cta-title">
           Your Birds Deserve<br />a <em>World-Class</em> Stage
         </h2>

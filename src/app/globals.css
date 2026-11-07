@@ -19,6 +19,11 @@
   --subtle: rgba(255,255,255,0.2);
   --ff-display: var(--font-cormorant), Georgia, serif;
   --ff-body: var(--font-manrope), sans-serif;
+
+  /* ── MOTION TOKENS ── */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 html { scroll-behavior: smooth; }
@@ -575,11 +580,14 @@ body {
 .auction-card {
   background: var(--deep);
   overflow: hidden;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
   position: relative;
   cursor: pointer;
 }
 .auction-card:hover { background: var(--surface); }
+@media (hover: hover) and (pointer: fine) {
+  .auction-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.5); }
+}
 .auction-img-wrap {
   position: relative;
   height: 300px;
@@ -591,7 +599,7 @@ body {
   height: 100%;
   object-fit: contain;
   object-position: center bottom;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s var(--ease-out);
 }
 .auction-card:hover .auction-img { transform: scale(1.04); }
 .auction-badge {
@@ -622,7 +630,9 @@ body {
 .auction-bid { font-family: var(--ff-display); font-size: 28px; font-weight: 600; color: var(--gold); }
 .auction-timer { text-align: right; }
 .timer-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-.timer-val { font-family: var(--ff-body); font-size: 18px; font-weight: 600; color: var(--white); letter-spacing: 0.05em; }
+.timer-val { font-family: var(--ff-body); font-size: 18px; font-weight: 600; color: var(--white); letter-spacing: 0.05em; transition: color 0.4s var(--ease-out); }
+.timer-val.urgent { color: #ff5a4e; animation: urgentPulse 1.6s ease-in-out infinite; }
+@keyframes urgentPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 .auction-tags { display: flex; gap: 8px; margin-top: 16px; }
 .tag {
   font-size: 10px;
@@ -675,11 +685,14 @@ body {
   height: 400px;
   object-fit: contain;
   object-position: center bottom;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.6s var(--ease-out);
   display: block;
   background: #000;
 }
-.bird-card:hover .bird-card-img { transform: scale(1.06) translateY(-8px); }
+@media (hover: hover) and (pointer: fine) {
+  .bird-card:hover .bird-card-img { transform: scale(1.06) translateY(-8px); }
+}
+.bird-card-tilt { perspective: 800px; }
 .bird-card-info { padding: 20px 24px 28px; background: var(--deep); border-top: 0.5px solid var(--border); }
 .bird-card-name { font-family: var(--ff-display); font-size: 20px; font-weight: 400; color: var(--white); margin-bottom: 4px; }
 .bird-card-meta { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
@@ -783,6 +796,11 @@ body {
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(212,175,55,0.12) 0%, transparent 70%);
   z-index: 1;
+  animation: ringBreathe 7s ease-in-out infinite;
+}
+@keyframes ringBreathe {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.85; }
+  50% { transform: translateX(-50%) scale(1.12); opacity: 1; }
 }
 
 /* ── PRICING ── */
@@ -796,9 +814,20 @@ body {
   max-width: 960px;
   margin: 0 auto;
 }
-.pricing-card { background: var(--deep); padding: 40px 32px; text-align: left; transition: background 0.25s; }
+.pricing-card { background: var(--deep); padding: 40px 32px; text-align: left; transition: background 0.25s, transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out); }
 .pricing-card:hover { background: var(--surface); }
-.pricing-card.featured { background: var(--surface); border-top: 2px solid var(--gold); }
+@media (hover: hover) and (pointer: fine) {
+  .pricing-card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -16px rgba(0,0,0,0.55); }
+}
+.pricing-card.featured {
+  background: var(--surface);
+  border-top: 2px solid var(--gold);
+  animation: featuredGlow 4s ease-in-out infinite;
+}
+@keyframes featuredGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
+  50% { box-shadow: 0 -2px 30px -4px rgba(212,175,55,0.25); }
+}
 .pricing-tier { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 .pricing-card.featured .pricing-tier { color: var(--gold); }
 .pricing-price { font-family: var(--ff-display); font-size: 52px; font-weight: 300; color: var(--white); line-height: 1; margin-bottom: 4px; }
@@ -811,8 +840,10 @@ body {
 
 /* ── CTA ── */
 .cta-section { background: var(--black); padding: 160px 64px; text-align: center; position: relative; overflow: hidden; }
-.cta-bird-left { position: absolute; left: -40px; bottom: 0; height: 80%; opacity: 0.25; filter: blur(1px); object-fit: contain; }
-.cta-bird-right { position: absolute; right: -40px; bottom: 0; height: 80%; opacity: 0.2; filter: blur(1px) scaleX(-1); object-fit: contain; }
+.cta-bird-left-wrap { position: absolute; left: -40px; bottom: 0; height: 80%; }
+.cta-bird-right-wrap { position: absolute; right: -40px; bottom: 0; height: 80%; }
+.cta-bird-left { height: 100%; width: auto; opacity: 0.25; filter: blur(1px); object-fit: contain; display: block; }
+.cta-bird-right { height: 100%; width: auto; opacity: 0.2; filter: blur(1px) scaleX(-1); object-fit: contain; display: block; }
 .cta-title { font-family: var(--ff-display); font-size: clamp(48px, 6vw, 80px); font-weight: 300; line-height: 1.08; color: var(--white); max-width: 700px; margin: 0 auto 24px; position: relative; z-index: 2; }
 .cta-title em { font-style: italic; color: var(--gold); }
 .cta-sub { font-size: 14px; color: var(--muted); margin-bottom: 48px; position: relative; z-index: 2; }
@@ -902,4 +933,30 @@ footer { background: var(--void); border-top: 0.5px solid var(--border); padding
 }
 @media (max-width: 560px) {
   .browse-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ── SCROLL REVEAL ──
+   Marketing sections only. <Reveal> (src/components/Reveal.tsx) adds
+   data-visible once via IntersectionObserver, fired once. --reveal-i is set
+   per child by <RevealGroup> for a 60ms stagger; unset children fall back to 0. */
+.reveal {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 600ms var(--ease-in-out);
+  transition-delay: calc(var(--reveal-i, 0) * 60ms);
+}
+.reveal[data-visible] {
+  clip-path: inset(0 0 0 0);
+}
+
+/* ── REDUCED MOTION ──
+   Fewer and gentler, not zero: content still appears, state changes still
+   read, but nothing moves or oscillates. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { clip-path: inset(0 0 0 0) !important; }
 }
