@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe, getTierPriceIds } from "@/lib/stripe";
 
-const SITE_URL = "https://rollersonly.vercel.app";
+const SITE_URL = "https://rollersonly.com";
 
 export async function createCheckoutSession(tier: string) {
   const stripe = getStripe();
@@ -48,6 +48,58 @@ export async function createCheckoutSession(tier: string) {
     cancel_url: `${SITE_URL}/dashboard?checkout=cancelled`,
     metadata: { user_id: user.id, tier },
     subscription_data: { metadata: { user_id: user.id, tier } },
+  });
+
+  if (!session.url) {
+    return { error: "Could not start checkout." };
+  }
+
+  redirect(session.url);
+}
+
+// The winning bidder pays the full final price directly into our own Stripe
+// account (no Stripe Connect) - Steven pays sellers out manually himself, so
+// this is just a one-time Checkout payment, not a split/transfer.
+export async function createAuctionPaymentSession(auctionId: string) {
+  const stripe = getStripe();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/signin");
+  }
+
+  const admin = createAdminClient();
+  const { data: auction } = await admin
+    .from("auctions")
+    .select("id, bird_id, status, winner_id, final_price, escrow_held, birds(name)")
+    .eq("id", auctionId)
+    .maybeSingle();
+
+  if (!auction) return { error: "Auction not found." };
+  if (auction.status !== "ended") return { error: "This auction hasn't ended yet." };
+  if (auction.winner_id !== user.id) return { error: "Only the winning bidder can pay for this auction." };
+  if (auction.escrow_held) return { error: "This auction has already been paid." };
+  if (!auction.final_price) return { error: "No winning bid was recorded for this auction." };
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: user.email,
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: { name: `RollersOnly auction — ${auction.birds?.name ?? "Bird"}` },
+          unit_amount: Math.round(Number(auction.final_price) * 100),
+        },
+        quantity: 1,
+      },
+    ],
+    success_url: `${SITE_URL}/birds/${auction.bird_id}?payment=success`,
+    cancel_url: `${SITE_URL}/birds/${auction.bird_id}?payment=cancelled`,
+    metadata: { type: "auction_payment", auction_id: auction.id },
   });
 
   if (!session.url) {

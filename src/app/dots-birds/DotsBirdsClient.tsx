@@ -63,7 +63,7 @@ export default function DotsBirdsClient({ birds }: { birds: Bird[] }) {
               ) : inCart ? (
                 <Link
                   href="/cart"
-                  style={{ display: "block", marginTop: 16, width: "100%", padding: 10, background: "var(--gold)", border: "0.5px solid var(--gold)", color: "var(--black)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", borderRadius: 1, textDecoration: "none" }}
+                  style={{ display: "block", marginTop: 16, width: "100%", padding: 10, background: "var(--gold)", border: "0.5px solid var(--gold)", color: "var(--black)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", borderRadius: "var(--radius-sm)", textDecoration: "none" }}
                 >
                   In Cart — View Cart
                 </Link>
@@ -72,7 +72,7 @@ export default function DotsBirdsClient({ birds }: { birds: Bird[] }) {
                   onClick={() =>
                     addItem({ id: bird.id, name: bird.name, bandNumber: bird.band_number, priceCents: bird.price_cents, photoUrl: bird.photo_url })
                   }
-                  style={{ marginTop: 16, width: "100%", padding: 10, background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", borderRadius: 1 }}
+                  style={{ marginTop: 16, width: "100%", padding: 10, background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
                 >
                   Add to Cart
                 </button>

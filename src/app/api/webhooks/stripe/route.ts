@@ -19,6 +19,104 @@ async function fulfillDotsBirdOrder(session: Stripe.Checkout.Session) {
     .eq("stripe_session_id", session.id);
 }
 
+async function notifyMatchmakingParties(params: {
+  requesterEmail: string | null;
+  sireOwnerId: string;
+  damOwnerId: string;
+  sireName: string;
+  damName: string;
+}) {
+  if (!process.env.RESEND_API_KEY) return; // not set up yet - skip silently, same as pedigree.ts
+
+  const admin = createAdminClient();
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const breederIds = Array.from(new Set([params.sireOwnerId, params.damOwnerId]));
+  const breederEmails = (
+    await Promise.all(
+      breederIds.map(async (id) => {
+        const { data } = await admin.auth.admin.getUserById(id);
+        return data.user?.email ?? null;
+      })
+    )
+  ).filter((email): email is string => Boolean(email));
+
+  if (breederEmails.length > 0) {
+    await resend.emails.send({
+      from: "RollersOnly Matchmaking <matchmaking@rollersonly.com>",
+      to: breederEmails,
+      subject: `New pairing request — ${params.sireName} × ${params.damName}`,
+      html: `
+        <div style="font-family: Georgia, serif; background:#000; color:#fff; padding:32px;">
+          <p style="color:#D4AF37; letter-spacing:0.15em; text-transform:uppercase; font-size:11px;">RollersOnly Matchmaking</p>
+          <h1 style="font-weight:300; font-size:24px;">A $500 deposit has been paid</h1>
+          <p style="color:#ccc; font-size:14px; line-height:1.6;">
+            A member has reserved a pairing between <strong>${params.sireName}</strong> (sire) and
+            <strong>${params.damName}</strong> (dam) and paid the $500 deposit. Reach out to them at
+            ${params.requesterEmail ?? "the email on file"} to confirm timing and availability.
+          </p>
+        </div>
+      `,
+    });
+  }
+
+  if (params.requesterEmail) {
+    await resend.emails.send({
+      from: "RollersOnly Matchmaking <matchmaking@rollersonly.com>",
+      to: [params.requesterEmail],
+      subject: "Your pairing deposit is confirmed",
+      html: `
+        <div style="font-family: Georgia, serif; background:#000; color:#fff; padding:32px;">
+          <p style="color:#D4AF37; letter-spacing:0.15em; text-transform:uppercase; font-size:11px;">RollersOnly Matchmaking</p>
+          <h1 style="font-weight:300; font-size:24px;">Pairing reserved</h1>
+          <p style="color:#ccc; font-size:14px; line-height:1.6;">
+            Your $500 deposit for <strong>${params.sireName}</strong> × <strong>${params.damName}</strong> is
+            confirmed. The breeder has been notified and will reach out directly to confirm timing and
+            availability. The remaining $500 balance is due once your bird is bred and ready.
+          </p>
+        </div>
+      `,
+    });
+  }
+}
+
+async function fulfillAuctionPayment(session: Stripe.Checkout.Session) {
+  const auctionId = session.metadata?.auction_id;
+  if (!auctionId) return;
+
+  const admin = createAdminClient();
+  await admin.from("auctions").update({ escrow_held: true }).eq("id", auctionId);
+}
+
+async function fulfillMatchmakingReservation(session: Stripe.Checkout.Session) {
+  const sireBirdId = session.metadata?.sire_bird_id;
+  const damBirdId = session.metadata?.dam_bird_id;
+  const sireOwnerId = session.metadata?.sire_owner_id;
+  const damOwnerId = session.metadata?.dam_owner_id;
+  if (!sireBirdId || !damBirdId || !sireOwnerId || !damOwnerId) return;
+
+  const admin = createAdminClient();
+  const customerEmail = session.customer_details?.email ?? null;
+
+  await admin
+    .from("matchmaking_reservations")
+    .update({ deposit_status: "paid", customer_email: customerEmail })
+    .eq("stripe_session_id", session.id);
+
+  const { data: birds } = await admin.from("birds").select("id, name").in("id", [sireBirdId, damBirdId]);
+  const sireName = birds?.find((b) => b.id === sireBirdId)?.name ?? "the sire";
+  const damName = birds?.find((b) => b.id === damBirdId)?.name ?? "the dam";
+
+  await notifyMatchmakingParties({
+    requesterEmail: customerEmail,
+    sireOwnerId,
+    damOwnerId,
+    sireName,
+    damName,
+  });
+}
+
 // The marketplace tier subscription and the Family Tree add-on subscription
 // are two independent Stripe Customers (a Payment Link always creates its
 // own Customer, separate from profiles.stripe_customer_id). Each sync path
@@ -90,6 +188,10 @@ export async function POST(request: NextRequest) {
         }
       } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.bird_ids) {
         await fulfillDotsBirdOrder(session);
+      } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.sire_bird_id) {
+        await fulfillMatchmakingReservation(session);
+      } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.type === "auction_payment") {
+        await fulfillAuctionPayment(session);
       }
       break;
     }

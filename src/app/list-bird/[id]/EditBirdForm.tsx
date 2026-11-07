@@ -3,8 +3,9 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { deleteBirdPhoto } from "@/app/actions/bird-photos";
 
-const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
+const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--ff-body)" };
 const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--muted)", display: "block", marginBottom: 8 };
 
 type ExistingPhoto = { id: string; url: string; sort_order: number | null };
@@ -44,7 +45,26 @@ export default function EditBirdForm({
   const [saving, setSaving] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmDeletePhotoId, setConfirmDeletePhotoId] = useState<string | null>(null);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleDeletePhoto(photoId: string) {
+    if (confirmDeletePhotoId !== photoId) {
+      setConfirmDeletePhotoId(photoId);
+      return;
+    }
+    setDeletingPhotoId(photoId);
+    setError("");
+    const result = await deleteBirdPhoto(photoId);
+    setDeletingPhotoId(null);
+    setConfirmDeletePhotoId(null);
+    if (result?.error) {
+      setError(result.error);
+      return;
+    }
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+  }
 
   const isCancelled = auctionStatus === "cancelled" || auctionStatus === "ended";
 
@@ -66,12 +86,15 @@ export default function EditBirdForm({
       newUrls.push(supabase.storage.from("bird-photos").getPublicUrl(path).data.publicUrl);
     }
 
+    let insertedPhotos: ExistingPhoto[] = [];
     if (newUrls.length > 0) {
       const startIndex = photos.length;
-      const { error: photosErr } = await supabase.from("bird_photos").insert(
-        newUrls.map((url, i) => ({ bird_id: birdId, url, is_primary: photos.length === 0 && i === 0, sort_order: startIndex + i }))
-      );
+      const { data, error: photosErr } = await supabase
+        .from("bird_photos")
+        .insert(newUrls.map((url, i) => ({ bird_id: birdId, url, is_primary: photos.length === 0 && i === 0, sort_order: startIndex + i })))
+        .select("id, url, sort_order");
       if (photosErr) { setSaving(false); setError(photosErr.message); return; }
+      insertedPhotos = data ?? [];
     }
 
     const { error: birdErr } = await supabase
@@ -94,7 +117,7 @@ export default function EditBirdForm({
 
     setSaving(false);
     setNewFiles([]);
-    setPhotos([...photos, ...newUrls.map((url, i) => ({ id: `new-${i}`, url, sort_order: photos.length + i }))]);
+    setPhotos([...photos, ...insertedPhotos]);
     router.refresh();
   }
 
@@ -113,7 +136,7 @@ export default function EditBirdForm({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {isCancelled && (
-        <div style={{ fontSize: 13, color: "var(--muted)", padding: "12px 16px", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2 }}>
+        <div style={{ fontSize: 13, color: "var(--muted)", padding: "12px 16px", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
           This listing is {auctionStatus}. You can still edit the bird&apos;s details below.
         </div>
       )}
@@ -159,20 +182,64 @@ export default function EditBirdForm({
           style={{ display: "none" }}
         />
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {photos.map((p, i) => (
-            <div key={p.id} style={{ position: "relative", width: 88, height: 88, borderRadius: 2, overflow: "hidden", border: `1px solid ${i === 0 ? "var(--gold)" : "var(--border)"}` }}>
-              <Image src={p.url} alt={`Photo ${i + 1}`} fill style={{ objectFit: "cover" }} />
-            </div>
-          ))}
+          {photos.map((p, i) => {
+            const confirming = confirmDeletePhotoId === p.id;
+            const deleting = deletingPhotoId === p.id;
+            return (
+              <div key={p.id} style={{ position: "relative", width: 88, height: 88, borderRadius: "var(--radius-sm)", overflow: "hidden", border: `1px solid ${i === 0 ? "var(--gold)" : "var(--border)"}` }}>
+                <Image src={p.url} alt={`Photo ${i + 1}`} fill style={{ objectFit: "cover" }} />
+                {confirming && (
+                  <div
+                    onClick={() => setConfirmDeletePhotoId(null)}
+                    style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff", textAlign: "center", padding: 6, cursor: "pointer" }}
+                  >
+                    Tap × again to remove
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleDeletePhoto(p.id)}
+                  disabled={deleting}
+                  title={confirming ? "Confirm remove" : "Remove photo"}
+                  style={{
+                    position: "absolute",
+                    top: 3,
+                    right: 3,
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: "none",
+                    background: confirming ? "#E74C3C" : "rgba(0,0,0,0.6)",
+                    color: "#fff",
+                    fontSize: 12,
+                    lineHeight: "20px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  {deleting ? "…" : "×"}
+                </button>
+              </div>
+            );
+          })}
           {newFiles.map((f, i) => (
-            <div key={`new-${i}`} style={{ position: "relative", width: 88, height: 88, borderRadius: 2, overflow: "hidden", border: "1px dashed var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "var(--gold)", textAlign: "center", padding: 4 }}>
+            <div key={`new-${i}`} style={{ position: "relative", width: 88, height: 88, borderRadius: "var(--radius-sm)", overflow: "hidden", border: "1px dashed var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "var(--gold)", textAlign: "center", padding: 4 }}>
               {f.name} (new)
+              <button
+                type="button"
+                onClick={() => setNewFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                title="Remove"
+                style={{ position: "absolute", top: 3, right: 3, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 12, lineHeight: "20px", textAlign: "center", cursor: "pointer", padding: 0 }}
+              >
+                ×
+              </button>
             </div>
           ))}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            style={{ width: 88, height: 88, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, background: "var(--deep)", border: "1px dashed var(--border-gold)", borderRadius: 2, color: "var(--gold)", cursor: "pointer", fontSize: 11 }}
+            style={{ width: 88, height: 88, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, background: "var(--deep)", border: "1px dashed var(--border-gold)", borderRadius: "var(--radius-sm)", color: "var(--gold)", cursor: "pointer", fontSize: 11 }}
           >
             <span style={{ fontSize: 22, lineHeight: 1 }}>+</span>
             Add More
@@ -185,7 +252,7 @@ export default function EditBirdForm({
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: 100, resize: "vertical" }} />
       </div>
 
-      {error && <div style={{ color: "#E74C3C", fontSize: 13, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: 2, border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
+      {error && <div style={{ color: "#E74C3C", fontSize: 13, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: "var(--radius-sm)", border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
 
       <button className="btn-gold-lg" onClick={handleSave} disabled={saving} style={{ width: "100%", textAlign: "center" }}>
         {saving ? "Saving…" : "Save Changes"}
@@ -194,7 +261,7 @@ export default function EditBirdForm({
       {!isCancelled && auctionId && (
         <div style={{ borderTop: "0.5px solid var(--border)", paddingTop: 20 }}>
           {!confirmCancel ? (
-            <button type="button" onClick={() => setConfirmCancel(true)} style={{ width: "100%", padding: 12, background: "none", border: "0.5px solid rgba(231,76,60,0.4)", color: "#E74C3C", fontSize: 12, letterSpacing: "0.05em", textTransform: "uppercase", borderRadius: 2, cursor: "pointer" }}>
+            <button type="button" onClick={() => setConfirmCancel(true)} style={{ width: "100%", padding: 12, background: "none", border: "0.5px solid rgba(231,76,60,0.4)", color: "#E74C3C", fontSize: 12, letterSpacing: "0.05em", textTransform: "uppercase", borderRadius: "var(--radius-sm)", cursor: "pointer" }}>
               Cancel Listing
             </button>
           ) : (
@@ -202,7 +269,7 @@ export default function EditBirdForm({
               <div style={{ fontSize: 13, color: "var(--muted)" }}>This will end the auction and remove the bird from Browse. This can&apos;t be undone. Are you sure?</div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button type="button" onClick={() => setConfirmCancel(false)} className="btn-ghost" style={{ flex: 1 }}>Keep Listing</button>
-                <button type="button" onClick={handleCancelListing} disabled={cancelling} style={{ flex: 1, background: "#E74C3C", color: "var(--white)", border: "none", padding: 14, fontSize: 13, fontWeight: 700, cursor: "pointer", borderRadius: 2 }}>
+                <button type="button" onClick={handleCancelListing} disabled={cancelling} style={{ flex: 1, background: "#E74C3C", color: "var(--white)", border: "none", padding: 14, fontSize: 13, fontWeight: 700, cursor: "pointer", borderRadius: "var(--radius-sm)" }}>
                   {cancelling ? "Cancelling…" : "Yes, Cancel It"}
                 </button>
               </div>

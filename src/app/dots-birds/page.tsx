@@ -36,7 +36,9 @@ export default async function DotsBirdsPage() {
             Buy <em style={{ color: "var(--gold)" }}>D.O.T.S</em> Birds
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 560, margin: "0 auto" }}>
-            Birds bred and flown by Rollers Only — sold directly, no auction, no waiting. Add any bird to your cart and check out when you&apos;re ready.
+            Steven Russell Harts&apos; own bloodline — bred and flown at his loft, sold directly, no auction, no waiting.
+            Add any bird to your cart and check out when you&apos;re ready. Looking for Mike Tyson&apos;s South African lines
+            instead? Visit <a href="/tysons-corner" style={{ color: "var(--gold)" }}>Tyson&apos;s Corner</a>.
           </p>
         </div>
 

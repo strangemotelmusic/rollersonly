@@ -88,7 +88,7 @@ export default function NewChatModal({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or username…"
-            style={{ width: "100%", background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none", boxSizing: "border-box" }}
+            style={{ width: "100%", background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none", boxSizing: "border-box" }}
           />
 
           {selected.size > 0 && (
@@ -97,7 +97,7 @@ export default function NewChatModal({
                 <span
                   key={p.id}
                   onClick={() => toggle(p)}
-                  style={{ fontSize: 12, color: "var(--gold)", background: "var(--gold-dim)", padding: "4px 10px", borderRadius: 2, cursor: "pointer" }}
+                  style={{ fontSize: 12, color: "var(--gold)", background: "var(--gold-dim)", padding: "4px 10px", borderRadius: "var(--radius-sm)", cursor: "pointer" }}
                 >
                   {p.full_name || p.username} ✕
                 </span>
@@ -110,7 +110,7 @@ export default function NewChatModal({
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="Group name"
-              style={{ width: "100%", marginTop: 12, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none", boxSizing: "border-box" }}
+              style={{ width: "100%", marginTop: 12, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none", boxSizing: "border-box" }}
             />
           )}
         </div>
@@ -136,7 +136,7 @@ export default function NewChatModal({
           <button
             onClick={handleSubmit}
             disabled={loading || selected.size === 0}
-            style={{ width: "100%", background: "var(--gold)", color: "var(--black)", border: "none", padding: "12px", fontSize: 13, fontWeight: 600, cursor: "pointer", borderRadius: 2, opacity: loading || selected.size === 0 ? 0.5 : 1 }}
+            style={{ width: "100%", background: "var(--gold)", color: "var(--black)", border: "none", padding: "12px", fontSize: 13, fontWeight: 600, cursor: "pointer", borderRadius: "var(--radius-sm)", opacity: loading || selected.size === 0 ? 0.5 : 1 }}
           >
             {loading ? "Starting…" : needsGroupName ? "Create Group" : "Start Chat"}
           </button>

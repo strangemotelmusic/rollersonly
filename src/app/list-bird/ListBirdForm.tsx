@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
+const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--ff-body)" };
 const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--muted)", display: "block", marginBottom: 8 };
 
 const DURATIONS = [
@@ -171,7 +171,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {previewUrls.map((url, i) => (
-            <div key={i} style={{ position: "relative", width: 88, height: 88, borderRadius: 2, overflow: "hidden", border: `1px solid ${i === 0 ? "var(--gold)" : "var(--border)"}` }}>
+            <div key={i} style={{ position: "relative", width: 88, height: 88, borderRadius: "var(--radius-sm)", overflow: "hidden", border: `1px solid ${i === 0 ? "var(--gold)" : "var(--border)"}` }}>
               {previewFailed[i] ? (
                 <div style={{ display: "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 4, fontSize: 9, color: "var(--muted)", background: "var(--deep)" }}>
                   {photos[i]?.name || `Photo ${i + 1}`}
@@ -186,7 +186,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
                 />
               )}
               {i === 0 && (
-                <span style={{ position: "absolute", top: 2, left: 2, background: "var(--gold)", color: "var(--black)", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 1 }}>COVER</span>
+                <span style={{ position: "absolute", top: 2, left: 2, background: "var(--gold)", color: "var(--black)", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: "var(--radius-sm)" }}>COVER</span>
               )}
               <button
                 type="button"
@@ -212,7 +212,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
               gap: 4,
               background: "var(--deep)",
               border: "1px dashed var(--border-gold)",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               color: "var(--gold)",
               cursor: "pointer",
               fontSize: 11,
@@ -257,7 +257,7 @@ export default function ListBirdForm({ userId, loftId }: { userId: string; loftI
         </select>
       </div>
 
-      {error && <div style={{ color: "#E74C3C", fontSize: 13, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: 2, border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
+      {error && <div style={{ color: "#E74C3C", fontSize: 13, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: "var(--radius-sm)", border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
 
       <button className="btn-gold-lg" onClick={handleSubmit} disabled={loading} style={{ width: "100%", textAlign: "center" }}>
         {loading ? "Publishing…" : "Publish Listing"}

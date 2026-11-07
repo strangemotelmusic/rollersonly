@@ -30,7 +30,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -177,11 +177,11 @@ function ItemCard({ item, onDelete }: { item: ArchiveItem; onDelete: () => void 
   const thumb = item.media_type === "video" ? item.thumbnail_url : item.media_url;
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
       <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "var(--void)" }}>
         {thumb && <Image src={thumb} alt={item.title} fill style={{ objectFit: "cover" }} />}
         {item.media_type === "video" && (
-          <span style={{ position: "absolute", top: 8, right: 8, fontSize: 11, color: "var(--gold)", background: "rgba(0,0,0,0.6)", padding: "2px 8px", borderRadius: 2 }}>
+          <span style={{ position: "absolute", top: 8, right: 8, fontSize: 11, color: "var(--gold)", background: "rgba(0,0,0,0.6)", padding: "2px 8px", borderRadius: "var(--radius-sm)" }}>
             VIDEO
           </span>
         )}
@@ -213,7 +213,7 @@ function ItemCard({ item, onDelete }: { item: ArchiveItem; onDelete: () => void 
               <button
                 onClick={handleDelete}
                 disabled={pending}
-                style={{ padding: "6px 14px", fontSize: 12, background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer" }}
+                style={{ padding: "6px 14px", fontSize: 12, background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer" }}
               >
                 Delete
               </button>
@@ -352,7 +352,7 @@ function UploadForm({ currentUserId, onDone }: { currentUserId: string; onDone: 
   const busy = enhancing || converting || uploading;
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ marginBottom: 16 }}>
         <label style={labelStyle}>Title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
@@ -383,7 +383,7 @@ function UploadForm({ currentUserId, onDone }: { currentUserId: string; onDone: 
       {converting && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 12, color: "var(--gold)", marginBottom: 4 }}>Remastering video… {Math.round(conversionProgress * 100)}%</div>
-          <div style={{ height: 3, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: 3, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${Math.round(conversionProgress * 100)}%`, background: "var(--gold)", transition: "width 0.2s ease" }} />
           </div>
         </div>

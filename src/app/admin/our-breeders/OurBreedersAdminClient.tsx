@@ -3,8 +3,10 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { createOurBreeder, updateOurBreeder, removeOurBreederPhoto, deleteOurBreeder, updateOurBreederPhotoSettings } from "@/app/actions/our-breeders-admin";
+import { createOurBreeder, updateOurBreeder, removeOurBreederPhoto, deleteOurBreeder, updateOurBreederPhotoSettings, reorderOurBreeders } from "@/app/actions/our-breeders-admin";
 import { asPhotoSettingsMap, cropFor, cropImageStyle, DEFAULT_CROP, type PhotoCropSettings, type PhotoSettingsMap } from "@/lib/our-breeders/crop";
+import ReorderButtons from "@/components/admin/ReorderButtons";
+import BulkOurBreederDrop from "./BulkOurBreederDrop";
 
 type Breeder = {
   id: string;
@@ -34,7 +36,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -51,10 +53,30 @@ const labelStyle: React.CSSProperties = {
 export default function OurBreedersAdminClient({ initialBreeders }: { initialBreeders: Breeder[] }) {
   const [breeders, setBreeders] = useState(initialBreeders);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [reordering, setReordering] = useState(false);
+
+  async function moveBreeder(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= breeders.length) return;
+    const next = breeders.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setBreeders(next);
+    setReordering(true);
+    await reorderOurBreeders(next.map((b) => b.id));
+    setReordering(false);
+  }
 
   return (
     <div>
-      <button className="btn-gold" style={{ padding: "10px 22px", marginBottom: 24 }} onClick={() => setShowAddForm((s) => !s)}>
+      <BulkOurBreederDrop onSaved={() => window.location.reload()} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "8px 0 20px", color: "var(--subtle)", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        or add one manually
+        <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+      </div>
+
+      <button className="btn-ghost" style={{ padding: "10px 22px", marginBottom: 24 }} onClick={() => setShowAddForm((s) => !s)}>
         {showAddForm ? "Cancel" : "+ Add New Breeder"}
       </button>
 
@@ -71,12 +93,17 @@ export default function OurBreedersAdminClient({ initialBreeders }: { initialBre
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {breeders.length === 0 && !showAddForm && <p style={{ fontSize: 14, color: "var(--muted)" }}>No breeders added yet.</p>}
-        {breeders.map((b) => (
+        {breeders.map((b, i) => (
           <BreederRow
             key={b.id}
             breeder={b}
             onDelete={() => setBreeders((prev) => prev.filter((x) => x.id !== b.id))}
             onSaved={(updated) => setBreeders((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))}
+            canMoveUp={i > 0}
+            canMoveDown={i < breeders.length - 1}
+            onMoveUp={() => moveBreeder(i, -1)}
+            onMoveDown={() => moveBreeder(i, 1)}
+            reordering={reordering}
           />
         ))}
       </div>
@@ -88,10 +115,20 @@ function BreederRow({
   breeder,
   onDelete,
   onSaved,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  reordering,
 }: {
   breeder: Breeder;
   onDelete: () => void;
   onSaved: (breeder: Breeder) => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  reordering: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
@@ -126,7 +163,8 @@ function BreederRow({
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+      <ReorderButtons canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMoveUp={onMoveUp} onMoveDown={onMoveDown} disabled={reordering} />
       <button
         type="button"
         onClick={() => breeder.photo_urls[0] && setEditingPhoto(true)}
@@ -138,7 +176,7 @@ function BreederRow({
           height: 90,
           flexShrink: 0,
           background: "var(--void)",
-          borderRadius: 2,
+          borderRadius: "var(--radius-sm)",
           overflow: "hidden",
           padding: 0,
           border: "0.5px solid var(--border)",
@@ -175,7 +213,7 @@ function BreederRow({
         <button
           onClick={handleDelete}
           disabled={pending}
-          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
         >
           Delete
         </button>
@@ -263,7 +301,7 @@ function BreederForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>Name</label>
@@ -309,7 +347,7 @@ function BreederForm({
           <label style={labelStyle}>Existing Photos — click to view full size &amp; adjust crop</label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {photoUrls.map((url) => (
-              <div key={url} style={{ position: "relative", width: 72, height: 72, borderRadius: 2, overflow: "hidden", border: "0.5px solid var(--border)" }}>
+              <div key={url} style={{ position: "relative", width: 72, height: 72, borderRadius: "var(--radius-sm)", overflow: "hidden", border: "0.5px solid var(--border)" }}>
                 <button
                   type="button"
                   onClick={() => setEditingPhotoUrl(url)}
@@ -440,13 +478,13 @@ function PhotoEditorModal({
           width: "100%",
           background: "var(--surface)",
           border: "0.5px solid var(--border-gold)",
-          borderRadius: 2,
+          borderRadius: "var(--radius-sm)",
           padding: 32,
         }}
       >
         <div style={{ flex: "1 1 300px" }}>
           <label style={labelStyle}>Full Photo</label>
-          <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: "#000", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: "#000", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
             <Image src={url} alt="" fill style={{ objectFit: "contain" }} sizes="400px" />
           </div>
         </div>
@@ -465,7 +503,7 @@ function PhotoEditorModal({
               maxWidth: 280,
               aspectRatio: "1",
               overflow: "hidden",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               border: "0.5px solid var(--border-gold)",
               cursor: dragging ? "grabbing" : "grab",
               touchAction: "none",

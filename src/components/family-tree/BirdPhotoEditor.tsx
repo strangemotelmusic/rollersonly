@@ -92,13 +92,13 @@ export default function BirdPhotoEditor({
           width: "100%",
           background: "var(--surface)",
           border: "0.5px solid var(--border-gold)",
-          borderRadius: 2,
+          borderRadius: "var(--radius-sm)",
           padding: 32,
         }}
       >
         <div style={{ flex: "1 1 300px" }}>
           <label style={labelStyle}>Full Photo</label>
-          <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: "#000", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: "#000", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
             <Image src={url} alt="" fill style={{ objectFit: "contain" }} sizes="400px" />
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function BirdPhotoEditor({
               maxWidth: 280,
               aspectRatio: "1",
               overflow: "hidden",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               border: "0.5px solid var(--border-gold)",
               cursor: dragging ? "grabbing" : "grab",
               touchAction: "none",

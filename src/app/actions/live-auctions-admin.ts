@@ -144,6 +144,19 @@ export async function updateLiveAuctionCard(id: string, formData: FormData): Pro
   return { ok: true };
 }
 
+export async function reorderLiveAuctionCards(orderedIds: string[]): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) => admin.from("live_auction_cards").update({ sort_order: index }).eq("id", id))
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
+  return { ok: true };
+}
+
 export async function deleteLiveAuctionCard(id: string): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;

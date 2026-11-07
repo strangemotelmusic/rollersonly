@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
-const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
+const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--ff-body)" };
 const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--muted)", display: "block", marginBottom: 8 };
 
 export default function SettingsForm({
@@ -137,7 +137,7 @@ export default function SettingsForm({
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell the community about your loft and bloodlines…" style={{ ...inputStyle, minHeight: 100, resize: "vertical" }} />
       </div>
 
-      {error && <div style={{ color: "#E74C3C", fontSize: 13, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: 2, border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
+      {error && <div style={{ color: "#E74C3C", fontSize: 13, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: "var(--radius-sm)", border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
       {saved && <div style={{ color: "#2ECC71", fontSize: 13 }}>Saved.</div>}
 
       <button className="btn-gold-lg" onClick={handleSave} disabled={saving} style={{ width: "100%", textAlign: "center" }}>

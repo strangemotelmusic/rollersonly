@@ -41,8 +41,8 @@ export default function CartClient() {
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
         {items.map((item) => (
-          <div key={item.id} style={{ display: "flex", gap: 16, alignItems: "center", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 16 }}>
-            <div style={{ position: "relative", width: 72, height: 72, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+          <div key={item.id} style={{ display: "flex", gap: 16, alignItems: "center", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 16 }}>
+            <div style={{ position: "relative", width: 72, height: 72, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
               {item.photoUrl && <Image src={item.photoUrl} alt={item.name} fill style={{ objectFit: "cover" }} />}
             </div>
             <div style={{ flex: 1 }}>

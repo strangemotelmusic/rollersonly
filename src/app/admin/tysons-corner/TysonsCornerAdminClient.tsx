@@ -11,9 +11,11 @@ import {
   deleteDotsBird,
   addDotsBirdPhoto,
   removeDotsBirdPhoto,
+  reorderDotsBirds,
 } from "@/app/actions/dots-birds-admin";
-import { addGalleryPhoto, deleteGalleryPhoto } from "@/app/actions/tysons-corner-gallery-admin";
+import { addGalleryPhoto, deleteGalleryPhoto, reorderGalleryPhotos } from "@/app/actions/tysons-corner-gallery-admin";
 import { formatPrice } from "@/lib/dots-birds";
+import ReorderButtons from "@/components/admin/ReorderButtons";
 
 type Bird = {
   id: string;
@@ -45,7 +47,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -68,6 +70,18 @@ export default function TysonsCornerAdminClient({
 }) {
   const [birds, setBirds] = useState(initialBirds);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [reordering, setReordering] = useState(false);
+
+  async function moveBird(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= birds.length) return;
+    const next = birds.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setBirds(next);
+    setReordering(true);
+    await reorderDotsBirds(next.map((b) => b.id));
+    setReordering(false);
+  }
 
   return (
     <div>
@@ -97,7 +111,7 @@ export default function TysonsCornerAdminClient({
         {birds.length === 0 && !showAddForm && (
           <p style={{ fontSize: 14, color: "var(--muted)" }}>No birds listed yet.</p>
         )}
-        {birds.map((bird) => (
+        {birds.map((bird, i) => (
           <BirdRow
             key={bird.id}
             bird={bird}
@@ -108,6 +122,11 @@ export default function TysonsCornerAdminClient({
               setBirds((prev) => prev.map((b) => (b.id === bird.id ? { ...b, photo_urls: photoUrls } : b)))
             }
             onDelete={() => setBirds((prev) => prev.filter((b) => b.id !== bird.id))}
+            canMoveUp={i > 0}
+            canMoveDown={i < birds.length - 1}
+            onMoveUp={() => moveBird(i, -1)}
+            onMoveDown={() => moveBird(i, 1)}
+            reordering={reordering}
           />
         ))}
       </div>
@@ -122,11 +141,21 @@ function BirdRow({
   onAvailabilityChange,
   onGalleryChange,
   onDelete,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  reordering,
 }: {
   bird: Bird;
   onAvailabilityChange: (isAvailable: boolean) => void;
   onGalleryChange: (photoUrls: string[]) => void;
   onDelete: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  reordering: boolean;
 }) {
   const supabase = createClient();
   const [editing, setEditing] = useState(false);
@@ -207,9 +236,10 @@ function BirdRow({
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20 }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20 }}>
       <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-        <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+        <ReorderButtons canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMoveUp={onMoveUp} onMoveDown={onMoveDown} disabled={reordering} />
+        <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
           {bird.photo_url && <Image src={bird.photo_url} alt={bird.name} fill style={{ objectFit: "cover", opacity: bird.is_available ? 1 : 0.4 }} />}
         </div>
         <div style={{ flex: 1 }}>
@@ -232,7 +262,7 @@ function BirdRow({
           <button
             onClick={handleDelete}
             disabled={pending}
-            style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+            style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
           >
             Delete
           </button>
@@ -243,7 +273,7 @@ function BirdRow({
         <label style={labelStyle}>Photo Gallery ({bird.photo_urls.length} extra photo{bird.photo_urls.length === 1 ? "" : "s"})</label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {bird.photo_urls.map((url) => (
-            <div key={url} style={{ position: "relative", width: 64, height: 64, flexShrink: 0, borderRadius: 2, overflow: "hidden", background: "var(--void)" }}>
+            <div key={url} style={{ position: "relative", width: 64, height: 64, flexShrink: 0, borderRadius: "var(--radius-sm)", overflow: "hidden", background: "var(--void)" }}>
               <Image src={url} alt="" fill style={{ objectFit: "cover" }} />
               <button
                 onClick={() => handleRemovePhoto(url)}
@@ -278,7 +308,7 @@ function BirdRow({
               alignItems: "center",
               justifyContent: "center",
               border: "1px dashed var(--border)",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               color: "var(--muted)",
               fontSize: 20,
               cursor: uploadingPhoto ? "default" : "pointer",
@@ -330,7 +360,7 @@ function BirdForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>Bird Name</label>
@@ -384,6 +414,18 @@ function GallerySection({ initialGallery }: { initialGallery: GalleryPhoto[] }) 
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
+
+  async function moveGalleryPhoto(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= gallery.length) return;
+    const next = gallery.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setGallery(next);
+    setReordering(true);
+    await reorderGalleryPhotos(next.map((p) => p.id));
+    setReordering(false);
+  }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -432,7 +474,7 @@ function GallerySection({ initialGallery }: { initialGallery: GalleryPhoto[] }) 
         bird for sale.
       </p>
 
-      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, marginBottom: 24 }}>
+      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, marginBottom: 24 }}>
         <label style={labelStyle}>Caption (optional)</label>
         <input
           value={caption}
@@ -448,7 +490,7 @@ function GallerySection({ initialGallery }: { initialGallery: GalleryPhoto[] }) 
             color: "var(--black)",
             fontSize: 13,
             fontWeight: 600,
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             cursor: uploading ? "default" : "pointer",
           }}
         >
@@ -462,10 +504,19 @@ function GallerySection({ initialGallery }: { initialGallery: GalleryPhoto[] }) 
         <p style={{ fontSize: 14, color: "var(--muted)" }}>No gallery photos yet.</p>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
-          {gallery.map((photo) => (
-            <div key={photo.id} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+          {gallery.map((photo, i) => (
+            <div key={photo.id} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
               <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "var(--void)" }}>
                 <Image src={photo.image_url} alt={photo.caption ?? ""} fill style={{ objectFit: "cover" }} />
+                <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.5)", borderRadius: 4, padding: 2 }}>
+                  <ReorderButtons
+                    canMoveUp={i > 0}
+                    canMoveDown={i < gallery.length - 1}
+                    onMoveUp={() => moveGalleryPhoto(i, -1)}
+                    onMoveDown={() => moveGalleryPhoto(i, 1)}
+                    disabled={reordering}
+                  />
+                </div>
                 <button
                   onClick={() => handleDelete(photo.id)}
                   title="Delete photo"

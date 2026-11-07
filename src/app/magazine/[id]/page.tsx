@@ -73,7 +73,7 @@ export default async function MagazineIssuePage({ params }: { params: Promise<{ 
           ) : (
             <>
               {issue.cover_image_url && (
-                <div style={{ position: "relative", height: 400, marginBottom: 32, borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ position: "relative", height: 400, marginBottom: 32, borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
                   <Image src={issue.cover_image_url} alt={issue.title} fill style={{ objectFit: "cover" }} />
                 </div>
               )}

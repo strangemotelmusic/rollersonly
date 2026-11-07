@@ -28,7 +28,25 @@ export default function MagazineFlipbook({ pdfUrl, title }: { pdfUrl: string; ti
   const [numPages, setNumPages] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const flipRef = useRef<any>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [pageIndex, setPageIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(document.fullscreenElement === wrapperRef.current);
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      wrapperRef.current?.requestFullscreen();
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -95,16 +113,26 @@ export default function MagazineFlipbook({ pdfUrl, title }: { pdfUrl: string; ti
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div
+      ref={wrapperRef}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        ...(isFullscreen ? { background: "#000", height: "100vh", padding: 24 } : {}),
+      }}
+    >
       <HTMLFlipBook
         ref={flipRef}
         width={PAGE_WIDTH}
         height={PAGE_HEIGHT}
         size="stretch"
         minWidth={280}
-        maxWidth={720}
+        maxWidth={isFullscreen ? 1100 : 720}
         minHeight={380}
-        maxHeight={960}
+        maxHeight={isFullscreen ? 1467 : 960}
         startPage={0}
         drawShadow
         flippingTime={600}
@@ -153,6 +181,9 @@ export default function MagazineFlipbook({ pdfUrl, title }: { pdfUrl: string; ti
           style={{ padding: "8px 20px", opacity: pageIndex >= numPages - 1 ? 0.4 : 1 }}
         >
           Next →
+        </button>
+        <button onClick={toggleFullscreen} className="btn-ghost" style={{ padding: "8px 20px" }}>
+          {isFullscreen ? "⤡ Exit Full Screen" : "⤢ Full Screen"}
         </button>
       </div>
     </div>

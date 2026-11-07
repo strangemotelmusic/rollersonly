@@ -71,7 +71,7 @@ export default function NotificationBell() {
               overflowY: "auto",
               background: "var(--surface)",
               border: "0.5px solid var(--border)",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               boxShadow: "0 20px 50px -10px rgba(0,0,0,0.8)",
               zIndex: 41,
             }}
@@ -89,7 +89,7 @@ export default function NotificationBell() {
                   onClick={() => setOpen(false)}
                   style={{ display: "flex", gap: 12, alignItems: "center", padding: "12px 18px", borderBottom: "0.5px solid var(--border)", textDecoration: "none" }}
                 >
-                  <span style={{ position: "relative", width: 40, height: 40, flexShrink: 0, borderRadius: 2, overflow: "hidden", background: "var(--void)" }}>
+                  <span style={{ position: "relative", width: 40, height: 40, flexShrink: 0, borderRadius: "var(--radius-sm)", overflow: "hidden", background: "var(--void)" }}>
                     {l.birds?.primary_photo_url && <Image src={l.birds.primary_photo_url} alt={l.title} fill style={{ objectFit: "cover" }} />}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>

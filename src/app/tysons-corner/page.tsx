@@ -42,8 +42,9 @@ export default async function TysonsCornerPage() {
             Tyson&apos;s <em style={{ color: "var(--gold)" }}>Corner</em>
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 640, margin: "0 auto", lineHeight: 1.7 }}>
-            Mike Tyson and his family of South African bloodlines — the Tyson line is built on the Hannes, Poen, and
-            McKinney bloodlines. Order directly and we&apos;ll get your birds shipped to your door.
+            Mike Tyson&apos;s own South African bloodlines — built on the Hannes, Poen, and McKinney lines. Order directly
+            and we&apos;ll get your birds shipped to your door. Looking for Steven Russell Harts&apos; bloodline instead?
+            Visit <a href="/dots-birds" style={{ color: "var(--gold)" }}>D.O.T.S.</a>
           </p>
         </div>
 

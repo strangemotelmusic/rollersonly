@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
 import { ChatProvider } from "@/lib/chat-context";
 import { ListingNotificationsProvider } from "@/lib/listing-notifications-context";
+import { themeInitScript } from "@/components/ThemeToggle";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -28,7 +29,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${manrope.variable}`}>
+    <html lang="en" className={`${cormorant.variable} ${manrope.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Must run before paint so the stored theme is on <html> for the
+            first frame — otherwise light-mode users get a dark flash. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body suppressHydrationWarning>
         <ChatProvider>
           <ListingNotificationsProvider>

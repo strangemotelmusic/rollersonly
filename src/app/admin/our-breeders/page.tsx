@@ -29,7 +29,7 @@ export default async function AdminOurBreedersPage() {
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "64px 32px" }}>
           <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>
-            Manage Our Breeders
+            Manage Our Heroes
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
             Add and edit the foundation breeder birds shown on the public &quot;Our Breeders&quot; page — name, bloodline,

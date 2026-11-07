@@ -4,46 +4,47 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function AuctionsPage() {
   const admin = createAdminClient();
-  const { data: cards } = await admin
-    .from("live_auction_cards")
-    .select("id, name, loft_name, location, price_cents, bid_count, status, ends_at, schedule_label, tags, image_url")
-    .order("sort_order", { ascending: true });
+  const { data: auctionsRaw } = await admin
+    .from("auctions")
+    .select(
+      "id, current_bid, starting_bid, status, ends_at, starts_at, bird_id, birds(id, name, color, primary_photo_url, certification_status, dna_certified, health_certified), lofts(name, location)"
+    )
+    .in("status", ["live", "scheduled"])
+    .order("ends_at", { ascending: true });
 
-  const rows = cards ?? [];
+  const rows = auctionsRaw ?? [];
 
-  const liveAuctions = rows
-    .filter((c) => c.status === "live")
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      loft: c.loft_name,
-      location: c.location,
-      bid: `$${(c.price_cents / 100).toLocaleString()}`,
-      bids: c.bid_count,
-      seconds: c.ends_at ? Math.max(0, Math.round((new Date(c.ends_at).getTime() - Date.now()) / 1000)) : 0,
-      imgUrl: c.image_url || "/bird-white-red.jpg",
-      tags: c.tags,
-    }));
+  const lots = rows.map((a) => {
+    const bird = a.birds;
+    const tags = [
+      bird?.certification_status === "certified" && "★ Rollers Only Certified",
+      bird?.dna_certified && "DNA Cert",
+      bird?.health_certified && "Health Cert",
+    ].filter(Boolean) as string[];
+    return {
+      id: bird?.id ?? a.bird_id,
+      name: bird?.name || "Unnamed bird",
+      loft: a.lofts?.name || "Independent",
+      location: a.lofts?.location ?? "",
+      bloodline: bird?.color ?? "",
+      isLive: a.status === "live",
+      bid: `$${Number(a.current_bid ?? a.starting_bid ?? 0).toLocaleString()}`,
+      bidLabel: a.status === "live" ? "Current bid" : "Opening bid",
+      bids: 0,
+      seconds: a.ends_at ? Math.max(0, Math.round((new Date(a.ends_at).getTime() - Date.now()) / 1000)) : 0,
+      scheduleLabel: a.status === "scheduled" ? `Starts ${new Date(a.starts_at).toLocaleDateString()}` : "Coming soon",
+      imgUrl: bird?.primary_photo_url || "/bird-white-red.jpg",
+      tags,
+    };
+  });
 
-  const upcomingAuctions = rows
-    .filter((c) => c.status === "upcoming")
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      loft: c.loft_name,
-      location: c.location,
-      startBid: `$${(c.price_cents / 100).toLocaleString()}`,
-      date: c.schedule_label || "Coming soon",
-      imgUrl: c.image_url || "/bird-white-red.jpg",
-      tags: c.tags,
-    }));
-
-  const totalBidValueCents = rows.filter((c) => c.status === "live").reduce((sum, c) => sum + c.price_cents, 0);
+  const locations = Array.from(new Set(lots.map((l) => l.location).filter(Boolean)));
+  const bloodlines = Array.from(new Set(lots.map((l) => l.bloodline).filter(Boolean)));
 
   return (
     <>
       <Nav active="/auctions" />
-      <AuctionsClient liveAuctions={liveAuctions} upcomingAuctions={upcomingAuctions} totalBidValueCents={totalBidValueCents} />
+      <AuctionsClient lots={lots} locations={locations} bloodlines={bloodlines} />
     </>
   );
 }

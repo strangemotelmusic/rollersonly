@@ -124,7 +124,7 @@ export default function SpinVaultClient({
                 fontSize: 12,
                 letterSpacing: "0.05em",
                 textTransform: "uppercase",
-                borderRadius: 2,
+                borderRadius: "var(--radius-sm)",
                 cursor: "pointer",
                 background: filter === f ? "var(--gold)" : "transparent",
                 color: filter === f ? "var(--black)" : "var(--muted)",
@@ -168,7 +168,7 @@ function GridCard({ item, onOpen, onToggleLike }: { item: ArchiveItem; onOpen: (
   const thumb = item.media_type === "video" ? item.thumbnail_url : item.media_url;
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
       <button
         onClick={onOpen}
         style={{
@@ -396,7 +396,7 @@ function Lightbox({
                 onChange={(e) => setCommentInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handlePostComment()}
                 placeholder="Add a comment…"
-                style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none" }}
+                style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none" }}
               />
               <button
                 onClick={handlePostComment}

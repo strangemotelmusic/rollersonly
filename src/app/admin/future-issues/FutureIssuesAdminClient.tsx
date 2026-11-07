@@ -8,14 +8,17 @@ import {
   createFutureIssue,
   updateFutureIssue,
   deleteFutureIssue,
+  reorderFutureIssues,
   addFeaturedVideo,
   addFeaturedVideosBulk,
   updateFeaturedVideoTitle,
   deleteFeaturedVideo,
+  reorderFeaturedVideos,
   approveVideoSubmission,
   rejectVideoSubmission,
 } from "@/app/actions/future-content-admin";
 import BulkCoverDrop from "./BulkCoverDrop";
+import ReorderButtons from "@/components/admin/ReorderButtons";
 
 type FutureIssue = {
   id: string;
@@ -50,7 +53,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -85,6 +88,30 @@ export default function FutureIssuesAdminClient({
   const [videos, setVideos] = useState(initialVideos);
   const [submissions, setSubmissions] = useState(initialSubmissions);
   const [showIssueForm, setShowIssueForm] = useState(false);
+  const [reorderingIssues, setReorderingIssues] = useState(false);
+  const [reorderingVideos, setReorderingVideos] = useState(false);
+
+  async function moveIssue(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= issues.length) return;
+    const next = issues.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setIssues(next);
+    setReorderingIssues(true);
+    await reorderFutureIssues(next.map((x) => x.id));
+    setReorderingIssues(false);
+  }
+
+  async function moveVideo(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= videos.length) return;
+    const next = videos.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setVideos(next);
+    setReorderingVideos(true);
+    await reorderFeaturedVideos(next.map((x) => x.id));
+    setReorderingVideos(false);
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
@@ -135,8 +162,17 @@ export default function FutureIssuesAdminClient({
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {issues.length === 0 && !showIssueForm && <p style={{ fontSize: 14, color: "var(--muted)" }}>No upcoming issues yet.</p>}
-          {issues.map((issue) => (
-            <IssueRow key={issue.id} issue={issue} onDelete={() => setIssues((prev) => prev.filter((x) => x.id !== issue.id))} />
+          {issues.map((issue, i) => (
+            <IssueRow
+              key={issue.id}
+              issue={issue}
+              onDelete={() => setIssues((prev) => prev.filter((x) => x.id !== issue.id))}
+              canMoveUp={i > 0}
+              canMoveDown={i < issues.length - 1}
+              onMoveUp={() => moveIssue(i, -1)}
+              onMoveDown={() => moveIssue(i, 1)}
+              reordering={reorderingIssues}
+            />
           ))}
         </div>
       </section>
@@ -165,12 +201,17 @@ export default function FutureIssuesAdminClient({
         />
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
           {videos.length === 0 && <p style={{ fontSize: 14, color: "var(--muted)" }}>No videos added yet — paste a YouTube link above.</p>}
-          {videos.map((v) => (
+          {videos.map((v, i) => (
             <VideoRow
               key={v.id}
               video={v}
               onDelete={() => setVideos((prev) => prev.filter((x) => x.id !== v.id))}
               onRename={(title) => setVideos((prev) => prev.map((x) => (x.id === v.id ? { ...x, title } : x)))}
+              canMoveUp={i > 0}
+              canMoveDown={i < videos.length - 1}
+              onMoveUp={() => moveVideo(i, -1)}
+              onMoveDown={() => moveVideo(i, 1)}
+              reordering={reorderingVideos}
             />
           ))}
         </div>
@@ -210,9 +251,9 @@ function SubmissionRow({ submission, onResolved }: { submission: Submission; onR
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 16 }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 16 }}>
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-        <video src={submission.video_url} controls preload="metadata" style={{ width: 200, height: 112, background: "#000", borderRadius: 2, flexShrink: 0 }} />
+        <video src={submission.video_url} controls preload="metadata" style={{ width: 200, height: 112, background: "#000", borderRadius: "var(--radius-sm)", flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, color: "var(--white)", marginBottom: 4 }}>{submission.title}</div>
           <div style={{ fontSize: 12, color: "var(--muted)" }}>
@@ -227,7 +268,7 @@ function SubmissionRow({ submission, onResolved }: { submission: Submission; onR
           <button
             onClick={() => setRejecting((r) => !r)}
             disabled={pending}
-            style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+            style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
           >
             Reject
           </button>
@@ -250,7 +291,23 @@ function SubmissionRow({ submission, onResolved }: { submission: Submission; onR
   );
 }
 
-function IssueRow({ issue, onDelete }: { issue: FutureIssue; onDelete: () => void }) {
+function IssueRow({
+  issue,
+  onDelete,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  reordering,
+}: {
+  issue: FutureIssue;
+  onDelete: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  reordering: boolean;
+}) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -283,8 +340,9 @@ function IssueRow({ issue, onDelete }: { issue: FutureIssue; onDelete: () => voi
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 70, height: 96, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+      <ReorderButtons canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMoveUp={onMoveUp} onMoveDown={onMoveDown} disabled={reordering} />
+      <div style={{ position: "relative", width: 70, height: 96, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
         {issue.cover_url && <Image src={issue.cover_url} alt={issue.title} fill style={{ objectFit: "cover" }} />}
       </div>
       <div style={{ flex: 1 }}>
@@ -298,7 +356,7 @@ function IssueRow({ issue, onDelete }: { issue: FutureIssue; onDelete: () => voi
         <button
           onClick={handleDelete}
           disabled={pending}
-          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
         >
           Delete
         </button>
@@ -344,7 +402,7 @@ function IssueForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>Issue Title</label>
@@ -388,7 +446,7 @@ function VideoForm({ onAdd }: { onAdd: (formData: FormData) => Promise<{ error: 
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr auto", gap: 12, alignItems: "end" }}>
         <div>
           <label style={labelStyle}>Video Title</label>
@@ -424,7 +482,7 @@ function BulkVideoForm({ onAdd }: { onAdd: (formData: FormData) => Promise<{ err
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 24, marginTop: 16 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 24, marginTop: 16 }}>
       <label style={labelStyle}>Paste Several Links At Once</label>
       <textarea
         name="links"
@@ -448,10 +506,20 @@ function VideoRow({
   video,
   onDelete,
   onRename,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  reordering,
 }: {
   video: FeaturedVideo;
   onDelete: () => void;
   onRename: (title: string) => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  reordering: boolean;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -487,8 +555,9 @@ function VideoRow({
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 14, display: "flex", gap: 16, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 120, height: 68, flexShrink: 0, borderRadius: 2, overflow: "hidden", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 14, display: "flex", gap: 16, alignItems: "center" }}>
+      <ReorderButtons canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMoveUp={onMoveUp} onMoveDown={onMoveDown} disabled={reordering} />
+      <div style={{ position: "relative", width: 120, height: 68, flexShrink: 0, borderRadius: "var(--radius-sm)", overflow: "hidden", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {video.source === "upload" ? (
           <video src={video.video_url ?? undefined} preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
@@ -526,7 +595,7 @@ function VideoRow({
       <button
         onClick={handleDelete}
         disabled={pending}
-        style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13, flexShrink: 0 }}
+        style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13, flexShrink: 0 }}
       >
         Remove
       </button>

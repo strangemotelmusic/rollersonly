@@ -40,7 +40,7 @@ export default function NavMobileToggle({
                   <Link href="/admin/certifications" onClick={() => setOpen(false)}>Review Queue</Link>
                   <Link href="/admin/site-images" onClick={() => setOpen(false)}>Site Images</Link>
                   <Link href="/admin/live-auctions" onClick={() => setOpen(false)}>Live Auctions</Link>
-                  <Link href="/admin/our-breeders" onClick={() => setOpen(false)}>Our Breeders</Link>
+                  <Link href="/admin/our-breeders" onClick={() => setOpen(false)}>Our Heroes</Link>
                   <Link href="/admin/future-issues" onClick={() => setOpen(false)}>Future Issues</Link>
                   <Link href="/admin/dots-birds" onClick={() => setOpen(false)}>Manage D.O.T.S Birds</Link>
                   <Link href="/admin/tysons-corner" onClick={() => setOpen(false)}>Manage Tyson&apos;s Corner</Link>

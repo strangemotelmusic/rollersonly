@@ -128,6 +128,7 @@ export interface Database {
           certification_requested_at: string | null;
           certified_at: string | null;
           bred_from_pair_id: string | null;
+          available_for_matchmaking: boolean;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -161,6 +162,7 @@ export interface Database {
           certification_requested_at?: string | null;
           certified_at?: string | null;
           bred_from_pair_id?: string | null;
+          available_for_matchmaking?: boolean;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -930,6 +932,74 @@ export interface Database {
             columns: ["bird_b_id"];
             isOneToOne: false;
             referencedRelation: "birds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      matchmaking_reservations: {
+        Row: {
+          id: string;
+          requester_id: string;
+          sire_bird_id: string;
+          dam_bird_id: string;
+          sire_owner_id: string;
+          dam_owner_id: string;
+          stripe_session_id: string | null;
+          deposit_status: string;
+          deposit_amount_cents: number;
+          customer_email: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          requester_id: string;
+          sire_bird_id: string;
+          dam_bird_id: string;
+          sire_owner_id: string;
+          dam_owner_id: string;
+          stripe_session_id?: string | null;
+          deposit_status?: string;
+          deposit_amount_cents?: number;
+          customer_email?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["matchmaking_reservations"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "matchmaking_reservations_requester_id_fkey";
+            columns: ["requester_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "matchmaking_reservations_sire_bird_id_fkey";
+            columns: ["sire_bird_id"];
+            isOneToOne: false;
+            referencedRelation: "birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "matchmaking_reservations_dam_bird_id_fkey";
+            columns: ["dam_bird_id"];
+            isOneToOne: false;
+            referencedRelation: "birds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "matchmaking_reservations_sire_owner_id_fkey";
+            columns: ["sire_owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "matchmaking_reservations_dam_owner_id_fkey";
+            columns: ["dam_owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];

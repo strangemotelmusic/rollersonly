@@ -22,7 +22,7 @@ export default function SignInPage() {
     router.refresh();
   }
 
-  const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" };
+  const inputStyle = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--ff-body)" };
   const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--muted)", display: "block", marginBottom: 8 };
 
   return (
@@ -65,10 +65,10 @@ export default function SignInPage() {
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" style={inputStyle} onFocus={(e) => (e.target.style.borderColor = "var(--gold)")} onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} onKeyDown={(e) => e.key === "Enter" && handleSignIn()} />
           </div>
           <div style={{ textAlign: "right", marginBottom: 32 }}>
-            <a href="mailto:strangemotelmusic@gmail.com" style={{ fontSize: 12, color: "var(--muted)", textDecoration: "none" }}>Forgot password?</a>
+            <Link href="/forgot-password" style={{ fontSize: 12, color: "var(--muted)", textDecoration: "none" }}>Forgot password?</Link>
           </div>
 
-          {error && <div style={{ color: "#E74C3C", fontSize: 13, marginBottom: 16, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: 2, border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
+          {error && <div style={{ color: "#E74C3C", fontSize: 13, marginBottom: 16, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: "var(--radius-sm)", border: "0.5px solid rgba(231,76,60,0.3)" }}>{error}</div>}
 
           <button className="btn-gold-lg" onClick={handleSignIn} disabled={loading} style={{ width: "100%", textAlign: "center" }}>
             {loading ? "Signing in…" : "Sign In"}

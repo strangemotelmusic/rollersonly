@@ -209,10 +209,10 @@ export default async function DashboardPage() {
               {activeBids.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--muted)" }}>No active bids yet.</p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--border)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, background: "transparent" }}>
                   {activeBids.map((b) => (
-                    <div key={b.id} style={{ background: "var(--surface)", display: "flex", gap: 20, alignItems: "center", padding: 20 }}>
-                      <div style={{ position: "relative", width: 64, height: 64, borderRadius: 2, overflow: "hidden", flexShrink: 0, background: "#000" }}>
+                    <div key={b.id} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-lg)", display: "flex", gap: 20, alignItems: "center", padding: 20 }}>
+                      <div style={{ position: "relative", width: 64, height: 64, borderRadius: "var(--radius-sm)", overflow: "hidden", flexShrink: 0, background: "#000" }}>
                         {b.img && <Image src={b.img} alt={b.name} fill style={{ objectFit: "contain" }} />}
                       </div>
                       <div style={{ flex: 1 }}>
@@ -228,10 +228,10 @@ export default async function DashboardPage() {
                         <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, color: "var(--gold)" }}>${b.currentBid.toLocaleString()}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 2, background: b.status === "winning" ? "rgba(50,200,100,0.12)" : "rgba(231,76,60,0.12)", color: b.status === "winning" ? "#50c878" : "#e74c3c", marginBottom: 8 }}>{b.status === "winning" ? "● Winning" : "Outbid"}</div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: "var(--radius-sm)", background: b.status === "winning" ? "rgba(50,200,100,0.12)" : "rgba(231,76,60,0.12)", color: b.status === "winning" ? "#50c878" : "#e74c3c", marginBottom: 8 }}>{b.status === "winning" ? "● Winning" : "Outbid"}</div>
                         <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>{b.ends}</div>
                       </div>
-                      <Link href={`/birds/${b.birdId}`} style={{ padding: "10px 16px", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, textDecoration: "none", borderRadius: 1, whiteSpace: "nowrap" }}>
+                      <Link href={`/birds/${b.birdId}`} style={{ padding: "10px 16px", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, textDecoration: "none", borderRadius: "var(--radius-sm)", whiteSpace: "nowrap" }}>
                         {b.status === "outbid" ? "Raise Bid" : "View"}
                       </Link>
                     </div>
@@ -263,7 +263,7 @@ export default async function DashboardPage() {
                       <tr key={b.id} style={{ borderBottom: "0.5px solid var(--border)" }}>
                         <td style={{ padding: "16px 12px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                            <div style={{ position: "relative", width: 44, height: 44, background: "#000", borderRadius: 1, overflow: "hidden", flexShrink: 0 }}>
+                            <div style={{ position: "relative", width: 44, height: 44, background: "#000", borderRadius: "var(--radius-sm)", overflow: "hidden", flexShrink: 0 }}>
                               {b.img && <Image src={b.img} alt={b.name} fill style={{ objectFit: "contain" }} />}
                             </div>
                             <span style={{ fontSize: 13, color: "var(--white)" }}>{b.name}</span>
@@ -273,7 +273,7 @@ export default async function DashboardPage() {
                         <td style={{ padding: "16px 12px", fontSize: 13, color: "var(--muted)" }}>{b.bids}</td>
                         <td style={{ padding: "16px 12px", fontFamily: "var(--ff-display)", fontSize: 18, color: "var(--white)" }}>{b.currentBid ? `$${Number(b.currentBid).toLocaleString()}` : "—"}</td>
                         <td style={{ padding: "16px 12px" }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 2, background: b.status === "live" ? "rgba(255,50,50,0.12)" : "rgba(255,255,255,0.06)", color: b.status === "live" ? "#ff6666" : "var(--muted)" }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: "var(--radius-sm)", background: b.status === "live" ? "rgba(255,50,50,0.12)" : "rgba(255,255,255,0.06)", color: b.status === "live" ? "#ff6666" : "var(--muted)" }}>
                             {b.status === "live" ? "● Live" : "Available"}
                           </span>
                         </td>
@@ -294,7 +294,7 @@ export default async function DashboardPage() {
               {recentSales.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--muted)" }}>No completed sales yet.</p>
               ) : (
-                <div style={{ border: "0.5px solid var(--border)" }}>
+                <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
                   {recentSales.map((s, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: i < recentSales.length - 1 ? "0.5px solid var(--border)" : "none" }}>
                       <div>
@@ -314,7 +314,7 @@ export default async function DashboardPage() {
 
             <BillingBox tierLabel={tier} currentTier={profile?.tier ?? "browse"} hasStripeCustomer={Boolean(billingProfile?.stripe_customer_id)} />
 
-            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
+            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: "var(--radius-sm)" }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Quick Actions</div>
               {[
                 { label: "My Loft", href: "/dashboard/loft" },

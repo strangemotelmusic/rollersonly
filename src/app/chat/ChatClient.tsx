@@ -385,7 +385,7 @@ export default function ChatClient({
           <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 22, fontWeight: 400, color: "var(--white)" }}>Chat</h1>
           <button
             onClick={() => setShowNewChatModal(true)}
-            style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 2 }}
+            style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: "var(--radius-sm)" }}
           >
             + New
           </button>
@@ -403,7 +403,7 @@ export default function ChatClient({
             color: "var(--muted)",
             padding: "10px 14px",
             fontSize: 13,
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             cursor: "pointer",
             textAlign: "left",
           }}
@@ -620,7 +620,7 @@ export default function ChatClient({
               <div style={{ fontSize: 12, color: "var(--gold)", marginBottom: 4 }}>
                 Converting video… {Math.round(conversionProgress * 100)}%
               </div>
-              <div style={{ height: 3, background: "var(--surface)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ height: 3, background: "var(--surface)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${Math.round(conversionProgress * 100)}%`, background: "var(--gold)", transition: "width 0.2s ease" }} />
               </div>
             </div>
@@ -657,7 +657,7 @@ export default function ChatClient({
               onClick={() => fileInputRef.current?.click()}
               disabled={converting}
               title="Attach a photo or video"
-              style={{ background: "var(--surface)", border: "none", color: "var(--white)", padding: "0 14px", fontSize: 16, cursor: "pointer", borderRadius: 2, opacity: converting ? 0.5 : 1 }}
+              style={{ background: "var(--surface)", border: "none", color: "var(--white)", padding: "0 14px", fontSize: 16, cursor: "pointer", borderRadius: "var(--radius-sm)", opacity: converting ? 0.5 : 1 }}
             >
               📷
             </button>
@@ -669,12 +669,12 @@ export default function ChatClient({
               }}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder="Say something…"
-              style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none" }}
+              style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none" }}
             />
             <button
               onClick={handleSend}
               disabled={sending || converting}
-              style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 2, opacity: sending || converting ? 0.5 : 1 }}
+              style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: "var(--radius-sm)", opacity: sending || converting ? 0.5 : 1 }}
             >
               Send
             </button>

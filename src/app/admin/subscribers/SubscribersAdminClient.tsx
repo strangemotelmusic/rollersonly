@@ -12,7 +12,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 14,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -57,19 +57,19 @@ export default function SubscribersAdminClient({
   return (
     <div>
       <div style={{ display: "flex", gap: 24, marginBottom: 32 }}>
-        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, flex: 1 }}>
+        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, flex: 1 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 6 }}>
             Opted-in Members
           </div>
           <div style={{ fontSize: 28, fontWeight: 300, fontFamily: "var(--ff-display)", color: "var(--white)" }}>{initialCounts.members}</div>
         </div>
-        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, flex: 1 }}>
+        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, flex: 1 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 6 }}>
             Newsletter Signups
           </div>
           <div style={{ fontSize: 28, fontWeight: 300, fontFamily: "var(--ff-display)", color: "var(--white)" }}>{initialCounts.newsletter}</div>
         </div>
-        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, flex: 1 }}>
+        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, flex: 1 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 6 }}>
             Total Reach
           </div>
@@ -77,7 +77,7 @@ export default function SubscribersAdminClient({
         </div>
       </div>
 
-      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 24, marginBottom: 32 }}>
+      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 32 }}>
         <div style={{ fontSize: 16, color: "var(--white)", marginBottom: 18 }}>Compose a campaign</div>
 
         <div style={{ marginBottom: 14 }}>
@@ -113,7 +113,7 @@ export default function SubscribersAdminClient({
             Review &amp; Send
           </button>
         ) : (
-          <div style={{ border: "0.5px solid var(--border)", borderRadius: 2, padding: 16 }}>
+          <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 16 }}>
             <p style={{ fontSize: 13, color: "var(--white)", marginBottom: 14 }}>
               This will send to <strong>{total}</strong> real people ({initialCounts.members} members, {initialCounts.newsletter}{" "}
               newsletter). This can&apos;t be undone. Send now?
@@ -123,7 +123,7 @@ export default function SubscribersAdminClient({
                 {sending ? "Sending…" : "Yes, send it"}
               </button>
               <button
-                style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", borderRadius: 2, cursor: "pointer" }}
+                style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", borderRadius: "var(--radius-sm)", cursor: "pointer" }}
                 disabled={sending}
                 onClick={() => setConfirming(false)}
               >
@@ -149,7 +149,7 @@ export default function SubscribersAdminClient({
                   padding: "12px 14px",
                   background: "var(--surface)",
                   border: "0.5px solid var(--border)",
-                  borderRadius: 2,
+                  borderRadius: "var(--radius-sm)",
                   fontSize: 13,
                 }}
               >

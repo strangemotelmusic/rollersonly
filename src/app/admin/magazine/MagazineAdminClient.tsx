@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { createMagazineIssue, updateMagazineIssue, deleteMagazineIssue } from "@/app/actions/magazine-admin";
+import { createMagazineIssue, updateMagazineIssue, deleteMagazineIssue, createMagazinePdfUploadUrl } from "@/app/actions/magazine-admin";
 import { createClient } from "@/lib/supabase/client";
 
 type Issue = {
@@ -23,7 +23,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -106,8 +106,8 @@ function IssueRow({ issue, onDelete }: { issue: Issue; onDelete: () => void }) {
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 70, height: 100, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+      <div style={{ position: "relative", width: 70, height: 100, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
         {issue.cover_image_url && <Image src={issue.cover_image_url} alt={issue.title} fill style={{ objectFit: "cover" }} />}
       </div>
       <div style={{ flex: 1 }}>
@@ -132,7 +132,7 @@ function IssueRow({ issue, onDelete }: { issue: Issue; onDelete: () => void }) {
         <button
           onClick={handleDelete}
           disabled={pending}
-          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
         >
           Delete
         </button>
@@ -171,18 +171,28 @@ function IssueForm({
     // standard upload method supports up to 5GB; the earlier "exceeded
     // maximum allowed size" failures were the bucket's/project's configured
     // size limits, now raised, not a technical ceiling on this method.
+    // Ask the server for a one-time signed upload token (see
+    // createMagazinePdfUploadUrl) rather than uploading with this user's own
+    // JWT — the bucket's INSERT policy rejects authenticated admins. The file
+    // itself still goes browser -> Supabase directly, so issue-sized PDFs
+    // never pass through a server body-size cap.
+    const ticket = await createMagazinePdfUploadUrl();
+    if ("error" in ticket) {
+      setUploadingPdf(false);
+      setError(`PDF upload failed: ${ticket.error}`);
+      return;
+    }
+
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log("[pdf-upload-debug] user id:", session?.user?.id, "role:", session?.user?.role, "has token:", !!session?.access_token, "expires at:", session?.expires_at, "now:", Math.floor(Date.now() / 1000));
-    const path = `${crypto.randomUUID()}.pdf`;
-    const { error: uploadErr } = await supabase.storage.from("magazine-pdfs").upload(path, file, { contentType: "application/pdf", upsert: true });
+    const { error: uploadErr } = await supabase.storage
+      .from("magazine-pdfs")
+      .uploadToSignedUrl(ticket.path, ticket.token, file, { contentType: "application/pdf" });
     setUploadingPdf(false);
     if (uploadErr) {
       setError(`PDF upload failed: ${uploadErr.message}`);
       return;
     }
-    const url = supabase.storage.from("magazine-pdfs").getPublicUrl(path).data.publicUrl;
-    setPdfUrl(url);
+    setPdfUrl(ticket.publicUrl);
     setPdfFileName(file.name);
   }
 
@@ -200,7 +210,7 @@ function IssueForm({
   const publishedDefault = issue ? new Date(issue.published_at).toISOString().slice(0, 10) : "";
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>Issue Title</label>
@@ -220,7 +230,7 @@ function IssueForm({
         <textarea name="description" defaultValue={issue?.description ?? ""} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
       </div>
 
-      <div style={{ marginBottom: 20, padding: 16, background: "var(--void)", border: "0.5px solid var(--border-gold)", borderRadius: 2 }}>
+      <div style={{ marginBottom: 20, padding: 16, background: "var(--void)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)" }}>
         <label style={labelStyle}>Upload Issue PDF</label>
         <input type="file" accept="application/pdf" onChange={handlePdfChange} disabled={uploadingPdf} style={{ fontSize: 13, color: "var(--muted)" }} />
         {uploadingPdf && <p style={{ fontSize: 12, color: "var(--gold)", marginTop: 8 }}>Uploading… this can take a few minutes for large files.</p>}

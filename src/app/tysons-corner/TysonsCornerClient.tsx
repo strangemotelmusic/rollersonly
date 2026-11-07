@@ -38,7 +38,7 @@ export default function TysonsCornerClient({ birds, gallery }: { birds: Bird[]; 
 
   return (
     <div style={{ padding: "0 40px 64px" }}>
-      <div style={{ maxWidth: 720, margin: "0 auto 48px", padding: "20px 24px", background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, textAlign: "center" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto 48px", padding: "20px 24px", background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
         <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.7 }}>
           Every order ships live in a shipping box — a flat $140 (box + shipping) is added at checkout alongside the
           bird&apos;s price. Questions before you order?{" "}
@@ -80,7 +80,7 @@ export default function TysonsCornerClient({ birds, gallery }: { birds: Bird[]; 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
             {gallery.map((photo) => (
               <a key={photo.id} href={photo.image_url} target="_blank" rel="noopener noreferrer" style={{ display: "block" }}>
-                <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
                   <Image src={photo.image_url} alt={photo.caption ?? ""} fill style={{ objectFit: "cover" }} />
                 </div>
                 {photo.caption && (
@@ -122,7 +122,7 @@ function BirdCard({ bird }: { bird: Bird }) {
                 width: 40,
                 height: 40,
                 flexShrink: 0,
-                borderRadius: 2,
+                borderRadius: "var(--radius-sm)",
                 overflow: "hidden",
                 background: "var(--void)",
                 border: url === activePhoto ? "1.5px solid var(--gold)" : "0.5px solid var(--border)",
@@ -157,7 +157,7 @@ function BirdCard({ bird }: { bird: Bird }) {
         ) : inCart ? (
           <Link
             href="/cart"
-            style={{ display: "block", marginTop: 16, width: "100%", padding: 10, background: "var(--gold)", border: "0.5px solid var(--gold)", color: "var(--black)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", borderRadius: 1, textDecoration: "none" }}
+            style={{ display: "block", marginTop: 16, width: "100%", padding: 10, background: "var(--gold)", border: "0.5px solid var(--gold)", color: "var(--black)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", borderRadius: "var(--radius-sm)", textDecoration: "none" }}
           >
             In Cart — View Cart
           </Link>
@@ -166,7 +166,7 @@ function BirdCard({ bird }: { bird: Bird }) {
             onClick={() =>
               addItem({ id: bird.id, name: bird.name, bandNumber: bird.band_number, priceCents: bird.price_cents, photoUrl: bird.photo_url })
             }
-            style={{ marginTop: 16, width: "100%", padding: 10, background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", borderRadius: 1 }}
+            style={{ marginTop: 16, width: "100%", padding: 10, background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", borderRadius: "var(--radius-sm)" }}
           >
             Add to Cart
           </button>

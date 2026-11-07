@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import MatchBuilder from "./MatchBuilder";
+import { createClient } from "@/lib/supabase/server";
+import MatchBuilder, { type Loft } from "./MatchBuilder";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -24,11 +25,42 @@ const TERMS = [
   { title: "If a pairing doesn't produce offspring", desc: "If a confirmed pairing fails to produce a bird, your $500 deposit is refunded or credited toward a new pairing of your choice — you're never charged the remaining balance for a bird that wasn't delivered." },
 ];
 
-export default function MatchmakingPage() {
+export default async function MatchmakingPage() {
+  const supabase = await createClient();
+  const { data: rows } = await supabase
+    .from("birds")
+    .select("id, name, sex, color, birth_year, loft_id, owner_id, lofts(id, name, location), profiles(id, username, location)")
+    .eq("available_for_matchmaking", true)
+    .eq("is_active", true);
+
+  const loftMap = new Map<string, Loft>();
+  for (const bird of rows ?? []) {
+    const loftRow = Array.isArray(bird.lofts) ? bird.lofts[0] : bird.lofts;
+    const ownerRow = Array.isArray(bird.profiles) ? bird.profiles[0] : bird.profiles;
+    if (!bird.sex || (bird.sex !== "cock" && bird.sex !== "hen")) continue;
+
+    const key = loftRow?.id ?? `owner:${bird.owner_id}`;
+    if (!loftMap.has(key)) {
+      loftMap.set(key, {
+        id: key,
+        name: loftRow?.name ?? ownerRow?.username ?? "Independent Loft",
+        loc: loftRow?.location ?? ownerRow?.location ?? "",
+        birds: [],
+      });
+    }
+    loftMap.get(key)!.birds.push({
+      id: bird.id,
+      name: bird.name ?? "Unnamed bird",
+      sex: bird.sex,
+      meta: [bird.birth_year, bird.color].filter(Boolean).join(" · ") || "—",
+    });
+  }
+
+  const lofts = Array.from(loftMap.values());
+  const totalBirds = lofts.reduce((sum, l) => sum + l.birds.length, 0);
+
   return (
     <div className={styles.landing}>
-      <div className={styles.comingSoonBanner}>Coming Soon — Reserve your pairing today, checkout opens shortly</div>
-
       <nav className={styles.nav}>
         <div className={styles.wrap}>
           <div className={styles.navMark}>
@@ -67,20 +99,29 @@ export default function MatchmakingPage() {
             Hand-select the exact birds behind your next champion. Browse verified breeder lofts, pick a sire and dam
             you want paired, and reserve the pairing with a $500 deposit — no guesswork, no waitlist raffles.
           </p>
-          <div className={styles.heroStats}>
-            <div>
-              <strong>18</strong>
-              <span>Verified Lofts</span>
+          {lofts.length > 0 ? (
+            <div className={styles.heroStats}>
+              <div>
+                <strong>{lofts.length}</strong>
+                <span>Verified Loft{lofts.length === 1 ? "" : "s"}</span>
+              </div>
+              <div>
+                <strong>{totalBirds}</strong>
+                <span>Bird{totalBirds === 1 ? "" : "s"} Listed</span>
+              </div>
+              <div>
+                <strong>$500</strong>
+                <span>Reserves a Pairing</span>
+              </div>
             </div>
-            <div>
-              <strong>240+</strong>
-              <span>Birds Listed</span>
+          ) : (
+            <div className={styles.heroStats}>
+              <div>
+                <strong>New</strong>
+                <span>Be one of the first verified lofts listed here</span>
+              </div>
             </div>
-            <div>
-              <strong>$500</strong>
-              <span>Reserves a Pairing</span>
-            </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -103,7 +144,7 @@ export default function MatchmakingPage() {
         </div>
       </section>
 
-      <MatchBuilder />
+      <MatchBuilder lofts={lofts} />
 
       <section id="pricing" className={styles.loftsBand}>
         <div className={styles.wrap}>

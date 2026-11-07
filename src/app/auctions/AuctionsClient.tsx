@@ -1,169 +1,178 @@
 "use client";
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import Countdown from "@/components/Countdown";
+import PreviewIcon from "@/components/PreviewIcon";
+import styles from "@/styles/PreviewTheme.module.css";
 
-type LiveCard = {
+type Lot = {
   id: string;
   name: string;
   loft: string;
-  location: string | null;
+  location: string;
+  bloodline: string;
+  isLive: boolean;
   bid: string;
+  bidLabel: string;
   bids: number;
   seconds: number;
+  scheduleLabel: string;
   imgUrl: string;
   tags: string[];
 };
 
-type UpcomingCard = {
-  id: string;
-  name: string;
-  loft: string;
-  location: string | null;
-  startBid: string;
-  date: string;
-  imgUrl: string;
-  tags: string[];
-};
+type Sort = "ending" | "newest" | "low" | "high";
 
-export default function AuctionsClient({
-  liveAuctions,
-  upcomingAuctions,
-  totalBidValueCents,
-}: {
-  liveAuctions: LiveCard[];
-  upcomingAuctions: UpcomingCard[];
-  totalBidValueCents: number;
-}) {
-  const [tab, setTab] = useState<"live" | "upcoming">("live");
+function bidValue(lot: Lot) {
+  return Number(lot.bid.replace(/[^0-9.]/g, "")) || 0;
+}
+
+export default function AuctionsClient({ lots, locations, bloodlines }: { lots: Lot[]; locations: string[]; bloodlines: string[] }) {
+  const [q, setQ] = useState("");
+  const [region, setRegion] = useState("all");
+  const [family, setFamily] = useState("all");
+  const [sort, setSort] = useState<Sort>("ending");
+
+  const filtered = useMemo(() => {
+    let result = lots.filter((lot) => {
+      if (region !== "all" && lot.location !== region) return false;
+      if (family !== "all" && lot.bloodline !== family) return false;
+      if (q.trim()) {
+        const hay = `${lot.name} ${lot.loft} ${lot.bloodline}`.toLowerCase();
+        if (!hay.includes(q.trim().toLowerCase())) return false;
+      }
+      return true;
+    });
+    result = [...result].sort((a, b) => {
+      if (sort === "low") return bidValue(a) - bidValue(b);
+      if (sort === "high") return bidValue(b) - bidValue(a);
+      if (sort === "ending") return (a.isLive ? a.seconds : Infinity) - (b.isLive ? b.seconds : Infinity);
+      return 0;
+    });
+    return result;
+  }, [lots, q, region, family, sort]);
 
   return (
     <>
-      <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
+      <div className={`${styles["page-heading"]} ${styles.container}`}>
+        <div className={styles.breadcrumb}>
+          <Link href="/">Home</Link>
+          <PreviewIcon name="down" className={styles.icon} />
+          <span>Auctions</span>
+        </div>
+        <div className={styles["page-heading-row"]}>
+          <div>
+            <div className={styles.eyebrow}>The auction room</div>
+            <h1>Good birds. Better connections.</h1>
+            <p>A clearer view of every lot, every pedigree, and every next step — verified pedigrees, escrow-protected.</p>
+          </div>
+          <Link href="/list-bird" className={`${styles.btn} ${styles["btn-primary"]}`}>
+            <PreviewIcon name="arrowUp" className={styles.icon} /> Sell a bird
+          </Link>
+        </div>
+      </div>
 
-        {/* HERO */}
-        <div className="rs-pad-xl" style={{ background: "var(--void)", padding: "64px 64px 48px", borderBottom: "0.5px solid var(--border)" }}>
-          <div className="rs-flex-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 14 }}>Live Auction House</p>
-              <h1 style={{ fontFamily: "var(--ff-display)", fontSize: "clamp(36px,5vw,60px)", fontWeight: 300, lineHeight: 1.05, color: "var(--white)", marginBottom: 16 }}>
-                Birmingham Rollers,<br /><em style={{ color: "var(--gold)" }}>Bid Live</em>
-              </h1>
-              <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.7, maxWidth: 520 }}>
-                Real-time auctions with verified pedigrees and same-day video. Every bid is visible the moment it lands.
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              <div className="live-dot">Live Now — {liveAuctions.length} Auctions</div>
-            </div>
+      <section className={`${styles.container} ${styles["page-section"]}`}>
+        <div className={styles.filters}>
+          <div className={styles["input-wrap"]}>
+            <PreviewIcon name="arrow" className={styles.icon} />
+            <input
+              type="search"
+              placeholder="Bird, loft or bloodline..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+          <div>
+            <select value={region} onChange={(e) => setRegion(e.target.value)}>
+              <option value="all">All locations</option>
+              {locations.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles["family-filter"]}>
+            <select value={family} onChange={(e) => setFamily(e.target.value)}>
+              <option value="all">All bloodlines</option>
+              {bloodlines.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className={styles["filter-meta"]}>
+          <span className={styles.subtle}>
+            {filtered.length} lot{filtered.length === 1 ? "" : "s"}
+          </span>
+          <div className={styles["sort-select"]}>
+            <label htmlFor="sort-filter">Sort by</label>
+            <select id="sort-filter" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+              <option value="ending">Ending soon</option>
+              <option value="low">Price: low to high</option>
+              <option value="high">Price: high to low</option>
+            </select>
           </div>
         </div>
 
-        {/* STATS */}
-        <div className="rs-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--surface)", borderBottom: "0.5px solid var(--border)" }}>
-          {[[String(liveAuctions.length), "Live Now"], [String(upcomingAuctions.length), "Starting Today"], [`$${(totalBidValueCents / 100).toLocaleString()}`, "Total Bid Value"], ["41", "Active Bidders"]].map(([val, label]) => (
-            <div key={label} style={{ padding: "28px 40px", borderRight: "0.5px solid var(--border)" }}>
-              <div style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", lineHeight: 1, marginBottom: 6 }}>{val}</div>
-              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)" }}>{label}</div>
-            </div>
+        <div className={styles["auction-grid"]}>
+          {filtered.map((lot) => (
+            <article key={lot.id} className={styles["auction-card"]}>
+              <div className={styles["card-picture"]}>
+                <Link href={`/birds/${lot.id}`} aria-label={`View ${lot.name}`}>
+                  <Image src={lot.imgUrl} alt={lot.name} width={600} height={480} />
+                </Link>
+                <div className={styles["card-tags"]}>
+                  <span className={styles.pill}>{lot.isLive ? "● LIVE" : "UPCOMING"}</span>
+                </div>
+              </div>
+              <div className={styles["card-body"]}>
+                <div className={styles["lot-number"]}>{[lot.loft, lot.location].filter(Boolean).join(" · ").toUpperCase()}</div>
+                <h3>
+                  <Link href={`/birds/${lot.id}`}>{lot.name}</Link>
+                </h3>
+                <div className={styles["card-meta"]}>{[lot.bloodline, ...lot.tags].filter(Boolean).join(" · ")}</div>
+                <div className={styles["bid-row"]}>
+                  <div>
+                    <label>{lot.bidLabel}</label>
+                    <strong>
+                      {lot.bid}
+                      <small>USD</small>
+                    </strong>
+                  </div>
+                  <div className={styles["time-box"]}>
+                    <label>{lot.isLive ? "Ends in" : "Starts"}</label>
+                    {lot.isLive ? <Countdown seconds={lot.seconds} /> : <span>{lot.scheduleLabel}</span>}
+                  </div>
+                </div>
+                <div className={styles["card-foot"]}>
+                  <Link href={`/birds/${lot.id}`}>
+                    View bird <PreviewIcon name="arrowUp" className={styles.icon} />
+                  </Link>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
 
-        <div className="rs-pad-lg" style={{ padding: "48px 64px 80px" }}>
+        {filtered.length === 0 && (
+          <p style={{ color: "var(--muted)", fontSize: 14, padding: "40px 0" }}>No lots match these filters right now.</p>
+        )}
 
-          {/* TABS */}
-          <div style={{ display: "flex", gap: 0, borderBottom: "0.5px solid var(--border)", marginBottom: 40 }}>
-            {(["live", "upcoming"] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)} style={{ padding: "12px 28px", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", background: "none", border: "none", borderBottom: tab === t ? "2px solid var(--gold)" : "none", color: tab === t ? "var(--gold)" : "var(--muted)", cursor: "pointer", marginBottom: -1 }}>
-                {t === "live" ? `Live (${liveAuctions.length})` : `Upcoming (${upcomingAuctions.length})`}
-              </button>
-            ))}
-          </div>
-
-          {tab === "live" && (
-            liveAuctions.length === 0 ? (
-              <p style={{ fontSize: 14, color: "var(--muted)" }}>No live auctions right now — check back soon.</p>
-            ) : (
-            <div className="rs-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--border)" }}>
-              {liveAuctions.map((a) => (
-                <div key={a.id} className="auction-card rs-card-row" style={{ display: "grid", gridTemplateColumns: "220px 1fr" }}>
-                  <div style={{ position: "relative", background: "#000" }}>
-                    <div className="auction-badge badge-live">● Live</div>
-                    <Image src={a.imgUrl} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
-                  </div>
-                  <div className="auction-body" style={{ borderTop: "none", borderLeft: "0.5px solid var(--border)" }}>
-                    <div className="auction-name">{a.name}</div>
-                    <div className="auction-breeder">{[a.loft, a.location].filter(Boolean).join(" · ")}</div>
-                    <div className="auction-meta">
-                      <div>
-                        <div className="auction-bid-label">Current bid</div>
-                        <div className="auction-bid">{a.bid}</div>
-                        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{a.bids} bids</div>
-                      </div>
-                      <div className="auction-timer">
-                        <div className="timer-label">Ends in</div>
-                        <div className="timer-val"><Countdown seconds={a.seconds} /></div>
-                      </div>
-                    </div>
-                    <div className="auction-tags" style={{ marginTop: 12 }}>
-                      {a.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                      <Link href="/signup" style={{ flex: 1, padding: "10px", background: "transparent", border: "0.5px solid var(--border-gold)", color: "var(--gold)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", textDecoration: "none", borderRadius: 1 }}>Place Bid</Link>
-                      <Link href="/how-it-works" style={{ padding: "10px 14px", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, textDecoration: "none", borderRadius: 1 }}>Live Room →</Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            )
-          )}
-
-          {tab === "upcoming" && (
-            upcomingAuctions.length === 0 ? (
-              <p style={{ fontSize: 14, color: "var(--muted)" }}>Nothing scheduled right now — check back soon.</p>
-            ) : (
-            <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--border)" }}>
-              {upcomingAuctions.map((a) => (
-                <div key={a.id} className="auction-card">
-                  <div className="auction-img-wrap">
-                    <div className="auction-badge" style={{ background: "rgba(212,175,55,0.9)", color: "#000" }}>Upcoming</div>
-                    <Image src={a.imgUrl} alt={a.name} fill style={{ objectFit: "contain", objectPosition: "center bottom" }} />
-                  </div>
-                  <div className="auction-body">
-                    <div className="auction-name">{a.name}</div>
-                    <div className="auction-breeder">{[a.loft, a.location].filter(Boolean).join(" · ")}</div>
-                    <div style={{ marginTop: 12 }}>
-                      <div className="auction-bid-label">Starting bid</div>
-                      <div className="auction-bid">{a.startBid}</div>
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--gold)", marginTop: 8 }}>🗓 {a.date}</div>
-                    <div className="auction-tags" style={{ marginTop: 12 }}>
-                      {a.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-                    </div>
-                    <Link href="/signup" style={{ display: "block", marginTop: 16, padding: "10px", background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center", textDecoration: "none", borderRadius: 1 }}>Set Reminder</Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-            )
-          )}
-
-          {/* SELL CTA */}
-          <div className="rs-flex-row" style={{ marginTop: 64, background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: "40px 48px", borderRadius: 2, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
-            <div>
-              <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Ready to list your bird?</div>
-              <p style={{ fontSize: 14, color: "var(--muted)" }}>Breeder and Elite Loft subscribers can run live auctions to buyers worldwide.</p>
-            </div>
-            <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
-              <Link href="/how-it-works" className="btn-ghost">How It Works</Link>
-              <Link href="/signup" className="btn-gold">Start Selling</Link>
-            </div>
-          </div>
+        <div className={styles["note-card"]}>
+          <h3>See the bird. Know the background.</h3>
+          <p>
+            Open a lot to explore its pedigree, seller profile, and shipping information. Every listing is
+            escrow-protected from bid to delivery.
+          </p>
         </div>
-      </div>
+      </section>
       <Footer />
     </>
   );

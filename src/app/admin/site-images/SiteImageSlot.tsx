@@ -46,6 +46,20 @@ export default function SiteImageSlot({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // iPhones hand over .HEIC by default and no browser can render it, so an
+    // accepted HEIC upload silently blanks the slot on the live site rather
+    // than failing loudly. Caught here instead of at the bucket so the
+    // message explains what to do about it.
+    const isHeic = /\.hei[cf]$/i.test(file.name) || /image\/hei[cf]/i.test(file.type);
+    if (isHeic) {
+      setStatus("error");
+      setError(
+        "That's a HEIC photo (the iPhone default) and browsers can't display it. On your iPhone: Settings → Camera → Formats → Most Compatible, then retake or re-export. Or open the photo on a Mac and File → Export as PNG/JPEG."
+      );
+      e.target.value = "";
+      return;
+    }
+
     setStatus("uploading");
     setError(null);
 
@@ -65,8 +79,8 @@ export default function SiteImageSlot({
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+      <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
         <Image src={currentUrl} alt={currentLabel} fill style={{ objectFit: "cover" }} />
       </div>
       <div style={{ flex: 1 }}>
@@ -75,7 +89,7 @@ export default function SiteImageSlot({
             value={nameDraft}
             onChange={(e) => setNameDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-            style={{ flex: 1, background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "8px 12px", fontSize: 13, borderRadius: 2, outline: "none" }}
+            style={{ flex: 1, background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "8px 12px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none" }}
           />
           <button
             type="button"

@@ -24,7 +24,7 @@ export default function ReviewActions({ birdId }: { birdId: string }) {
         {pending === "approve" ? "Approving…" : "Approve"}
       </button>
       <button
-        style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", borderRadius: 2, cursor: "pointer" }}
+        style={{ padding: "8px 18px", background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", borderRadius: "var(--radius-sm)", cursor: "pointer" }}
         disabled={pending !== null}
         onClick={() => handle(false)}
       >

@@ -86,7 +86,7 @@ export default function MasterFliersClient({ fliers }: { fliers: Flier[] }) {
             style={{
               background: "var(--surface)",
               border: "0.5px solid var(--border)",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               padding: "10px 16px",
               fontSize: 13,
               color: "var(--white)",

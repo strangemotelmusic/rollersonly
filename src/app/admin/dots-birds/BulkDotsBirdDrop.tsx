@@ -23,7 +23,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "8px 10px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -206,12 +206,12 @@ export default function BulkDotsBirdDrop() {
                     alignItems: "flex-start",
                     background: "var(--surface)",
                     border: flagged ? "0.5px solid rgba(232,163,163,0.4)" : "0.5px solid var(--border)",
-                    borderRadius: 2,
+                    borderRadius: "var(--radius-sm)",
                     padding: 14,
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={it.previewUrl} alt="" style={{ width: 90, height: 90, objectFit: "cover", borderRadius: 2, flexShrink: 0, background: "var(--void)" }} />
+                  <img src={it.previewUrl} alt="" style={{ width: 90, height: 90, objectFit: "cover", borderRadius: "var(--radius-sm)", flexShrink: 0, background: "var(--void)" }} />
                   <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
                     <div style={{ gridColumn: "1 / 3" }}>
                       <label style={smallLabel}>Bird Name</label>

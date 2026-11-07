@@ -8,7 +8,7 @@ export default async function BrowsePage() {
   const { data: birdsRaw } = await supabase
     .from("birds")
     .select(
-      "id, name, primary_photo_url, health_certified, dna_certified, certification_status, lofts(name, location), auctions(id, current_bid, starting_bid, status, created_at)"
+      "id, name, sex, color, primary_photo_url, health_certified, dna_certified, certification_status, lofts(name, location), auctions(id, current_bid, starting_bid, status, created_at)"
     )
     .eq("is_active", true)
     .order("created_at", { ascending: false });
@@ -33,6 +33,11 @@ export default async function BrowsePage() {
       bid: bidAmount ? `$${Number(bidAmount).toLocaleString()}` : "No bids yet",
       status,
       img: b.primary_photo_url,
+      sex: b.sex,
+      color: b.color,
+      certified: b.certification_status === "certified",
+      dnaCertified: Boolean(b.dna_certified),
+      healthCertified: Boolean(b.health_certified),
       tags,
     };
   });

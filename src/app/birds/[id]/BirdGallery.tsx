@@ -21,9 +21,9 @@ export default function BirdGallery({
 
   return (
     <div style={{ marginBottom: 32 }}>
-      <div style={{ position: "relative", height: 520, background: "var(--void)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+      <div style={{ position: "relative", height: 520, background: "var(--void)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
         {isLive && (
-          <div style={{ position: "absolute", top: 16, left: 16, zIndex: 2, background: "rgba(255,50,50,0.9)", color: "#fff", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 10px", borderRadius: 2 }}>● Live Auction</div>
+          <div style={{ position: "absolute", top: 16, left: 16, zIndex: 2, background: "rgba(255,50,50,0.9)", color: "#fff", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 10px", borderRadius: "var(--radius-sm)" }}>● Live Auction</div>
         )}
         <div style={{ display: "flex", gap: 8, position: "absolute", top: 16, right: 16, zIndex: 2 }}>
           {rollersOnlyCertified && (
@@ -50,7 +50,7 @@ export default function BirdGallery({
                 flexShrink: 0,
                 background: "var(--void)",
                 border: `0.5px solid ${i === active ? "var(--gold)" : "var(--border)"}`,
-                borderRadius: 2,
+                borderRadius: "var(--radius-sm)",
                 overflow: "hidden",
                 padding: 0,
                 cursor: "pointer",

@@ -52,8 +52,14 @@ export default async function EditBirdPage({ params }: { params: Promise<{ id: s
       <Nav active="/dashboard" />
       <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
         <div style={{ maxWidth: 640, margin: "0 auto", padding: "64px 32px" }}>
-          <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Manage Listing</h1>
-          <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>Starting bid and reserve can&apos;t be changed once a listing is live — cancel and relist if you need to change those.</p>
+          <h1 style={{ fontFamily: "var(--ff-display)", fontSize: 36, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>
+            {auction ? "Manage Listing" : "Edit Bird"}
+          </h1>
+          <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
+            {auction
+              ? "Starting bid and reserve can't be changed once a listing is live — cancel and relist if you need to change those."
+              : "Update this bird's details and photos. You can list it for sale anytime from My Loft."}
+          </p>
 
           <EditBirdForm
             birdId={bird.id}

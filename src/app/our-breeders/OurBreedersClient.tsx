@@ -84,7 +84,7 @@ export default function OurBreedersClient({ breeders }: { breeders: Breeder[] })
                 style={{
                   background: "var(--surface)",
                   border: "0.5px solid var(--border)",
-                  borderRadius: 2,
+                  borderRadius: "var(--radius-sm)",
                   padding: 0,
                   cursor: "pointer",
                   textAlign: "left",
@@ -127,7 +127,7 @@ export default function OurBreedersClient({ breeders }: { breeders: Breeder[] })
 
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 0, maxWidth: 1100, width: "100%", maxHeight: "88vh", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}
+            style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 0, maxWidth: 1100, width: "100%", maxHeight: "88vh", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}
           >
             {/* PHOTO */}
             <div style={{ position: "relative", background: "#000" }}>

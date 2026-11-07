@@ -34,6 +34,33 @@ async function requireAdmin(): Promise<{ error: string } | { admin: ReturnType<t
   return { admin };
 }
 
+// Magazine PDFs are uploaded straight from the browser to Supabase Storage
+// (a full issue runs 100MB+, far past any server-action/route body cap), but
+// the magazine-pdfs bucket's INSERT policy rejects authenticated admin JWTs
+// for reasons that survived a drop-and-recreate of the policy. Rather than
+// keep chasing that, the server (service-role, which uploads to this bucket
+// fine) mints a one-time signed upload token and the browser uploads with
+// that instead — no RLS evaluation against the caller's JWT at all. Admin
+// access is still enforced here, before the token is ever issued.
+export async function createMagazinePdfUploadUrl(): Promise<
+  { error: string } | { ok: true; path: string; token: string; publicUrl: string }
+> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const path = `${crypto.randomUUID()}.pdf`;
+  const { data, error } = await admin.storage.from("magazine-pdfs").createSignedUploadUrl(path);
+  if (error || !data) return { error: error?.message ?? "Could not start the upload." };
+
+  return {
+    ok: true,
+    path: data.path,
+    token: data.token,
+    publicUrl: admin.storage.from("magazine-pdfs").getPublicUrl(path).data.publicUrl,
+  };
+}
+
 export async function createMagazineIssue(formData: FormData): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;

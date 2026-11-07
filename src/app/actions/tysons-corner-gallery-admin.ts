@@ -38,6 +38,19 @@ export async function addGalleryPhoto(imageUrl: string, caption: string): Promis
   return { ok: true };
 }
 
+export async function reorderGalleryPhotos(orderedIds: string[]): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) => admin.from("tysons_corner_gallery").update({ sort_order: index }).eq("id", id))
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
+  return { ok: true };
+}
+
 export async function deleteGalleryPhoto(id: string): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;

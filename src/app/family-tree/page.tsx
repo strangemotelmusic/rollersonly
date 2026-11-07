@@ -95,9 +95,9 @@ export default async function FamilyTreeLandingPage({
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "#1C232E", border: "1px solid #1C232E", borderRadius: 6, overflow: "hidden", marginBottom: 64 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 64 }}>
         {[[String(birdsTracked ?? 0), "Birds tracked"], [String(seasonsRun ?? 0), "Breeding seasons"], ["4", "Generations deep"], ["100%", "Independent of listings"]].map(([val, label]) => (
-          <div key={label} style={{ background: "#0D1117", padding: "24px 20px" }}>
+          <div key={label} style={{ background: "#0D1117", border: "1px solid #1C232E", borderRadius: "var(--radius-lg)", padding: "24px 20px" }}>
             <div style={{ fontSize: 30, fontWeight: 800, color: "#E8EDF3", lineHeight: 1, marginBottom: 6 }}>{val}</div>
             <div style={{ fontSize: 11, color: "#5B6675", letterSpacing: "0.04em" }}>{label}</div>
           </div>

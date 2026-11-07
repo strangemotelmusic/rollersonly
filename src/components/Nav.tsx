@@ -1,15 +1,19 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { signOut } from "@/app/actions/auth";
+import { getSiteImages } from "@/lib/site-images";
 import NavMobileToggle from "@/components/NavMobileToggle";
 import NavClient from "@/components/NavClient";
+import styles from "@/styles/PreviewTheme.module.css";
 
 export default async function Nav({ active }: { active?: string }) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const siteImages = await getSiteImages();
 
   const profile = user ? await ensureProfile(user) : null;
   const { data: avatarRow } = user
@@ -36,20 +40,26 @@ export default async function Nav({ active }: { active?: string }) {
   const avatarUrl = avatarRow?.avatar_url ?? null;
 
   return (
-    <nav className="site-nav">
-      <Link href="/" className="nav-logo">
-        Rollers<span>Only</span>
-      </Link>
-      <NavClient
-        isSignedIn={Boolean(user)}
-        isAdmin={Boolean(avatarRow?.is_admin)}
-        displayName={displayName}
-        avatarUrl={avatarUrl}
-        initial={initial}
-        active={active}
-        signOutAction={signOut}
-      />
-      <NavMobileToggle links={links} isSignedIn={Boolean(user)} isAdmin={Boolean(avatarRow?.is_admin)} signOutAction={signOut} />
-    </nav>
+    <header className={styles["site-header"]}>
+      <div className={`${styles.container} ${styles["header-inner"]}`}>
+        <Link href="/" className={styles.brand} aria-label="Rollers Only home">
+          <Image src={siteImages.logo} alt="" width={44} height={44} className={styles["brand-mark"]} aria-hidden />
+          <span className={styles["brand-text"]}>
+            ROLLERS
+            <span>ONLY</span>
+          </span>
+        </Link>
+        <NavClient
+          isSignedIn={Boolean(user)}
+          isAdmin={Boolean(avatarRow?.is_admin)}
+          displayName={displayName}
+          avatarUrl={avatarUrl}
+          initial={initial}
+          active={active}
+          signOutAction={signOut}
+        />
+        <NavMobileToggle links={links} isSignedIn={Boolean(user)} isAdmin={Boolean(avatarRow?.is_admin)} signOutAction={signOut} />
+      </div>
+    </header>
   );
 }

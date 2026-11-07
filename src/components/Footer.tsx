@@ -10,6 +10,9 @@ export default function Footer() {
           <p className="footer-tagline">
             The world&apos;s first dedicated marketplace for elite roller pigeon breeders, competitors, and collectors.
           </p>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>
+            Brought to you by <Link href="/about-the-creator" style={{ color: "var(--gold)" }}>Steven Russell &amp; Mike Tyson</Link>
+          </p>
           <div className="footer-col-title" style={{ marginTop: 24 }}>Get Updates</div>
           <NewsletterSignupForm />
         </div>
@@ -38,7 +41,7 @@ export default function Footer() {
             <li><Link href="/how-it-works#escrow">Escrow Policy</Link></li>
             <li><a href="mailto:strangemotelmusic@gmail.com">Contact Us</a></li>
             <li><a href="mailto:strangemotelmusic@gmail.com">Become a Partner</a></li>
-            <li><Link href="/about-the-creator">About The Creator</Link></li>
+            <li><Link href="/about-the-creator">The Founders</Link></li>
           </ul>
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { createLiveAuctionCard, updateLiveAuctionCard, deleteLiveAuctionCard } from "@/app/actions/live-auctions-admin";
+import { createLiveAuctionCard, updateLiveAuctionCard, deleteLiveAuctionCard, reorderLiveAuctionCards } from "@/app/actions/live-auctions-admin";
+import ReorderButtons from "@/components/admin/ReorderButtons";
 
 type Card = {
   id: string;
@@ -29,7 +30,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -57,6 +58,18 @@ function hoursRemaining(endsAt: string | null) {
 export default function LiveAuctionsAdminClient({ initialCards }: { initialCards: Card[] }) {
   const [cards, setCards] = useState(initialCards);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [reordering, setReordering] = useState(false);
+
+  async function moveCard(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= cards.length) return;
+    const next = cards.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setCards(next);
+    setReordering(true);
+    await reorderLiveAuctionCards(next.map((c) => c.id));
+    setReordering(false);
+  }
 
   return (
     <div>
@@ -78,15 +91,40 @@ export default function LiveAuctionsAdminClient({ initialCards }: { initialCards
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {cards.length === 0 && !showAddForm && <p style={{ fontSize: 14, color: "var(--muted)" }}>No auction cards yet.</p>}
-        {cards.map((card) => (
-          <CardRow key={card.id} card={card} onDelete={() => setCards((prev) => prev.filter((c) => c.id !== card.id))} />
+        {cards.map((card, i) => (
+          <CardRow
+            key={card.id}
+            card={card}
+            onDelete={() => setCards((prev) => prev.filter((c) => c.id !== card.id))}
+            canMoveUp={i > 0}
+            canMoveDown={i < cards.length - 1}
+            onMoveUp={() => moveCard(i, -1)}
+            onMoveDown={() => moveCard(i, 1)}
+            reordering={reordering}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function CardRow({ card, onDelete }: { card: Card; onDelete: () => void }) {
+function CardRow({
+  card,
+  onDelete,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  reordering,
+}: {
+  card: Card;
+  onDelete: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  reordering: boolean;
+}) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,8 +157,9 @@ function CardRow({ card, onDelete }: { card: Card; onDelete: () => void }) {
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+      <ReorderButtons canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMoveUp={onMoveUp} onMoveDown={onMoveDown} disabled={reordering} />
+      <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
         {card.image_url && <Image src={card.image_url} alt={card.name} fill style={{ objectFit: "cover" }} />}
       </div>
       <div style={{ flex: 1 }}>
@@ -146,7 +185,7 @@ function CardRow({ card, onDelete }: { card: Card; onDelete: () => void }) {
         <button
           onClick={handleDelete}
           disabled={pending}
-          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
         >
           Delete
         </button>
@@ -179,7 +218,7 @@ function CardForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>Bird Name</label>

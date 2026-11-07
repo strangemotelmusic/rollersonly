@@ -1,304 +1,346 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Countdown from "@/components/Countdown";
+import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
-import HeroRotator from "@/components/HeroRotator";
+import PreviewIcon from "@/components/PreviewIcon";
 import { getSiteImages } from "@/lib/site-images";
 import { createAdminClient } from "@/lib/supabase/admin";
+import styles from "@/styles/PreviewTheme.module.css";
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+function LinkArrow({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className={styles["link-arrow"]}>
+      {children}
+      <PreviewIcon name="arrow" className={styles.icon} />
+    </Link>
+  );
 }
-
-const tickerItems = [
-  "Blue Bar Champion Cock — Sold $1,850",
-  "◆",
-  "Schoening Loft — New Listing: World Cup Bloodline",
-  "◆",
-  "Live Auction Starting in 18 Minutes — 42 Registered Bidders",
-  "◆",
-  "Verified DNA Cert — Red Checker Hen — Opening Bid $400",
-  "◆",
-  "NBRC World Cup Season Results Now Live",
-  "◆",
-];
-
-const featuredBirds = [
-  { id: 1, imgKey: "bird_white_red", name: "Blue Bar Champion", meta: "Schoening Loft · Montana · Male · 2024", price: "Opening bid $400" },
-  { id: 3, imgKey: "bird_lavender", name: "Lavender Hen — World Cup", meta: "Whelan Loft · Ireland · Female · 2023", price: "Opening bid $650" },
-  { id: 2, imgKey: "bird_red", name: "Red Self Breeding Cock", meta: "Glenn Loft · Ohio · Male · 2024", price: "Opening bid $350" },
-  { id: 5, imgKey: "bird_white_red2", name: "White Badge Roller Hen", meta: "Deacon Loft · UK · Female · 2024", price: "Opening bid $500" },
-  { id: 4, imgKey: "bird_black_centertail", name: "Black Centertail Young Cock", meta: "Silvey Loft · Central Region, USA · Male · 2025", price: "Opening bid $280" },
-  { id: 6, imgKey: "bird_red2", name: "Recessive Red Breeding Hen", meta: "Rossouw Loft · Free State, South Africa · Female · 2024", price: "Opening bid $420" },
-] as const;
-
-const features = [
-  { num: "01", title: "Live Auction Rooms", desc: "Real-time bidding with photo of the bird. Countdown clock, live chat, and escrow auto-triggered on hammer. Breeder submits video same day.", href: "/auctions" },
-  { num: "02", title: "Custom Breeding Matchmaking", desc: "Browse verified breeder lofts, hand-pick the sire and dam you want paired, and reserve the pairing with a $500 deposit — no guesswork, no waitlist raffles.", href: "/matchmaking" },
-  { num: "03", title: "Health & DNA Certification", desc: "Partner veterinary network. DNA parentage confirmation. Certified birds carry visible trust badges on every listing.", href: "/how-it-works" },
-  { num: "04", title: "Escrow-Protected Payments", desc: "Buyer funds held until arrival confirmed. First platform to offer true escrow protection for roller pigeon transactions globally.", href: "/how-it-works" },
-];
 
 export default async function Home() {
   const siteImages = await getSiteImages();
 
   const admin = createAdminClient();
-  const [{ data: latestIssue }, { data: archivePhotos }, { data: liveAuctionCards }, { count: liveCount }] = await Promise.all([
+  const [{ data: latestIssue }, { data: liveAuctions }, { count: liveCount }] = await Promise.all([
     admin
       .from("magazine_issues")
       .select("id, issue_number, title, cover_image_url")
       .order("issue_number", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    admin.from("archive_media").select("media_url").eq("media_type", "image").order("created_at", { ascending: false }).limit(20),
     admin
-      .from("live_auction_cards")
-      .select("id, name, color, loft_name, location, price_cents, status, ends_at, schedule_label, tags, image_url")
-      .eq("featured_home", true)
-      .order("sort_order", { ascending: true })
-      .limit(3),
-    admin.from("live_auction_cards").select("id", { count: "exact", head: true }).eq("status", "live"),
+      .from("auctions")
+      .select(
+        "id, current_bid, starting_bid, status, ends_at, starts_at, bird_id, birds(id, name, certification_status, dna_certified, health_certified, primary_photo_url), lofts(name, location)"
+      )
+      .in("status", ["live", "scheduled"])
+      .order("ends_at", { ascending: true })
+      .limit(6),
+    admin.from("auctions").select("id", { count: "exact", head: true }).eq("status", "live"),
   ]);
 
-  const auctionCards = (liveAuctionCards ?? []).map((card) => {
-    const isLive = card.status === "live";
-    const secondsLeft = isLive && card.ends_at ? Math.max(0, Math.round((new Date(card.ends_at).getTime() - Date.now()) / 1000)) : 0;
+  const auctionCards = (liveAuctions ?? []).map((auction) => {
+    const bird = auction.birds;
+    const isLive = auction.status === "live";
+    const secondsLeft = isLive && auction.ends_at ? Math.max(0, Math.round((new Date(auction.ends_at).getTime() - Date.now()) / 1000)) : 0;
+    const tags = [
+      bird?.certification_status === "certified" && "★ Rollers Only Certified",
+      bird?.dna_certified && "DNA Cert",
+      bird?.health_certified && "Health Cert",
+    ].filter(Boolean) as string[];
     return {
-      id: card.id,
-      badge: isLive ? "● Live" : "Upcoming",
-      badgeClass: isLive ? "badge-live" : "badge-upcoming",
-      imgUrl: card.image_url || "/bird-white-red.jpg",
-      name: card.name,
-      breeder: [card.loft_name, card.location].filter(Boolean).join(" · "),
+      id: bird?.id ?? auction.bird_id,
+      isLive,
+      imgUrl: bird?.primary_photo_url || "/bird-white-red.jpg",
+      name: bird?.name || "Unnamed bird",
+      breeder: [auction.lofts?.name, auction.lofts?.location].filter(Boolean).join(" · "),
       bidLabel: isLive ? "Current bid" : "Opening bid",
-      bid: `$${(card.price_cents / 100).toLocaleString()}`,
+      bid: `$${Number(auction.current_bid ?? auction.starting_bid ?? 0).toLocaleString()}`,
       timeLabel: isLive ? "Ends in" : "Starts",
       seconds: secondsLeft,
-      scheduleLabel: card.schedule_label,
-      isLive,
-      tags: card.tags,
+      scheduleLabel: auction.status === "scheduled" ? `Starts ${new Date(auction.starts_at).toLocaleDateString()}` : "Coming soon",
+      tags,
     };
   });
-
-  const fallbackHeroPhotos = [
-    siteImages.bird_white_red,
-    siteImages.bird_red,
-    siteImages.bird_lavender,
-    siteImages.bird_black_centertail,
-    siteImages.bird_red2,
-    siteImages.bird_white_red2,
-  ].filter(Boolean);
-  const vaultPhotos = (archivePhotos ?? []).map((r) => r.media_url);
-  const heroRotatorImages = shuffle(vaultPhotos.length >= 3 ? vaultPhotos : [...vaultPhotos, ...fallbackHeroPhotos]).slice(0, 8);
 
   return (
     <>
       <Nav active="/" />
 
       {/* HERO */}
-      <div className="hero">
-        <HeroRotator images={heroRotatorImages} />
-        <div className="hero-bg-text">ROLLERS</div>
-        <div className="hero-line" />
-        <Image src="/rollers-only-logo.png" alt="Rollers Only" width={1024} height={1536} className="hero-logo-mid" />
-        <Image
-          src="/hero-welcome-letter.jpg"
-          alt="Welcome to the Brotherhood — a letter from Rollers Only"
-          width={1103}
-          height={1426}
-          className="hero-welcome-letter"
-        />
-        <div className="hero-content">
-          <Link href="/magazine" className="hero-magazine-cover-link">
-            <Image
-              src="/decade-of-the-spinner-cover.jpg"
-              alt="Decade of the Spinner — Spring 2027 Collector's Edition"
-              width={1023}
-              height={1537}
-              className="hero-magazine-cover"
-            />
-          </Link>
-          <p className="hero-eyebrow">The world&apos;s premier roller pigeon marketplace</p>
-          <h1 className="hero-title">
-            Where <em>Elite</em><br />Birds Find<br />Their Worth
-          </h1>
-          <p className="hero-sub">
-            Live auctions. Verified pedigrees. Escrow-protected transactions.
-            The platform the global roller pigeon community has always deserved.
-          </p>
-          <div className="hero-actions">
-            <Link href="/signup" className="btn-gold-lg">Enter the Loft</Link>
-            <Link href="/auctions" className="btn-ghost-lg">View Live Auctions</Link>
-          </div>
-        </div>
-        <div className="hero-badge">
-          <Link href="/auctions" style={{ textDecoration: "none" }}>
-            <div className="live-dot">{liveCount ?? 0} Live Auctions Now</div>
-          </Link>
-        </div>
-        <div className="scroll-hint">
-          <span>Scroll</span>
-          <div className="scroll-arrow" />
-        </div>
-      </div>
-
-      {/* TICKER */}
-      <div className="ticker-bar">
-        <div className="ticker-inner">
-          {[...tickerItems, ...tickerItems].map((item, i) => (
-            <span key={i} className={item === "◆" ? "ticker-item ticker-sep" : "ticker-item"}>{item}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* LIVE AUCTIONS */}
-      <div className="auctions-section">
-        <div className="auctions-header">
-          <div>
-            <p className="section-eyebrow">Active Right Now</p>
-            <h2 className="section-title">Live Auctions</h2>
-          </div>
-          <Link href="/auctions" className="btn-ghost">View all auctions →</Link>
-        </div>
-        <div className="auctions-grid">
-          {auctionCards.map((card) => (
-            <Link key={card.id} href={`/auctions`} style={{ textDecoration: "none" }}>
-              <div className="auction-card">
-                <div className="auction-img-wrap">
-                  <div className={`auction-badge ${card.badgeClass}`}>{card.badge}</div>
-                  <Image src={card.imgUrl} alt={card.name} fill className="auction-img" style={{ objectFit: "contain", objectPosition: "center bottom" }} />
-                </div>
-                <div className="auction-body">
-                  <div className="auction-name">{card.name}</div>
-                  <div className="auction-breeder">{card.breeder}</div>
-                  <div className="auction-meta">
-                    <div>
-                      <div className="auction-bid-label">{card.bidLabel}</div>
-                      <div className="auction-bid">{card.bid}</div>
-                    </div>
-                    <div className="auction-timer">
-                      <div className="timer-label">{card.timeLabel}</div>
-                      {card.isLive ? <Countdown seconds={card.seconds} /> : <div className="timer-val">{card.scheduleLabel}</div>}
-                    </div>
-                  </div>
-                  <div className="auction-tags">
-                    {card.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* STATS BAND */}
-      <div className="stats-band">
-        <div className="stat-item">
-          <div className="stat-number">12<span>K+</span></div>
-          <div className="stat-label">Verified birds registered</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-number">$2<span>M+</span></div>
-          <div className="stat-label">In transactions protected</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-number">340<span>+</span></div>
-          <div className="stat-label">Elite loft breeders</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-number">48<span>+</span></div>
-          <div className="stat-label">Countries represented</div>
-        </div>
-      </div>
-
-      {/* FEATURED BIRDS */}
-      <div className="showcase-section">
-        <div className="showcase-header">
-          <p className="section-eyebrow">Current Listings</p>
-          <h2 className="section-title">Featured Birds</h2>
-        </div>
-        <div className="bird-parade">
-          {featuredBirds.map((bird) => (
-            <Link key={bird.id} href={`/birds/${bird.id}`} style={{ textDecoration: "none" }}>
-              <div className="bird-card">
-                <Image src={siteImages[bird.imgKey]} alt={bird.name} width={280} height={400} className="bird-card-img" />
-                <div className="bird-card-info">
-                  <div className="bird-card-name">{bird.name}</div>
-                  <div className="bird-card-meta">{bird.meta}</div>
-                  <div className="bird-card-price">{bird.price}</div>
-                  <div className="bid-btn">Place Bid</div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* FEATURES */}
-      <div className="features-section">
-        <div className="features-left">
-          <p className="section-eyebrow">Platform Pillars</p>
-          <h2 className="section-title" style={{ marginBottom: "40px" }}>
-            Built for the<br />
-            <em style={{ fontFamily: "var(--ff-display)", color: "var(--gold)" }}>Serious</em> Fancier
-          </h2>
-          <div className="feature-list">
-            {features.map((f) => (
-              <Link key={f.num} href={f.href} style={{ textDecoration: "none" }}>
-                <div className="feature-item">
-                  <span className="feature-num">{f.num}</span>
-                  <div>
-                    <div className="feature-title">{f.title}</div>
-                    <div className="feature-desc">{f.desc}</div>
-                  </div>
-                </div>
+      <section className={styles.hero}>
+        <div className={`${styles.container} ${styles["hero-inner"]}`}>
+          <div className={styles["hero-copy"]}>
+            <div className={styles.eyebrow}>Bringing the entire pigeon world to one place</div>
+            <h1>
+              ONE WORLD.
+              <span>ALL ROLLERS.</span>
+            </h1>
+            <p className={styles["hero-description"]}>
+              The next generation of the roller pigeon community. Discover birds, explore bloodlines, and connect
+              with people who share your passion.
+            </p>
+            <div className={styles["hero-buttons"]}>
+              <Link href="/auctions" className={`${styles.btn} ${styles["btn-primary"]}`}>
+                Explore auctions <PreviewIcon name="arrowUp" className={styles.icon} />
               </Link>
-            ))}
+              <Link href="/our-breeders" className={styles.btn}>
+                Find your community
+              </Link>
+            </div>
+            <div className={styles["hero-bottom"]}>
+              <span>
+                <PreviewIcon name="tree" className={styles.icon} />
+                Know the bloodline
+              </span>
+              <span>
+                <PreviewIcon name="globe" className={styles.icon} />
+                Connect beyond your loft
+              </span>
+            </div>
+          </div>
+          <div className={styles["hero-art"]}>
+            <div className={styles.orbital} />
+            <div className={`${styles.orbital} ${styles["orbit-2"]}`} />
+            <Image
+              src={siteImages.hero}
+              alt="Roller pigeon"
+              width={1024}
+              height={1536}
+              className={styles["hero-image"]}
+              priority
+            />
+            <div className={`${styles["hero-coordinate"]} ${styles.mono}`}>
+              THE BIRMINGHAM ROLLER
+              <br />
+              A PASSION WITHOUT BORDERS
+              <br />
+              <span className={styles.gold}>RO / NEXT CHAPTER</span>
+            </div>
+            <div className={styles["hero-callout"]}>
+              <span className={styles["small-caps"]}>Not just birds. A legacy.</span>
+              <strong>
+                Your next chapter
+                <br />
+                starts in the loft.
+              </strong>
+              <LinkArrow href="/family-tree">Explore bloodlines</LinkArrow>
+            </div>
+            <div className={styles["hero-caption"]}>
+              <span>01 /</span> THE SPORT. REIMAGINED.
+            </div>
           </div>
         </div>
-        <div className="features-right">
-          <div className="feature-ring" />
-          <Image src={siteImages.bird_black_centertail} alt="Elite roller pigeon" width={500} height={600} className="feature-bird" />
+      </section>
+
+      {/* PATHWAYS */}
+      <div className={styles.container}>
+        <div className={styles.pathways}>
+          <Link className={styles.pathway} href="/auctions">
+            <PreviewIcon name="gavel" className={styles.icon} />
+            <span>
+              <strong>The auction room</strong>
+              <small>Find your next great bird</small>
+            </span>
+            <PreviewIcon name="arrowUp" className={`${styles.icon} ${styles["path-arrow"]}`} />
+          </Link>
+          <Link className={styles.pathway} href="/family-tree">
+            <PreviewIcon name="tree" className={styles.icon} />
+            <span>
+              <strong>Explore bloodlines</strong>
+              <small>Every bird has a story</small>
+            </span>
+            <PreviewIcon name="arrowUp" className={`${styles.icon} ${styles["path-arrow"]}`} />
+          </Link>
+          <Link className={styles.pathway} href="/dashboard/loft">
+            <PreviewIcon name="home" className={styles.icon} />
+            <span>
+              <strong>Your digital loft</strong>
+              <small>Build a lasting record</small>
+            </span>
+            <PreviewIcon name="arrowUp" className={`${styles.icon} ${styles["path-arrow"]}`} />
+          </Link>
+          <Link className={styles.pathway} href="/decade-of-the-spinner">
+            <PreviewIcon name="book" className={styles.icon} />
+            <span>
+              <strong>Inside D.O.T.S.</strong>
+              <small>The voice of the sport</small>
+            </span>
+            <PreviewIcon name="arrowUp" className={`${styles.icon} ${styles["path-arrow"]}`} />
+          </Link>
         </div>
       </div>
 
-      {/* MAGAZINE */}
-      <div
-        className="rs-2col-b rs-pad-lg"
-        style={{
-          display: "grid",
-          gridTemplateColumns: latestIssue?.cover_image_url ? "1fr 320px" : "1fr",
-          gap: 48,
-          alignItems: "center",
-          maxWidth: 1160,
-          margin: "0 auto",
-          padding: "96px 48px",
-        }}
-      >
-        <div>
-          <p className="section-eyebrow">Member Publication</p>
-          <h2 className="section-title" style={{ marginBottom: 20 }}>
-            Decade of the <em style={{ fontFamily: "var(--ff-display)", color: "var(--gold)" }}>Spinner</em>
+      {/* AUCTION ROOM */}
+      <section className={`${styles.section} ${styles["home-auctions"]} ${styles.container}`}>
+        <div className={styles["section-top"]}>
+          <div>
+            <div className={styles.eyebrow}>The auction room</div>
+            <h2>Find your next great bird.</h2>
+          </div>
+        </div>
+        <div className={styles["auction-grid"]}>
+          {auctionCards.map((card) => (
+            <article key={card.id} className={styles["auction-card"]}>
+              <div className={styles["card-picture"]}>
+                <Link href={`/birds/${card.id}`} aria-label={`View ${card.name}`}>
+                  <Image src={card.imgUrl} alt={card.name} width={600} height={480} />
+                </Link>
+                <div className={styles["card-tags"]}>
+                  <span className={styles.pill}>{card.isLive ? "● LIVE" : "UPCOMING"}</span>
+                </div>
+              </div>
+              <div className={styles["card-body"]}>
+                <div className={styles["lot-number"]}>{card.breeder.toUpperCase()}</div>
+                <h3>
+                  <Link href={`/birds/${card.id}`}>{card.name}</Link>
+                </h3>
+                <div className={styles["card-meta"]}>{card.tags?.join(" · ")}</div>
+                <div className={styles["bid-row"]}>
+                  <div>
+                    <label>{card.bidLabel}</label>
+                    <strong>
+                      {card.bid}
+                      <small>USD</small>
+                    </strong>
+                  </div>
+                  <div className={styles["time-box"]}>
+                    <label>{card.timeLabel}</label>
+                    {card.isLive ? <Countdown seconds={card.seconds} /> : <span>{card.scheduleLabel}</span>}
+                  </div>
+                </div>
+                <div className={styles["card-foot"]}>
+                  <Link href={`/birds/${card.id}`}>
+                    View bird <PreviewIcon name="arrowUp" className={styles.icon} />
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className={styles["section-bottom"]}>
+          <p>{liveCount ?? 0} live auctions running right now — verified pedigrees, escrow-protected.</p>
+          <LinkArrow href="/auctions">Enter the auction room</LinkArrow>
+        </div>
+      </section>
+
+      {/* ECOSYSTEM */}
+      <section className={`${styles.ecosystem} ${styles.container}`}>
+        <div className={styles["section-top"]}>
+          <div>
+            <div className={styles.eyebrow}>Every part of your passion</div>
+            <h2>More than a marketplace.</h2>
+          </div>
+          <LinkArrow href="/about-the-creator">Meet the founders</LinkArrow>
+        </div>
+        <div className={styles["feature-duo"]}>
+          <article className={styles["feature-panel"]}>
+            <div className={`${styles.eyebrow} ${styles.cyan}`}>Your digital loft</div>
+            <h3>
+              Keep the history.
+              <br />
+              Build the future.
+            </h3>
+            <p>
+              Birds, bloodlines, breeding pairs, and the notes that matter. One beautifully organized home for your
+              loft.
+            </p>
+            <LinkArrow href="/dashboard/loft">Step inside My Loft</LinkArrow>
+            <div className={styles["mini-loft"]}>
+              <div className={styles["mini-loft-head"]}>
+                <span>MY LOFT / SAMPLE WORKSPACE</span>
+                <PreviewIcon name="grid" className={styles.icon} />
+              </div>
+              <div className={styles["mini-loft-row"]}>
+                <Image src={siteImages.bird_black_centertail} alt="Roller pigeon" width={60} height={60} />
+                <span>
+                  <strong>Verified pedigree bird</strong>
+                  <small>Tracked from hatch to hammer</small>
+                </span>
+                <span className={`${styles.pill} ${styles.cyan}`}>Pedigree record</span>
+              </div>
+            </div>
+          </article>
+          <article className={`${styles["feature-panel"]} ${styles["mag-feature"]}`}>
+            <div className={styles["feature-text"]}>
+              <div className={styles.eyebrow}>Decade of the Spinner</div>
+              <h3>
+                The stories.
+                <br />
+                The people.
+                <br />
+                The passion.
+              </h3>
+              <p>Go beyond the score. Explore the magazine made for the world of roller pigeons.</p>
+              <LinkArrow href="/decade-of-the-spinner">Open the magazine</LinkArrow>
+              <div className={styles["issue-label"]}>
+                D.O.T.S. / {latestIssue ? `ISSUE ${latestIssue.issue_number}` : "FROM THE ARCHIVE"}
+              </div>
+            </div>
+            <Image
+              className={styles["mag-cover-small"]}
+              src={siteImages.mag_cover_small}
+              alt="Decade of the Spinner cover"
+              width={341}
+              height={512}
+            />
+          </article>
+        </div>
+      </section>
+
+      {/* COMMUNITY */}
+      <section className={styles.container}>
+        <div className={styles["community-band"]}>
+          <Image
+            className={styles["community-photo"]}
+            src={siteImages.community_photo}
+            alt="Championship trophy from the roller pigeon community"
+            width={435}
+            height={690}
+          />
+          <div className={styles["community-copy"]}>
+            <div className={`${styles.eyebrow} ${styles.cyan}`}>The people behind the pigeons</div>
+            <h2>
+              A shared sky.
+              <br />
+              A stronger community.
+            </h2>
+            <p>
+              Trade knowledge. Discover another loft. Share the moments that keep you looking up. This is where the
+              sport comes together.
+            </p>
+            <LinkArrow href="/our-breeders">Join the conversation</LinkArrow>
+          </div>
+        </div>
+      </section>
+
+      {/* WORLD */}
+      <section className={styles["world-section"]}>
+        <div className={styles.container}>
+          <div className={styles.eyebrow}>One passion. No boundaries.</div>
+          <h2>
+            THE WORLD IS
+            <br />
+            <span>OUR BACKYARD.</span>
           </h2>
-          <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.8, maxWidth: 480, marginBottom: 32 }}>
-            Ten years of roller pigeon breeding, competition, and bloodline history. Sample any issue for free —
-            Breeder and Elite Loft members read every issue in full.
+          <p>
+            A global vision, built one connection at a time.
+            <br />
+            Bring your passion. Find your people.
           </p>
-          <Link href="/magazine" className="btn-gold-lg">
-            Read the Latest Issue
+          <div className={styles["country-row"]}>
+            <span>North America</span>
+            <span>United Kingdom</span>
+            <span>Europe</span>
+            <span>Africa</span>
+            <span>Beyond</span>
+          </div>
+          <Link href="/our-breeders" className={`${styles.btn} ${styles["btn-primary"]}`}>
+            Explore the community <PreviewIcon name="arrowUp" className={styles.icon} />
           </Link>
         </div>
-        {latestIssue?.cover_image_url && (
-          <div style={{ position: "relative", height: 420, borderRadius: 2, overflow: "hidden", border: "0.5px solid var(--border)" }}>
-            <Image src={latestIssue.cover_image_url} alt={latestIssue.title} fill style={{ objectFit: "cover" }} />
-          </div>
-        )}
-      </div>
+      </section>
 
       {/* PRICING */}
       <div className="pricing-section">
@@ -312,7 +354,9 @@ export default async function Home() {
         <div className="pricing-grid">
           <div className="pricing-card">
             <div className="pricing-tier">Fancier</div>
-            <div className="pricing-price"><sup>$</sup>19<sub>/mo</sub></div>
+            <div className="pricing-price">
+              <sup>$</sup>19<sub>/mo</sub>
+            </div>
             <div className="pricing-desc">Browse, bid, and buy with full buyer protection.</div>
             <div className="pricing-feature">Full marketplace access</div>
             <div className="pricing-feature">Bid in live auctions</div>
@@ -320,12 +364,16 @@ export default async function Home() {
             <div className="pricing-feature">Escrow buyer protection</div>
             <div className="pricing-feature">Competition leaderboards</div>
             <div className="pricing-action">
-              <Link href="/signup" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>Get started</Link>
+              <Link href="/signup" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>
+                Get started
+              </Link>
             </div>
           </div>
           <div className="pricing-card featured">
             <div className="pricing-tier">Breeder</div>
-            <div className="pricing-price"><sup>$</sup>49<sub>/mo</sub></div>
+            <div className="pricing-price">
+              <sup>$</sup>49<sub>/mo</sub>
+            </div>
             <div className="pricing-desc">List your birds, build your loft reputation globally.</div>
             <div className="pricing-feature">Everything in Fancier</div>
             <div className="pricing-feature">Unlimited bird listings</div>
@@ -334,12 +382,16 @@ export default async function Home() {
             <div className="pricing-feature">AI breeding matchmaker</div>
             <div className="pricing-feature">Fly video uploads</div>
             <div className="pricing-action">
-              <Link href="/signup" className="btn-gold" style={{ display: "block", textAlign: "center", padding: "12px", borderRadius: "2px" }}>Join as Breeder</Link>
+              <Link href="/signup" className="btn-gold" style={{ display: "block", textAlign: "center", padding: "12px" }}>
+                Join as Breeder
+              </Link>
             </div>
           </div>
           <div className="pricing-card">
             <div className="pricing-tier">Elite Loft</div>
-            <div className="pricing-price"><sup>$</sup>149<sub>/mo</sub></div>
+            <div className="pricing-price">
+              <sup>$</sup>149<sub>/mo</sub>
+            </div>
             <div className="pricing-desc">For champion breeders who demand maximum reach and credibility.</div>
             <div className="pricing-feature">Everything in Breeder</div>
             <div className="pricing-feature">Featured placement in auctions</div>
@@ -348,7 +400,9 @@ export default async function Home() {
             <div className="pricing-feature">DNA cert display</div>
             <div className="pricing-feature">Full analytics dashboard</div>
             <div className="pricing-action">
-              <a href="mailto:strangemotelmusic@gmail.com" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>Apply for Elite</a>
+              <a href="mailto:strangemotelmusic@gmail.com" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "12px" }}>
+                Apply for Elite
+              </a>
             </div>
           </div>
         </div>
@@ -359,62 +413,21 @@ export default async function Home() {
         <Image src={siteImages.bird_red2} alt="" width={400} height={500} className="cta-bird-left" aria-hidden />
         <Image src={siteImages.bird_lavender} alt="" width={400} height={500} className="cta-bird-right" aria-hidden />
         <h2 className="cta-title">
-          Your Birds Deserve<br />a <em>World-Class</em> Stage
+          Your Birds Deserve
+          <br />a <em>World-Class</em> Stage
         </h2>
-        <p className="cta-sub">
-          Join thousands of roller pigeon fanciers who trust RollersOnly for every transaction.
-        </p>
+        <p className="cta-sub">Join thousands of roller pigeon fanciers who trust RollersOnly for every transaction.</p>
         <div className="cta-actions">
-          <Link href="/signup" className="btn-gold-lg">Create Your Loft Profile</Link>
-          <Link href="/auctions" className="btn-ghost-lg">Browse Live Auctions</Link>
+          <Link href="/signup" className="btn-gold-lg">
+            Create Your Loft Profile
+          </Link>
+          <Link href="/auctions" className="btn-ghost-lg">
+            Browse Live Auctions
+          </Link>
         </div>
       </div>
 
-      {/* FOOTER */}
-      <footer>
-        <div className="footer-top">
-          <div>
-            <div className="footer-logo">Rollers<span>Only</span></div>
-            <p className="footer-tagline">
-              The world&apos;s first dedicated marketplace for elite roller pigeon breeders, competitors, and collectors.
-            </p>
-          </div>
-          <div>
-            <div className="footer-col-title">Platform</div>
-            <ul className="footer-links">
-              <li><Link href="/auctions">Live Auctions</Link></li>
-              <li><Link href="/browse">Browse Birds</Link></li>
-              <li><Link href="/leaderboards">Leaderboards</Link></li>
-            </ul>
-          </div>
-          <div>
-            <div className="footer-col-title">Community</div>
-            <ul className="footer-links">
-              <li><Link href="/leaderboards">Championship Events</Link></li>
-              <li><Link href="/matchmaking">Breeding Matchmaking</Link></li>
-              <li><Link href="/how-it-works">About the Sport</Link></li>
-            </ul>
-          </div>
-          <div>
-            <div className="footer-col-title">Support</div>
-            <ul className="footer-links">
-              <li><Link href="/how-it-works">How it Works</Link></li>
-              <li><Link href="/how-it-works">Shipping Guide</Link></li>
-              <li><Link href="/how-it-works">Escrow Policy</Link></li>
-              <li><a href="mailto:strangemotelmusic@gmail.com">Contact Us</a></li>
-              <li><a href="mailto:strangemotelmusic@gmail.com">Become a Partner</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <span className="footer-copy">© 2026 RollersOnly LLC. All rights reserved.</span>
-          <div className="footer-badges">
-            <span className="footer-badge">Escrow Protected</span>
-            <span className="footer-badge">Verified Pedigrees</span>
-            <span className="footer-badge">DNA Certified</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

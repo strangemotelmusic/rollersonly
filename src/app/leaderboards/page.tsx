@@ -104,7 +104,7 @@ export default function LeaderboardsPage() {
                       </td>
                       <td style={{ padding: "18px 12px" }}>
                         <div style={{ fontSize: 14, color: "var(--white)", marginBottom: 2 }}>{entry.flyer}</div>
-                        {entry.badge && <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gold)", border: "0.5px solid var(--border-gold)", padding: "2px 8px", borderRadius: 1, display: "inline-block", marginTop: 4 }}>◆ {entry.badge}</span>}
+                        {entry.badge && <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gold)", border: "0.5px solid var(--border-gold)", padding: "2px 8px", borderRadius: "var(--radius-sm)", display: "inline-block", marginTop: 4 }}>◆ {entry.badge}</span>}
                       </td>
                       <td style={{ padding: "18px 12px", fontSize: 12, color: "var(--muted)" }}>{entry.location}</td>
                       <td style={{ padding: "18px 12px" }}>
@@ -126,7 +126,7 @@ export default function LeaderboardsPage() {
                 <div style={{ fontFamily: "var(--ff-display)", fontSize: 26, fontWeight: 300, color: "var(--white)" }}>World Cup Roll of Honor</div>
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>Champions who made the sky remember</div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--border)", marginBottom: 40 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, background: "transparent", marginBottom: 40 }}>
                 {rollOfHonor.map((c) => (
                   <div key={c.year} style={{ background: c.reigning ? "rgba(212,175,55,0.05)" : "var(--surface)", display: "flex", alignItems: "center", gap: 20, padding: "16px 24px", borderLeft: c.reigning ? "2px solid var(--gold)" : "2px solid transparent" }}>
                     <div style={{ fontFamily: "var(--ff-display)", fontSize: 26, fontWeight: 300, color: c.reigning ? "var(--gold)" : "var(--muted)", minWidth: 72 }}>{c.year}</div>
@@ -134,13 +134,13 @@ export default function LeaderboardsPage() {
                       <div style={{ fontSize: 14, color: "var(--white)" }}>{c.name}</div>
                       <div style={{ fontSize: 11, color: "var(--muted)" }}>{c.country}</div>
                     </div>
-                    {c.reigning && <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gold)", border: "0.5px solid var(--border-gold)", padding: "3px 10px", borderRadius: 1 }}>◆ Reigning Champion</span>}
+                    {c.reigning && <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gold)", border: "0.5px solid var(--border-gold)", padding: "3px 10px", borderRadius: "var(--radius-sm)" }}>◆ Reigning Champion</span>}
                   </div>
                 ))}
               </div>
 
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>The Legends With More Than One Crown</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--border)" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "transparent" }}>
                 {legends.map((l) => (
                   <div key={l.name} style={{ background: "var(--surface)", padding: "22px 24px" }}>
                     <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 400, color: "var(--white)", marginBottom: 4 }}>{l.name}</div>
@@ -155,20 +155,20 @@ export default function LeaderboardsPage() {
           {/* SIDEBAR */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-            <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: 24, borderRadius: 2 }}>
+            <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: 24, borderRadius: "var(--radius-sm)" }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 4 }}>◆ Reigning Champion</div>
               <div style={{ fontFamily: "var(--ff-display)", fontSize: 22, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Rick Schoening</div>
               <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 16 }}>2026 World Cup Champion · United States, Montana. Top marks on both quality and depth (1.5 / 1.5).</p>
               <Link href="/our-breeders" className="btn-gold" style={{ display: "block", textAlign: "center", padding: 12 }}>See the Bloodlines</Link>
             </div>
 
-            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
+            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: "var(--radius-sm)" }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>Competition Schedule</div>
               {schedule.map((c, i) => (
                 <div key={i} style={{ padding: "14px 0", borderBottom: i < schedule.length - 1 ? "0.5px solid var(--border)" : "none" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
                     <div style={{ fontSize: 13, color: "var(--white)" }}>{c.name}</div>
-                    <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "2px 8px", borderRadius: 1, background: c.status === "completed" ? "rgba(255,255,255,0.06)" : "rgba(50,200,100,0.1)", color: c.status === "completed" ? "var(--muted)" : "#50c878" }}>
+                    <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "2px 8px", borderRadius: "var(--radius-sm)", background: c.status === "completed" ? "rgba(255,255,255,0.06)" : "rgba(50,200,100,0.1)", color: c.status === "completed" ? "var(--muted)" : "#50c878" }}>
                       {c.status}
                     </span>
                   </div>
@@ -177,7 +177,7 @@ export default function LeaderboardsPage() {
               ))}
             </div>
 
-            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: 2 }}>
+            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", padding: 24, borderRadius: "var(--radius-sm)" }}>
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 14 }}>Submit Your Score</div>
               <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 16 }}>Are you a club secretary or competition organizer? Submit official results to be posted on the leaderboard.</p>
               <a href="mailto:strangemotelmusic@gmail.com" className="btn-ghost" style={{ display: "block", textAlign: "center", padding: "10px", fontSize: 11 }}>Submit Results →</a>

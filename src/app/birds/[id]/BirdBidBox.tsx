@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { placeBid } from "@/app/actions/bids";
+import { createAuctionPaymentSession } from "@/app/actions/stripe";
 
 type Bid = {
   id: string;
@@ -19,6 +20,9 @@ type Auction = {
   status: string;
   ends_at: string;
   seller_id: string;
+  winner_id: string | null;
+  final_price: number | null;
+  escrow_held: boolean | null;
 } | null;
 
 function maskUsername(username?: string | null) {
@@ -41,7 +45,7 @@ export default function BirdBidBox({
 
   if (!auction) {
     return (
-      <div style={{ background: "var(--void)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 28 }}>
+      <div style={{ background: "var(--void)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 28 }}>
         <div style={{ fontSize: 14, color: "var(--muted)" }}>This bird isn&apos;t currently listed in an auction.</div>
       </div>
     );
@@ -52,8 +56,12 @@ export default function BirdBidBox({
   const [bidInput, setBidInput] = useState(minBid);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError, setPayError] = useState("");
   const isLive = auction.status === "live";
+  const isEnded = auction.status === "ended";
   const isOwnAuction = currentUserId && currentUserId === auction.seller_id;
+  const isWinner = isEnded && currentUserId && currentUserId === auction.winner_id;
 
   async function handleBid() {
     if (!currentUserId) {
@@ -71,9 +79,19 @@ export default function BirdBidBox({
     router.refresh();
   }
 
+  async function handlePay() {
+    setPayLoading(true);
+    setPayError("");
+    const result = await createAuctionPaymentSession(auction!.id);
+    if (result?.error) {
+      setPayLoading(false);
+      setPayError(result.error);
+    }
+  }
+
   return (
     <>
-      <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 28, marginBottom: 16 }}>
+      <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 28, marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 4 }}>Current bid</div>
@@ -82,7 +100,34 @@ export default function BirdBidBox({
           </div>
         </div>
 
-        {isBrowseOnly ? (
+        {isWinner ? (
+          <div>
+            <div style={{ fontSize: 14, color: "var(--white)", marginBottom: 12 }}>
+              🎉 You won this bird for <strong style={{ color: "var(--gold)" }}>${Number(auction.final_price).toLocaleString()}</strong>!
+            </div>
+            {auction.escrow_held ? (
+              <div style={{ fontSize: 13, color: "var(--muted)" }}>Payment received — the seller will be in touch about shipping.</div>
+            ) : (
+              <>
+                <button onClick={handlePay} disabled={payLoading} className="btn-gold" style={{ width: "100%", padding: "12px 20px" }}>
+                  {payLoading ? "Redirecting…" : `Pay $${Number(auction.final_price).toLocaleString()} now`}
+                </button>
+                {payError && <div style={{ color: "#E74C3C", fontSize: 12, marginTop: 8 }}>{payError}</div>}
+              </>
+            )}
+          </div>
+        ) : isEnded ? (
+          <div style={{ fontSize: 13, color: "var(--muted)" }}>
+            {auction.winner_id ? (
+              <>
+                Auction ended — sold for ${Number(auction.final_price).toLocaleString()}.
+                {isOwnAuction && (auction.escrow_held ? " Payment received." : " Awaiting buyer payment.")}
+              </>
+            ) : (
+              "Auction ended with no bids."
+            )}
+          </div>
+        ) : isBrowseOnly ? (
           <div style={{ fontSize: 13, color: "var(--muted)" }}>
             Browse Only members can&apos;t place bids. <Link href="/signup" style={{ color: "var(--gold)", textDecoration: "none" }}>Upgrade your plan</Link> to bid.
           </div>
@@ -99,7 +144,7 @@ export default function BirdBidBox({
                   type="number"
                   value={bidInput}
                   onChange={(e) => setBidInput(Number(e.target.value))}
-                  style={{ flex: 1, background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 16, borderRadius: 2, outline: "none", fontFamily: "var(--ff-display)" }}
+                  style={{ flex: 1, background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 16, borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--ff-display)" }}
                 />
                 <button onClick={handleBid} disabled={loading} className="btn-gold" style={{ padding: "12px 20px", whiteSpace: "nowrap" }}>
                   {loading ? "Placing…" : "Place Bid"}
@@ -115,7 +160,7 @@ export default function BirdBidBox({
         </div>
       </div>
 
-      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20 }}>
+      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20 }}>
         <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 14 }}>Bid History</div>
         {bids.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)" }}>No bids yet.</div>

@@ -152,6 +152,7 @@
   text-decoration: none;
   transition: 0.2s;
   white-space: nowrap;
+  border-radius: var(--radius-sm);
 }
 .navCta:hover {
   background: var(--gold);
@@ -230,13 +231,13 @@
 .steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
+  gap: 20px;
 }
 .step {
   background: var(--black-2);
   padding: 30px 24px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
 }
 .step .n {
   font-family: var(--display);
@@ -318,7 +319,13 @@
 .loftCard {
   background: var(--black-2);
   border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
   padding: 22px;
+  transition: border-color 0.25s, transform 0.25s;
+}
+.loftCard:hover {
+  border-color: var(--border-cyan, rgba(166,218,223,0.25));
+  transform: translateY(-3px);
 }
 .loftCardHead {
   display: flex;
@@ -349,7 +356,8 @@
   letter-spacing: 0.08em;
   color: var(--gold-light);
   border: 1px solid var(--gold-dim);
-  padding: 4px 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 .verifiedBadge svg {
@@ -367,6 +375,7 @@
   flex: 1;
   background: var(--black);
   border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
   padding: 12px 10px;
   text-align: center;
   cursor: pointer;
@@ -456,6 +465,7 @@
   position: sticky;
   top: 96px;
   border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-lg);
   background: radial-gradient(circle at 30% 15%, rgba(201, 162, 75, 0.12), transparent 55%), var(--black-2);
   padding: 28px 26px;
 }
@@ -556,6 +566,7 @@
   cursor: pointer;
   transition: 0.2s;
   text-decoration: none;
+  border-radius: var(--radius-sm);
 }
 .reserveBtn:hover:not(:disabled) {
   background: var(--gold-light);
@@ -598,6 +609,7 @@
   max-width: 300px;
   background: var(--black-2);
   border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
   padding: 28px 24px;
   text-align: center;
 }

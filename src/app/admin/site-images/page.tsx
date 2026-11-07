@@ -29,7 +29,10 @@ export default async function AdminSiteImagesPage() {
             Site Images
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
-            Replace the placeholder bird photos used in the homepage featured grid and hero, and rename each slot. Each slot updates every place that photo appears. To edit Live Auctions cards (price, color, bloodline, photo), use{" "}
+            Replace the site-wide decorative photos (hero, logo, homepage sections) and rename each slot — each slot
+            updates every place that photo appears. This doesn&apos;t cover per-listing bird photos, loft logos, or
+            magazine/D.O.T.S./Tyson&apos;s Corner content — those are managed from their own admin pages or directly
+            by each owner. To edit Live Auctions cards, use{" "}
             <a href="/admin/live-auctions" style={{ color: "var(--gold)" }}>Manage Live Auctions</a>.
           </p>
 

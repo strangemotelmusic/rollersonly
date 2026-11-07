@@ -218,7 +218,7 @@ export default function FutureIssuesClient({
                     </div>
                   )}
                   {issue.release_label && (
-                    <span style={{ position: "absolute", top: 12, left: 12, fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--black)", background: "var(--gold)", padding: "4px 10px", borderRadius: 2 }}>
+                    <span style={{ position: "absolute", top: 12, left: 12, fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--black)", background: "var(--gold)", padding: "4px 10px", borderRadius: "var(--radius-sm)" }}>
                       {issue.release_label}
                     </span>
                   )}
@@ -365,7 +365,7 @@ export default function FutureIssuesClient({
                           <video src={v.video_url ?? undefined} preload="metadata" muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         )}
                         {i === activeVideo && (
-                          <span style={{ position: "absolute", bottom: 6, left: 6, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--black)", background: "var(--gold)", padding: "2px 7px", borderRadius: 2 }}>
+                          <span style={{ position: "absolute", bottom: 6, left: 6, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--black)", background: "var(--gold)", padding: "2px 7px", borderRadius: "var(--radius-sm)" }}>
                             Now Playing
                           </span>
                         )}
@@ -425,7 +425,7 @@ function EditableNowPlayingTitle({ video, onSaved }: { video: FeaturedVideo; onS
               fontFamily: "var(--ff-display)",
               fontSize: 18,
               padding: "6px 12px",
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               outline: "none",
               textAlign: "center",
               minWidth: 260,

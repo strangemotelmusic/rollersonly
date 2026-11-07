@@ -73,7 +73,7 @@ export default function MembersClient({ members }: { members: Member[] }) {
             color: "var(--white)",
             padding: "10px 14px",
             fontSize: 13,
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             outline: "none",
             marginBottom: 32,
           }}
@@ -95,7 +95,7 @@ export default function MembersClient({ members }: { members: Member[] }) {
                   style={{
                     background: "var(--surface)",
                     border: "0.5px solid var(--border)",
-                    borderRadius: 2,
+                    borderRadius: "var(--radius-sm)",
                     padding: "24px 16px",
                     display: "flex",
                     flexDirection: "column",

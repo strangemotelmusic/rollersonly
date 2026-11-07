@@ -71,7 +71,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* BUYER / SELLER STEPS */}
-        <div className="rs-grid-2 rs-pad-xl" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--border)", padding: "80px 64px", columnGap: 80 }}>
+        <div className="rs-grid-2 rs-pad-xl" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "transparent", padding: "80px 64px", columnGap: 80 }}>
 
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>For Buyers</p>

@@ -137,7 +137,7 @@ export default function SubmitVideoClient({ initialSubmissions }: { initialSubmi
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Blue Bar Kit — Sunset Break"
             disabled={busy}
-            style={{ width: "100%", background: "var(--void)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 14px", fontSize: 14, borderRadius: 2, outline: "none", marginBottom: 20 }}
+            style={{ width: "100%", background: "var(--void)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 14px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", marginBottom: 20 }}
           />
 
           <label style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>
@@ -161,7 +161,7 @@ export default function SubmitVideoClient({ initialSubmissions }: { initialSubmi
           {converting && (
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, color: "var(--gold)", marginBottom: 6 }}>Preparing your video… {Math.round(progress * 100)}%</div>
-              <div style={{ height: 3, background: "var(--border)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ height: 3, background: "var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, background: "var(--gold)", transition: "width 0.2s ease" }} />
               </div>
             </div>
@@ -178,14 +178,14 @@ export default function SubmitVideoClient({ initialSubmissions }: { initialSubmi
         {submissions.length > 0 && (
           <div style={{ marginTop: 48 }}>
             <div style={{ fontFamily: "var(--ff-display)", fontSize: 22, fontWeight: 300, color: "var(--white)", marginBottom: 16 }}>Your Submissions</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--border)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, background: "transparent" }}>
               {submissions.map((s) => {
                 const st = statusStyle[s.status] ?? statusStyle.pending;
                 return (
                   <div key={s.id} style={{ background: "var(--surface)", padding: "16px 20px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
                       <span style={{ fontSize: 14, color: "var(--white)" }}>{s.title}</span>
-                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 2, background: st.bg, color: st.color, whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 10px", borderRadius: "var(--radius-sm)", background: st.bg, color: st.color, whiteSpace: "nowrap" }}>
                         {st.label}
                       </span>
                     </div>

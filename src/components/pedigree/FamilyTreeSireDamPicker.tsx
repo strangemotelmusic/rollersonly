@@ -15,7 +15,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -79,7 +79,7 @@ function BirdSearchField({
             justifyContent: "space-between",
             background: "var(--deep)",
             border: "0.5px solid var(--border-gold)",
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             padding: "10px 12px",
           }}
         >
@@ -119,7 +119,7 @@ function BirdSearchField({
             right: 0,
             background: "var(--surface)",
             border: "0.5px solid var(--border-gold)",
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             marginTop: 4,
             maxHeight: 220,
             overflowY: "auto",
@@ -201,7 +201,7 @@ export default function FamilyTreeSireDamPicker({
       {checking && <div style={{ fontSize: 12, color: "var(--muted)" }}>Checking bloodline for shared ancestors…</div>}
 
       {sharedAncestors && sharedAncestors.length > 0 && (
-        <div style={{ background: "rgba(212,175,55,0.08)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: "12px 14px" }}>
+        <div style={{ background: "rgba(212,175,55,0.08)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: "12px 14px" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: "var(--gold)", marginBottom: 6 }}>⚠ Shared ancestor detected</div>
           <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>
             {sharedAncestors.slice(0, 3).map((s) => (

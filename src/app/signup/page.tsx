@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { createCheckoutSession } from "@/app/actions/stripe";
+import { sendWelcomeEmail } from "@/app/actions/welcome-email";
 
 const tiers = [
   { id: "browse", name: "Browse Only", price: 0, desc: "Explore listings and lofts — no bidding or selling" },
@@ -53,6 +54,7 @@ export default function SignupPage() {
         tier: "browse",
       });
       if (profileErr) { setLoading(false); setError(profileErr.message); return; }
+      sendWelcomeEmail(data.user.id).catch(() => {});
     }
 
     if (tier !== "browse" && data.session) {
@@ -132,14 +134,14 @@ export default function SignupPage() {
             <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 32 }}>You can upgrade or downgrade anytime from your dashboard</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
               {tiers.map((t) => (
-                <div key={t.id} onClick={() => setTier(t.id)} style={{ display: "flex", alignItems: "center", gap: 20, padding: "20px 24px", background: tier === t.id ? "var(--surface)" : "var(--deep)", border: `0.5px solid ${tier === t.id ? "var(--gold)" : "var(--border)"}`, borderRadius: 2, cursor: "pointer", transition: "all 0.2s" }}>
+                <div key={t.id} onClick={() => setTier(t.id)} style={{ display: "flex", alignItems: "center", gap: 20, padding: "20px 24px", background: tier === t.id ? "var(--surface)" : "var(--deep)", border: `0.5px solid ${tier === t.id ? "var(--gold)" : "var(--border)"}`, borderRadius: "var(--radius-sm)", cursor: "pointer", transition: "all 0.2s" }}>
                   <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${tier === t.id ? "var(--gold)" : "var(--muted)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {tier === t.id && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--gold)" }} />}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 15, fontWeight: 500, color: "var(--white)", marginBottom: 2 }}>
                       {t.name}
-                      {t.popular && <span style={{ fontSize: 10, background: "var(--gold)", color: "var(--black)", padding: "2px 8px", borderRadius: 1, marginLeft: 10, fontWeight: 700 }}>Most popular</span>}
+                      {t.popular && <span style={{ fontSize: 10, background: "var(--gold)", color: "var(--black)", padding: "2px 8px", borderRadius: "var(--radius-sm)", marginLeft: 10, fontWeight: 700 }}>Most popular</span>}
                     </div>
                     <div style={{ fontSize: 12, color: "var(--muted)" }}>{t.desc}</div>
                   </div>
@@ -173,7 +175,7 @@ export default function SignupPage() {
             </div>
             <div style={{ marginTop: 16, marginBottom: 24 }}>
               <label style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: 8 }}>Country</label>
-              <select value={form.country} onChange={(e) => set({ country: e.target.value })} style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none" }}>
+              <select value={form.country} onChange={(e) => set({ country: e.target.value })} style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none" }}>
                 {["United States","Canada","United Kingdom","Netherlands","Belgium","Germany","Saudi Arabia","UAE","Other"].map((c) => <option key={c}>{c}</option>)}
               </select>
             </div>
@@ -196,7 +198,7 @@ export default function SignupPage() {
             </div>
             <div style={{ marginTop: 16, marginBottom: 24 }}>
               <label style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: 8 }}>Brief description</label>
-              <textarea value={loft.description} onChange={(e) => setLoft((p) => ({ ...p, description: e.target.value }))} placeholder="Tell the community about your loft, your bloodlines, and what you specialize in…" style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", minHeight: 100, resize: "vertical", fontFamily: "var(--ff-body)" }} />
+              <textarea value={loft.description} onChange={(e) => setLoft((p) => ({ ...p, description: e.target.value }))} placeholder="Tell the community about your loft, your bloodlines, and what you specialize in…" style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", minHeight: 100, resize: "vertical", fontFamily: "var(--ff-body)" }} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button className="btn-ghost" onClick={() => setStep(4)} style={{ fontSize: 12, color: "var(--muted)" }}>Skip for now →</button>
@@ -224,7 +226,7 @@ function Field({ label, value, onChange, placeholder, type = "text", hint }: { l
   return (
     <div>
       <label style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: 8 }}>{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: 2, outline: "none", fontFamily: "var(--ff-body)" }} onFocus={(e) => (e.target.style.borderColor = "var(--gold)")} onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "12px 16px", fontSize: 14, borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--ff-body)" }} onFocus={(e) => (e.target.style.borderColor = "var(--gold)")} onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
       {hint && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>{hint}</div>}
     </div>
   );

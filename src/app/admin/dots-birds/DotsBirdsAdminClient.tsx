@@ -9,9 +9,11 @@ import {
   updateDotsBird,
   setDotsBirdAvailability,
   deleteDotsBird,
+  reorderDotsBirds,
 } from "@/app/actions/dots-birds-admin";
 import { formatPrice } from "@/lib/dots-birds";
 import BulkDotsBirdDrop from "./BulkDotsBirdDrop";
+import ReorderButtons from "@/components/admin/ReorderButtons";
 
 type Bird = {
   id: string;
@@ -34,7 +36,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--white)",
   padding: "10px 12px",
   fontSize: 13,
-  borderRadius: 2,
+  borderRadius: "var(--radius-sm)",
   outline: "none",
 };
 
@@ -52,6 +54,18 @@ export default function DotsBirdsAdminClient({ initialBirds }: { initialBirds: B
   const [birds, setBirds] = useState(initialBirds);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
+  const [reordering, setReordering] = useState(false);
+
+  async function moveBird(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= birds.length) return;
+    const next = birds.slice();
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setBirds(next);
+    setReordering(true);
+    await reorderDotsBirds(next.map((b) => b.id));
+    setReordering(false);
+  }
 
   return (
     <div>
@@ -96,7 +110,7 @@ export default function DotsBirdsAdminClient({ initialBirds }: { initialBirds: B
         {birds.length === 0 && !showAddForm && (
           <p style={{ fontSize: 14, color: "var(--muted)" }}>No birds listed yet.</p>
         )}
-        {birds.map((bird) => (
+        {birds.map((bird, i) => (
           <BirdRow
             key={bird.id}
             bird={bird}
@@ -104,6 +118,11 @@ export default function DotsBirdsAdminClient({ initialBirds }: { initialBirds: B
               setBirds((prev) => prev.map((b) => (b.id === bird.id ? { ...b, is_available: isAvailable } : b)))
             }
             onDelete={() => setBirds((prev) => prev.filter((b) => b.id !== bird.id))}
+            canMoveUp={i > 0}
+            canMoveDown={i < birds.length - 1}
+            onMoveUp={() => moveBird(i, -1)}
+            onMoveDown={() => moveBird(i, 1)}
+            reordering={reordering}
           />
         ))}
       </div>
@@ -115,10 +134,20 @@ function BirdRow({
   bird,
   onAvailabilityChange,
   onDelete,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  reordering,
 }: {
   bird: Bird;
   onAvailabilityChange: (isAvailable: boolean) => void;
   onDelete: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  reordering: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
@@ -163,8 +192,9 @@ function BirdRow({
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
-      <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: 2, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20, display: "flex", gap: 20, alignItems: "center" }}>
+      <ReorderButtons canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMoveUp={onMoveUp} onMoveDown={onMoveDown} disabled={reordering} />
+      <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, background: "var(--void)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
         {bird.photo_url && <Image src={bird.photo_url} alt={bird.name} fill style={{ objectFit: "cover", opacity: bird.is_available ? 1 : 0.4 }} />}
       </div>
       <div style={{ flex: 1 }}>
@@ -187,7 +217,7 @@ function BirdRow({
         <button
           onClick={handleDelete}
           disabled={pending}
-          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: 2, cursor: "pointer", fontSize: 13 }}
+          style={{ padding: "8px 16px", background: "transparent", border: "0.5px solid rgba(232,163,163,0.4)", color: "#e8a3a3", borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: 13 }}
         >
           Delete
         </button>
@@ -233,7 +263,7 @@ function BirdForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginBottom: 24 }}>
+    <form onSubmit={handleSubmit} style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>Bird Name</label>

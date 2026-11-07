@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { registerBird, listBirdForSale } from "@/lib/birds/register";
+import PreviewIcon from "@/components/PreviewIcon";
+import styles from "@/styles/PreviewTheme.module.css";
 
 export type Bird = {
   id: string;
@@ -15,37 +17,47 @@ export type Bird = {
   birth_year: number | null;
   primary_photo_url: string | null;
   is_active: boolean | null;
+  available_for_matchmaking: boolean | null;
   auctions: { id: string; status: string }[];
 };
 
-const inputStyle: React.CSSProperties = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "10px 12px", fontSize: 13, borderRadius: 2, outline: "none" };
-const labelStyle: React.CSSProperties = { fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: 6 };
-const sectionCard: React.CSSProperties = { background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20 };
+const inputStyle: React.CSSProperties = { width: "100%", background: "var(--deep)", border: "0.5px solid var(--border)", color: "var(--white)", padding: "10px 12px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none" };
 
 export default function LoftDashboardClient({
   ownerId,
   loftId,
   initialBirds,
+  canOfferMatchmaking,
 }: {
   ownerId: string;
   loftId: string | null;
   initialBirds: Bird[];
+  canOfferMatchmaking: boolean;
 }) {
+  const supabase = createClient();
   const [birds, setBirds] = useState(initialBirds);
   const [showRegister, setShowRegister] = useState(false);
   const [listingBirdId, setListingBirdId] = useState<string | null>(null);
 
+  async function toggleMatchmaking(birdId: string, next: boolean) {
+    setBirds((prev) => prev.map((b) => (b.id === birdId ? { ...b, available_for_matchmaking: next } : b)));
+    const { error } = await supabase.from("birds").update({ available_for_matchmaking: next }).eq("id", birdId);
+    if (error) {
+      setBirds((prev) => prev.map((b) => (b.id === birdId ? { ...b, available_for_matchmaking: !next } : b)));
+    }
+  }
+
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div style={{ fontSize: 13, color: "var(--muted)" }}>{birds.length} bird{birds.length === 1 ? "" : "s"} registered</div>
-        <button className="btn-gold" style={{ padding: "9px 18px", fontSize: 12 }} onClick={() => setShowRegister((s) => !s)}>
-          {showRegister ? "Cancel" : "+ Register a Bird"}
+    <div className={styles.panel} style={{ marginTop: 24 }}>
+      <div className={styles["panel-heading"]}>
+        <h2>Your bird records</h2>
+        <button className={`${styles.btn} ${styles["btn-small"]}`} onClick={() => setShowRegister((s) => !s)}>
+          <PreviewIcon name="arrowUp" className={styles.icon} /> {showRegister ? "Cancel" : "Add bird"}
         </button>
       </div>
 
       {showRegister && (
-        <div style={{ ...sectionCard, marginBottom: 24, border: "0.5px solid var(--border-gold)" }}>
+        <div style={{ border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-lg)", padding: 20, marginBottom: 24, background: "var(--void)" }}>
           <RegisterBirdForm
             ownerId={ownerId}
             loftId={loftId}
@@ -57,50 +69,78 @@ export default function LoftDashboardClient({
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {birds.length === 0 && !showRegister && <p style={{ fontSize: 13, color: "var(--muted)" }}>No birds registered yet.</p>}
-        {birds.map((b) => {
-          const isListed = Boolean(b.auctions?.some((a) => a.status === "live"));
-          return (
-            <div key={b.id} style={{ ...sectionCard, display: "flex", gap: 16, alignItems: "center" }}>
-              <div style={{ position: "relative", width: 64, height: 64, borderRadius: 2, overflow: "hidden", flexShrink: 0, background: "var(--void)" }}>
-                {b.primary_photo_url && <Image src={b.primary_photo_url} alt={b.name || ""} fill style={{ objectFit: "cover" }} />}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: "var(--white)" }}>{b.name || "Unnamed bird"} {b.ring_number && <span style={{ fontSize: 11, color: "var(--gold)" }}>{b.ring_number}</span>}</div>
-                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                  {[b.color, b.sex].filter(Boolean).join(" · ") || "—"}
-                </div>
-              </div>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  padding: "4px 10px",
-                  borderRadius: 2,
-                  background: isListed ? "rgba(255,50,50,0.12)" : "rgba(255,255,255,0.06)",
-                  color: isListed ? "#ff6666" : "var(--muted)",
-                  flexShrink: 0,
-                }}
-              >
-                {isListed ? "● Listed" : "Not Listed"}
-              </span>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <Link href={`/birds/${b.id}`} className="btn-ghost" style={{ fontSize: 11, padding: "8px 14px" }}>View</Link>
-                {isListed ? (
-                  <Link href={`/list-bird/${b.id}`} className="btn-ghost" style={{ fontSize: 11, padding: "8px 14px" }}>Manage Listing</Link>
-                ) : (
-                  <button className="btn-gold" style={{ fontSize: 11, padding: "8px 14px" }} onClick={() => setListingBirdId(listingBirdId === b.id ? null : b.id)}>
-                    List for Sale
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {birds.length === 0 && !showRegister ? (
+        <p style={{ fontSize: 13, color: "var(--muted)" }}>Give your birds a home. Start with a band number and the records you know.</p>
+      ) : (
+        <div className={styles["table-scroll"]}>
+          <table className={styles["data-table"]}>
+            <thead>
+              <tr>
+                <th>Bird / band</th>
+                <th>Sex</th>
+                <th>Color</th>
+                <th>Status</th>
+                {canOfferMatchmaking && <th>Matchmaking</th>}
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {birds.map((b) => {
+                const isListed = Boolean(b.auctions?.some((a) => a.status === "live"));
+                return (
+                  <tr key={b.id}>
+                    <td>
+                      <div className={styles["bird-cell"]}>
+                        {b.primary_photo_url ? (
+                          <Image src={b.primary_photo_url} alt={b.name || ""} width={40} height={43} />
+                        ) : (
+                          <div style={{ width: 40, height: 43, borderRadius: 6, background: "var(--void)", flexShrink: 0 }} />
+                        )}
+                        <span>
+                          <strong>{b.name || "Unnamed bird"}</strong>
+                          <small>{b.ring_number || "—"}</small>
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{ textTransform: "capitalize" }}>{b.sex || "—"}</td>
+                    <td>{b.color || "—"}</td>
+                    <td>
+                      <span className={styles.pill} style={isListed ? { color: "#ff8080", borderColor: "rgba(255,80,80,.4)" } : undefined}>
+                        {isListed ? "● Listed" : "Not listed"}
+                      </span>
+                    </td>
+                    {canOfferMatchmaking && (
+                      <td>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                          <input type="checkbox" checked={Boolean(b.available_for_matchmaking)} onChange={(e) => toggleMatchmaking(b.id, e.target.checked)} />
+                        </label>
+                      </td>
+                    )}
+                    <td>
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <Link href={`/birds/${b.id}`} className={`${styles.btn} ${styles["btn-small"]}`}>
+                          View
+                        </Link>
+                        <Link href={`/list-bird/${b.id}`} className={`${styles.btn} ${styles["btn-small"]}`}>
+                          Edit
+                        </Link>
+                        {!isListed && (
+                          <button
+                            className={`${styles.btn} ${styles["btn-primary"]} ${styles["btn-small"]}`}
+                            onClick={() => setListingBirdId(listingBirdId === b.id ? null : b.id)}
+                          >
+                            List for sale
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {listingBirdId && (
         <ListForSaleForm
@@ -171,53 +211,56 @@ function RegisterBirdForm({
       birth_year: birthYear,
       primary_photo_url: null,
       is_active: false,
+      available_for_matchmaking: false,
       auctions: [],
     });
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div>
-          <label style={labelStyle}>Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Ring Number</label>
-          <input value={ringNumber} onChange={(e) => setRingNumber(e.target.value)} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Sex</label>
-          <select value={sex} onChange={(e) => setSex(e.target.value)} style={inputStyle}>
-            <option value="cock">Cock</option>
-            <option value="hen">Hen</option>
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle}>Color</label>
-          <input value={color} onChange={(e) => setColor(e.target.value)} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Birth Year</label>
-          <input type="number" value={birthYear} onChange={(e) => setBirthYear(Number(e.target.value))} style={inputStyle} />
-        </div>
-      </div>
-
-      <div>
-        <label style={labelStyle}>Notes</label>
+    <div className={styles["form-grid"]}>
+      <label className={styles.field}>
+        <span>Name</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+      </label>
+      <label className={styles.field}>
+        <span>Ring Number</span>
+        <input value={ringNumber} onChange={(e) => setRingNumber(e.target.value)} style={inputStyle} />
+      </label>
+      <label className={styles.field}>
+        <span>Sex</span>
+        <select value={sex} onChange={(e) => setSex(e.target.value)} style={inputStyle}>
+          <option value="cock">Cock</option>
+          <option value="hen">Hen</option>
+        </select>
+      </label>
+      <label className={styles.field}>
+        <span>Color</span>
+        <input value={color} onChange={(e) => setColor(e.target.value)} style={inputStyle} />
+      </label>
+      <label className={styles.field}>
+        <span>Birth Year</span>
+        <input type="number" value={birthYear} onChange={(e) => setBirthYear(Number(e.target.value))} style={inputStyle} />
+      </label>
+      <label className={`${styles.field} ${styles.full}`}>
+        <span>Notes</span>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
-      </div>
-
-      <div>
-        <label style={labelStyle}>Photos</label>
+      </label>
+      <label className={`${styles.field} ${styles.full}`}>
+        <span>Photos</span>
         <input type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} style={{ fontSize: 12, color: "var(--muted)" }} />
+      </label>
+
+      {error && (
+        <p className={styles.full} style={{ fontSize: 12, color: "#e8a3a3" }}>
+          {error}
+        </p>
+      )}
+
+      <div className={styles.full}>
+        <button className={`${styles.btn} ${styles["btn-primary"]}`} onClick={handleSubmit} disabled={saving}>
+          {saving ? "Registering…" : "Register Bird"}
+        </button>
       </div>
-
-      {error && <p style={{ fontSize: 12, color: "#e8a3a3" }}>{error}</p>}
-
-      <button className="btn-gold" style={{ padding: "10px 22px" }} onClick={handleSubmit} disabled={saving}>
-        {saving ? "Registering…" : "Register Bird"}
-      </button>
     </div>
   );
 }
@@ -267,36 +310,38 @@ function ListForSaleForm({
   }
 
   return (
-    <div style={{ ...sectionCard, marginTop: 16, border: "0.5px solid var(--border-gold)" }}>
+    <div style={{ border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-lg)", padding: 20, marginTop: 20, background: "var(--void)" }}>
       <div style={{ fontSize: 13, color: "var(--white)", marginBottom: 14 }}>List &quot;{birdName}&quot; for sale</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
-        <div>
-          <label style={labelStyle}>Starting Bid ($)</label>
+      <div className={styles["form-grid"]} style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+        <label className={styles.field}>
+          <span>Starting Bid ($)</span>
           <input type="number" value={startingBid} onChange={(e) => setStartingBid(Number(e.target.value))} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Reserve ($)</label>
+        </label>
+        <label className={styles.field}>
+          <span>Reserve ($)</span>
           <input type="number" value={reservePrice} onChange={(e) => setReservePrice(Number(e.target.value))} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Bid Increment ($)</label>
+        </label>
+        <label className={styles.field}>
+          <span>Bid Increment ($)</span>
           <input type="number" value={bidIncrement} onChange={(e) => setBidIncrement(Number(e.target.value))} style={inputStyle} />
-        </div>
-      </div>
-      <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>Duration</label>
-        <select value={durationHours} onChange={(e) => setDurationHours(Number(e.target.value))} style={inputStyle}>
-          <option value={24}>1 day</option>
-          <option value={72}>3 days</option>
-          <option value={168}>7 days</option>
-        </select>
+        </label>
+        <label className={`${styles.field} ${styles.full}`}>
+          <span>Duration</span>
+          <select value={durationHours} onChange={(e) => setDurationHours(Number(e.target.value))} style={inputStyle}>
+            <option value={24}>1 day</option>
+            <option value={72}>3 days</option>
+            <option value={168}>7 days</option>
+          </select>
+        </label>
       </div>
       {error && <p style={{ fontSize: 12, color: "#e8a3a3", marginBottom: 10 }}>{error}</p>}
       <div style={{ display: "flex", gap: 10 }}>
-        <button className="btn-gold" style={{ padding: "9px 20px" }} onClick={handleSubmit} disabled={saving}>
+        <button className={`${styles.btn} ${styles["btn-primary"]}`} onClick={handleSubmit} disabled={saving}>
           {saving ? "Publishing…" : "Publish Listing"}
         </button>
-        <button className="btn-ghost" style={{ padding: "9px 20px" }} onClick={onClose}>Cancel</button>
+        <button className={styles.btn} onClick={onClose}>
+          Cancel
+        </button>
       </div>
     </div>
   );

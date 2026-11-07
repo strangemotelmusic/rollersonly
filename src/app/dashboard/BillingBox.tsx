@@ -37,7 +37,7 @@ export default function BillingBox({
   const upgradeOptions = UPGRADE_TIERS.filter((t) => t.id !== currentTier);
 
   return (
-    <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: 24, borderRadius: 2 }}>
+    <div style={{ background: "var(--void)", border: "0.5px solid var(--border-gold)", padding: 24, borderRadius: "var(--radius-sm)" }}>
       <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 16 }}>◆ {tierLabel}</div>
       <div style={{ fontFamily: "var(--ff-display)", fontSize: 20, fontWeight: 300, color: "var(--white)", marginBottom: 8 }}>Your Plan</div>
       <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
@@ -52,7 +52,7 @@ export default function BillingBox({
         <button
           onClick={handleManage}
           disabled={managing}
-          style={{ width: "100%", textAlign: "center", padding: 10, border: "0.5px solid var(--border)", background: "none", color: "var(--muted)", fontSize: 11, borderRadius: 1, letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", marginBottom: upgradeOptions.length > 0 ? 12 : 0 }}
+          style={{ width: "100%", textAlign: "center", padding: 10, border: "0.5px solid var(--border)", background: "none", color: "var(--muted)", fontSize: 11, borderRadius: "var(--radius-sm)", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", marginBottom: upgradeOptions.length > 0 ? 12 : 0 }}
         >
           {managing ? "Opening…" : "Manage Subscription"}
         </button>

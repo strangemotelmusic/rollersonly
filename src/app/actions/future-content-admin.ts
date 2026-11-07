@@ -112,6 +112,19 @@ export async function updateFutureIssue(id: string, formData: FormData): Promise
   return { ok: true };
 }
 
+export async function reorderFutureIssues(orderedIds: string[]): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) => admin.from("future_issues").update({ sort_order: index }).eq("id", id))
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
+  return { ok: true };
+}
+
 export async function deleteFutureIssue(id: string): Promise<{ error: string } | { ok: true }> {
   const gate = await requireAdmin();
   if ("error" in gate) return gate;
@@ -201,6 +214,19 @@ export async function updateFeaturedVideoTitle(id: string, title: string): Promi
 
   const { error } = await admin.from("featured_videos").update({ title: trimmed, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function reorderFeaturedVideos(orderedIds: string[]): Promise<{ error: string } | { ok: true }> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+  const { admin } = gate;
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) => admin.from("featured_videos").update({ sort_order: index }).eq("id", id))
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
   return { ok: true };
 }
 

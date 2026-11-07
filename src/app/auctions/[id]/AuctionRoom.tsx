@@ -143,7 +143,7 @@ export default function AuctionRoom({
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--white)", background: isLive ? "rgba(255,50,50,0.15)" : "rgba(255,255,255,0.08)", border: `0.5px solid ${isLive ? "rgba(255,80,80,0.4)" : "var(--border)"}`, padding: "5px 12px", borderRadius: 2 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--white)", background: isLive ? "rgba(255,50,50,0.15)" : "rgba(255,255,255,0.08)", border: `0.5px solid ${isLive ? "rgba(255,80,80,0.4)" : "var(--border)"}`, padding: "5px 12px", borderRadius: "var(--radius-sm)" }}>
             {isLive && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ff4444", display: "inline-block", animation: "pulse-red 1.5s ease-in-out infinite" }} />}
             {isLive ? "Live Auction" : auction.status}
           </div>
@@ -166,7 +166,7 @@ export default function AuctionRoom({
                     bird?.health_certified ? ["Health Certified", "#2ECC71"] : null,
                   ].filter((x): x is [string, string] => x !== null)
                 ).map(([label, color]) => (
-                  <span key={label} style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 8px", border: `0.5px solid ${color}`, color, borderRadius: 1 }}>{label}</span>
+                  <span key={label} style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 8px", border: `0.5px solid ${color}`, color, borderRadius: "var(--radius-sm)" }}>{label}</span>
                 ))}
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function AuctionRoom({
             </div>
 
             {currentBid >= Number(auction.reserve_price) && (
-              <span style={{ display: "inline-block", fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2ECC71", border: "0.5px solid rgba(46,204,113,0.4)", padding: "3px 10px", borderRadius: 1, marginBottom: 20 }}>Reserve met ✓</span>
+              <span style={{ display: "inline-block", fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2ECC71", border: "0.5px solid rgba(46,204,113,0.4)", padding: "3px 10px", borderRadius: "var(--radius-sm)", marginBottom: 20 }}>Reserve met ✓</span>
             )}
 
             {isBrowseOnly ? (
@@ -231,11 +231,11 @@ export default function AuctionRoom({
               <>
                 <div style={{ marginBottom: 8 }}>
                   <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>Your bid</div>
-                  <input type="number" value={bidInput} onChange={(e) => setBidInput(Number(e.target.value))} style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border-gold)", color: "var(--white)", padding: "12px 16px", fontSize: 18, fontFamily: "var(--ff-display)", fontWeight: 300, borderRadius: 2, outline: "none" }} />
+                  <input type="number" value={bidInput} onChange={(e) => setBidInput(Number(e.target.value))} style={{ width: "100%", background: "var(--deep)", border: "0.5px solid var(--border-gold)", color: "var(--white)", padding: "12px 16px", fontSize: 18, fontFamily: "var(--ff-display)", fontWeight: 300, borderRadius: "var(--radius-sm)", outline: "none" }} />
                   <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>Minimum: ${minBid.toLocaleString()} · Increment: ${Number(auction.bid_increment).toLocaleString()}</div>
                 </div>
 
-                <button onClick={() => setShowConfirm(true)} style={{ width: "100%", background: "var(--gold)", color: "var(--black)", border: "none", padding: 16, fontSize: 14, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", borderRadius: 2, marginTop: 12, transition: "all 0.2s" }}>
+                <button onClick={() => setShowConfirm(true)} style={{ width: "100%", background: "var(--gold)", color: "var(--black)", border: "none", padding: 16, fontSize: 14, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer", borderRadius: "var(--radius-sm)", marginTop: 12, transition: "all 0.2s" }}>
                   Place Bid
                 </button>
                 <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 10, textAlign: "center" }}>5% platform commission · Escrow protected</div>
@@ -275,15 +275,15 @@ export default function AuctionRoom({
       {/* CONFIRM MODAL */}
       {showConfirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "0 16px" }}>
-          <div style={{ background: "var(--deep)", border: "0.5px solid var(--border-gold)", padding: 40, borderRadius: 2, maxWidth: 420, width: "100%" }}>
+          <div style={{ background: "var(--deep)", border: "0.5px solid var(--border-gold)", padding: 40, borderRadius: "var(--radius-sm)", maxWidth: 420, width: "100%" }}>
             <div style={{ fontFamily: "var(--ff-display)", fontSize: 28, fontWeight: 300, color: "var(--white)", marginBottom: 12 }}>Confirm Bid</div>
             <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.7, marginBottom: 20 }}>
               You are placing a bid of <strong style={{ color: "var(--gold)" }}>${bidInput.toLocaleString()}</strong> on {bird?.name || auction.title}. Your payment will be held in escrow until you confirm arrival and condition.
             </p>
-            {bidError && <div style={{ color: "#E74C3C", fontSize: 13, marginBottom: 16, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: 2, border: "0.5px solid rgba(231,76,60,0.3)" }}>{bidError}</div>}
+            {bidError && <div style={{ color: "#E74C3C", fontSize: 13, marginBottom: 16, padding: "10px 14px", background: "rgba(231,76,60,0.08)", borderRadius: "var(--radius-sm)", border: "0.5px solid rgba(231,76,60,0.3)" }}>{bidError}</div>}
             <div style={{ display: "flex", gap: 12 }}>
               <button onClick={() => { setShowConfirm(false); setBidError(""); }} className="btn-ghost" style={{ flex: 1 }}>Cancel</button>
-              <button onClick={handleConfirmBid} disabled={placingBid} style={{ flex: 1, background: "var(--gold)", color: "var(--black)", border: "none", padding: 14, fontSize: 13, fontWeight: 700, cursor: "pointer", borderRadius: 2 }}>
+              <button onClick={handleConfirmBid} disabled={placingBid} style={{ flex: 1, background: "var(--gold)", color: "var(--black)", border: "none", padding: 14, fontSize: 13, fontWeight: 700, cursor: "pointer", borderRadius: "var(--radius-sm)" }}>
                 {placingBid ? "Placing…" : "Confirm Bid"}
               </button>
             </div>

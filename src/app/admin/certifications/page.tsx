@@ -45,7 +45,7 @@ export default async function AdminCertificationsPage() {
             <p style={{ fontSize: 14, color: "var(--muted)" }}>No pending requests.</p>
           ) : (
             withEligibility.map(({ bird, eligibility }) => (
-              <div key={bird.id} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 24, marginBottom: 16 }}>
+              <div key={bird.id} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 24, marginBottom: 16 }}>
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 18, color: "var(--white)" }}>{bird.name || "Unnamed bird"}</div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>

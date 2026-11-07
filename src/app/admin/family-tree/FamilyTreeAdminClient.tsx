@@ -37,12 +37,12 @@ type PairRow = {
   status: string;
 };
 
-const card: React.CSSProperties = { background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, padding: 20 };
+const card: React.CSSProperties = { background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 20 };
 const statLabel: React.CSSProperties = { fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 6 };
 const statValue: React.CSSProperties = { fontSize: 28, fontWeight: 300, fontFamily: "var(--ff-display)", color: "var(--white)" };
 const th: React.CSSProperties = { textAlign: "left", fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)", padding: "10px 12px", borderBottom: "0.5px solid var(--border)" };
 const td: React.CSSProperties = { fontSize: 13, color: "var(--white)", padding: "10px 12px", borderBottom: "0.5px solid var(--border)" };
-const deleteBtn: React.CSSProperties = { background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", borderRadius: 2, padding: "4px 10px", fontSize: 12, cursor: "pointer" };
+const deleteBtn: React.CSSProperties = { background: "transparent", border: "0.5px solid var(--border)", color: "var(--muted)", borderRadius: "var(--radius-sm)", padding: "4px 10px", fontSize: 12, cursor: "pointer" };
 
 export default function FamilyTreeAdminClient({
   stats,
@@ -149,7 +149,7 @@ export default function FamilyTreeAdminClient({
           style={{
             padding: "8px 18px",
             fontSize: 13,
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             cursor: "pointer",
             background: tab === "birds" ? "var(--gold)" : "transparent",
             color: tab === "birds" ? "var(--black)" : "var(--muted)",
@@ -163,7 +163,7 @@ export default function FamilyTreeAdminClient({
           style={{
             padding: "8px 18px",
             fontSize: 13,
-            borderRadius: 2,
+            borderRadius: "var(--radius-sm)",
             cursor: "pointer",
             background: tab === "pairs" ? "var(--gold)" : "transparent",
             color: tab === "pairs" ? "var(--black)" : "var(--muted)",
@@ -190,7 +190,7 @@ export default function FamilyTreeAdminClient({
               color: "var(--white)",
               padding: "9px 12px",
               fontSize: 13,
-              borderRadius: 2,
+              borderRadius: "var(--radius-sm)",
               outline: "none",
               marginBottom: 16,
             }}

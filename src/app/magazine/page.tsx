@@ -51,7 +51,7 @@ export default async function MagazinePage() {
                   <Link
                     key={issue.id}
                     href={`/magazine/${issue.id}`}
-                    style={{ textDecoration: "none", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden", display: "block" }}
+                    style={{ textDecoration: "none", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden", display: "block" }}
                   >
                     <div style={{ position: "relative", height: 280, background: "var(--void)" }}>
                       {issue.cover_image_url && <Image src={issue.cover_image_url} alt={issue.title} fill style={{ objectFit: "cover" }} />}
@@ -103,7 +103,7 @@ export default async function MagazinePage() {
           {!latest ? (
             <p style={{ fontSize: 14, color: "var(--muted)" }}>No issues published yet — check back soon.</p>
           ) : (
-            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
               {latest.cover_image_url && (
                 <div style={{ position: "relative", height: 320 }}>
                   <Image src={latest.cover_image_url} alt={latest.title} fill style={{ objectFit: "cover" }} />

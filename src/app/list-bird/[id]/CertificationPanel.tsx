@@ -33,7 +33,7 @@ export default function CertificationPanel({
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: 2, padding: 24, marginTop: 32 }}>
+    <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-sm)", padding: 24, marginTop: 32 }}>
       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 14 }}>
         Rollers Only Certified
       </div>

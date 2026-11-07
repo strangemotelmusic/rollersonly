@@ -89,12 +89,12 @@ export default function AuctionChat({
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder={currentUserId ? "Say something…" : "Sign in to chat"}
           disabled={!currentUserId}
-          style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: 2, outline: "none" }}
+          style={{ flex: 1, background: "var(--surface)", border: "none", color: "var(--white)", padding: "10px 14px", fontSize: 13, borderRadius: "var(--radius-sm)", outline: "none" }}
         />
         <button
           onClick={handleSend}
           disabled={!currentUserId || sending}
-          style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 2, opacity: !currentUserId ? 0.5 : 1 }}
+          style={{ background: "var(--gold)", color: "var(--black)", border: "none", padding: "10px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: "var(--radius-sm)", opacity: !currentUserId ? 0.5 : 1 }}
         >
           Send
         </button>
