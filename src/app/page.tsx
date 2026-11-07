@@ -77,8 +77,8 @@ export default async function Home() {
           <div className={styles["hero-copy"]}>
             <div className={styles.eyebrow}>Bringing the entire pigeon world to one place</div>
             <h1>
-              ONE WORLD.
-              <span>ALL ROLLERS.</span>
+              THE ROLLER PIGEON WORLD, RIGHT HERE.
+              <span>ONLY ROLLERS.</span>
             </h1>
             <p className={styles["hero-description"]}>
               The next generation of the roller pigeon community. Discover birds, explore bloodlines, and connect
