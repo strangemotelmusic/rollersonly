@@ -25,3 +25,22 @@
 .card-picture>a{position:relative;z-index:1}.card-picture img{object-fit:contain;object-position:center;padding:8px 0}.card-tags{z-index:2}.lot-image-frame>img{position:relative;z-index:1;object-fit:contain;object-position:center;padding:17px}.lot-image-frame>.pill{z-index:2}.pedigree-root img,.compare-table img{object-fit:contain;background:var(--photo-bg)}.hero-coordinate{left:10%;right:auto;top:6%;text-align:left}.primary-nav>a,.more-wrap>button{font-size:13px}
 @media(max-width:1220px){.primary-nav>a,.more-wrap>button{font-size:11px}.hero-coordinate{left:8%;right:auto;top:6%}}
 @media(max-width:760px){.hero-coordinate{left:5%;right:auto;top:9%;font-size:7px}.mobile-dock a,.mobile-dock button{font-size:9px}.lot-image-frame>img{padding:11px}.card-picture img{padding:8px 0}}
+
+/* ── MOTION — shared across every page that imports PreviewTheme.module.css ──
+   Spring-feel hover lifts on cards/panels/pathways; ambient rotation on the
+   hero orbitals; tilt is pointer-gated inside <TiltCard> itself (mouse only),
+   reserved for 1-2 focal elements per view per ui-ux-pro-max guidance. */
+.pathway{transition:background .2s,transform .25s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.pathway:hover{transform:translateY(-2px)}}
+.auction-card{transition:transform .25s var(--ease-out),border-color .25s,box-shadow .25s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.auction-card:hover{transform:translateY(-5px);box-shadow:0 20px 40px -14px rgba(0,0,0,.5)}}
+.feature-panel{transition:transform .3s var(--ease-out),box-shadow .3s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.feature-panel:hover{transform:translateY(-4px);box-shadow:0 24px 50px -16px rgba(0,0,0,.5)}}
+.btn{transition:background .2s,transform .2s var(--ease-out),border-color .2s}
+.btn:active{transform:scale(.97)}
+.orbital{animation:orbitSpin 60s linear infinite}
+.orbit-2{animation:orbitSpinRev 46s linear infinite}
+@keyframes orbitSpin{from{transform:rotate(-28deg)}to{transform:rotate(332deg)}}
+@keyframes orbitSpinRev{from{transform:rotate(30deg) scaleX(.82)}to{transform:rotate(-330deg) scaleX(.82)}}
+@media (prefers-reduced-motion: reduce){.orbital,.orbit-2{animation:none}}
+.tilt-perspective{perspective:900px}
