@@ -388,3 +388,8 @@
   letter-spacing: 0.08em;
   color: var(--gold-dim);
 }
+.thanks {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: var(--gold-light);
+  font-size: 1.15rem;
+}

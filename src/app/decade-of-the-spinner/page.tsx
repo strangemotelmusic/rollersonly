@@ -1,14 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import ReserveForm from "./ReserveForm";
+import BuyForm from "./BuyForm";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "Decade of the Spinner — The Magazine for Real Kits & Real Breaks",
 };
 
-export default function DecadeOfTheSpinnerPage() {
+export default async function DecadeOfTheSpinnerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
+  const { checkout } = await searchParams;
+
   return (
     <div className={styles.landing}>
       <nav className={styles.nav}>
@@ -24,7 +30,7 @@ export default function DecadeOfTheSpinnerPage() {
             <a href="#inside">Inside the Loft</a>
             <a href="#cover-story">Cover Story</a>
             <a href="#pillars">Our Values</a>
-            <a href="#subscribe">Subscribe</a>
+            <a href="#subscribe">Buy Issue 1</a>
           </div>
           <a className={styles.navCta} href="#subscribe">
             Get Issue 1
@@ -53,7 +59,7 @@ export default function DecadeOfTheSpinnerPage() {
           />
         </div>
         <div className={styles.coverCtaHint}>
-          <a href="#subscribe">Scroll to reserve Issue 1 ↓</a>
+          <a href="#subscribe">Buy Issue 1 — from $45 shipped ↓</a>
         </div>
       </header>
 
@@ -139,11 +145,21 @@ export default function DecadeOfTheSpinnerPage() {
           />
           <h2>Claim Volume 1, Issue 1</h2>
           <p>
-            Celebrating legacy, unity and passion — reserve the 2027 limited-edition debut issue of Decade of the
+            Celebrating legacy, unity and passion — order the 2027 limited-edition debut issue of Decade of the
             Spinner before it leaves the loft.
           </p>
-          <ReserveForm />
-          <div className={styles.fine}>Ships Spring 2027 · Limited print run</div>
+          {checkout === "success" ? (
+            <p className={styles.thanks}>
+              Order confirmed — thank you. Your copy of Issue 1 ships Spring 2027. A receipt is on its way to your
+              email.
+            </p>
+          ) : (
+            <>
+              {checkout === "cancelled" && <p className={styles.fine}>Checkout cancelled — no charge was made.</p>}
+              <BuyForm />
+            </>
+          )}
+          <div className={styles.fine}>Shipping included · US delivery · Ships Spring 2027 · Limited print run</div>
         </div>
       </section>
 

@@ -1357,6 +1357,40 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["dots_bird_orders"]["Insert"]>;
         Relationships: [];
       };
+      magazine_orders: {
+        Row: {
+          id: string;
+          stripe_session_id: string;
+          issue: string;
+          edition: string;
+          quantity: number | null;
+          customer_email: string | null;
+          customer_name: string | null;
+          phone: string | null;
+          shipping_address: Json | null;
+          amount_total_cents: number | null;
+          status: string;
+          shipped_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          stripe_session_id: string;
+          issue?: string;
+          edition?: string;
+          quantity?: number | null;
+          customer_email?: string | null;
+          customer_name?: string | null;
+          phone?: string | null;
+          shipping_address?: Json | null;
+          amount_total_cents?: number | null;
+          status?: string;
+          shipped_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["magazine_orders"]["Insert"]>;
+        Relationships: [];
+      };
       chat_conversations: {
         Row: {
           id: string;

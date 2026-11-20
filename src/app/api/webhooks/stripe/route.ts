@@ -19,6 +19,28 @@ async function fulfillDotsBirdOrder(session: Stripe.Checkout.Session) {
     .eq("stripe_session_id", session.id);
 }
 
+async function recordMagazineOrder(session: Stripe.Checkout.Session) {
+  const admin = createAdminClient();
+  const shipping = session.collected_information?.shipping_details;
+  const { error } = await admin.from("magazine_orders").upsert(
+    {
+      stripe_session_id: session.id,
+      issue: session.metadata?.issue ?? "vol1-issue1",
+      edition: session.metadata?.edition ?? "standard",
+      quantity: session.metadata?.quantity ? Number(session.metadata.quantity) : null,
+      customer_email: session.customer_details?.email ?? null,
+      customer_name: shipping?.name ?? session.customer_details?.name ?? null,
+      phone: session.customer_details?.phone ?? null,
+      shipping_address: shipping?.address ? { ...shipping.address } : null,
+      amount_total_cents: session.amount_total,
+      status: "paid",
+    },
+    { onConflict: "stripe_session_id" }
+  );
+  // Stripe still has the full order + address if this insert fails.
+  if (error) console.error("magazine_orders insert failed", session.id, error.message);
+}
+
 async function notifyMatchmakingParties(params: {
   requesterEmail: string | null;
   sireOwnerId: string;
@@ -190,6 +212,8 @@ export async function POST(request: NextRequest) {
         await fulfillDotsBirdOrder(session);
       } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.sire_bird_id) {
         await fulfillMatchmakingReservation(session);
+      } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.type === "magazine_order") {
+        await recordMagazineOrder(session);
       } else if (session.payment_status === "paid" && session.mode === "payment" && session.metadata?.type === "auction_payment") {
         await fulfillAuctionPayment(session);
       }

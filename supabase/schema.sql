@@ -443,3 +443,21 @@ create trigger chat_message_push_notification
 after insert on chat_messages
 for each row
 execute function notify_new_chat_message();
+
+-- Decade of the Spinner print orders (written by the Stripe webhook via service role)
+create table if not exists magazine_orders (
+  id uuid primary key default gen_random_uuid(),
+  stripe_session_id text unique not null,
+  issue text not null default 'vol1-issue1',
+  edition text not null default 'standard',
+  quantity integer,
+  customer_email text,
+  customer_name text,
+  phone text,
+  shipping_address jsonb,
+  amount_total_cents integer,
+  status text not null default 'paid',
+  shipped_at timestamptz,
+  created_at timestamptz not null default now()
+);
+alter table magazine_orders enable row level security;

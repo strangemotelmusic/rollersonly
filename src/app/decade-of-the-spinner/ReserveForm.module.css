@@ -56,3 +56,75 @@
   font-size: 0.85rem;
   color: #e8a3a3;
 }
+.editions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto 18px;
+}
+.edition {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 12px;
+  background: transparent;
+  border: 1px solid #8a6d2f;
+  color: #d9cdae;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.edition:hover:not(:disabled) {
+  border-color: #c9a24b;
+}
+.editionOn {
+  border-color: #eccf83;
+  background: rgba(201, 162, 75, 0.12);
+  box-shadow: inset 0 0 0 1px #eccf83;
+}
+.editionName {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.editionPrice {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 2.2rem;
+  color: #eccf83;
+  line-height: 1.1;
+}
+.editionNote {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8a6d2f;
+}
+.qty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d9cdae;
+}
+.qty select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f3ead6;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 1.1rem;
+  padding: 14px 0;
+  outline: none;
+  cursor: pointer;
+}
+.qty select option {
+  color: #0b0908;
+}
