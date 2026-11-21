@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { hasMagazineAccess, excerptContent } from "@/lib/magazine";
+import MagazineShelf from "./MagazineShelf";
 
 export default async function MagazinePage() {
   const supabase = await createClient();
@@ -24,14 +25,14 @@ export default async function MagazinePage() {
   if (hasAccess) {
     const { data: issues } = await admin
       .from("magazine_issues")
-      .select("id, issue_number, title, description, cover_image_url, published_at")
+      .select("id, issue_number, title, description, cover_image_url, pdf_url, published_at")
       .order("issue_number", { ascending: false });
 
     return (
       <>
         <Nav active="/magazine" />
         <div style={{ paddingTop: 72, background: "var(--black)", minHeight: "100vh" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 32px" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 16px" }}>
             <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 14 }}>
               Member Publication
             </p>
@@ -43,30 +44,12 @@ export default async function MagazinePage() {
               Elite Loft membership.
             </p>
 
-            {!issues || issues.length === 0 ? (
-              <p style={{ fontSize: 14, color: "var(--muted)" }}>No issues published yet — check back soon.</p>
-            ) : (
-              <div className="rs-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-                {issues.map((issue) => (
-                  <Link
-                    key={issue.id}
-                    href={`/magazine/${issue.id}`}
-                    style={{ textDecoration: "none", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden", display: "block" }}
-                  >
-                    <div style={{ position: "relative", height: 280, background: "var(--void)" }}>
-                      {issue.cover_image_url && <Image src={issue.cover_image_url} alt={issue.title} fill style={{ objectFit: "cover" }} />}
-                    </div>
-                    <div style={{ padding: 20 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>
-                        Issue #{issue.issue_number}
-                      </div>
-                      <div style={{ fontSize: 16, color: "var(--white)", marginBottom: 6 }}>{issue.title}</div>
-                      {issue.description && <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>{issue.description}</div>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+            {profile?.is_admin && (
+              <Link href="/admin/magazine" className="btn-gold" style={{ padding: "10px 22px", display: "inline-block", marginBottom: 32 }}>
+                + Upload a new issue
+              </Link>
             )}
+            <MagazineShelf issues={issues ?? []} />
           </div>
         </div>
         <Footer />
